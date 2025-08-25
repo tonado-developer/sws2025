@@ -1,0 +1,105 @@
+.wp-block-sws2025-image-columns{
+    padding: 40px 0;
+    container{
+        display: grid;
+        gap: 40px;
+    }
+    .columns-2{
+        grid-template-columns: repeat(2,minmax(0px,1fr));
+    }
+    .columns-3{
+        grid-template-columns: repeat(3,minmax(0px,1fr));
+    }
+    .columns-4{
+        grid-template-columns: repeat(4,minmax(0px,1fr));
+    }
+    .kachel-text-reveal{
+        aspect-ratio: 1;
+        width: 100%;
+        position: relative;
+        border-radius: 6%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        transition: all 300ms ease;
+        overflow: hidden;
+        &:hover{
+            .text-to-reveal{
+                grid-template-rows: minmax(0px,1fr);
+            }
+        }
+        &:after{
+            content: " ";
+            position: absolute;
+            background: #ffcd29;
+            background: -webkit-linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
+            background: -moz-linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
+            background: linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#FFCD29", endColorstr="#FF6920", GradientType=0);
+            width: 100%;
+            aspect-ratio: 1;
+            top: 0;
+            border-radius: 6%;
+        }
+        &:before{
+            content: " ";
+            position: absolute;
+            background-color: #fff;
+            width: 60%;
+            aspect-ratio: 1;
+            border-radius: 14%;
+            z-index: 1;
+        }
+        &.right:before{
+            transform: translate(75%, 0%);
+        }
+        &.bottom:before{
+            transform: translate(0%, 75%);
+        }
+        &.left:before{
+            transform: translate(-75%, 0%);
+        }
+        &.top:before{
+            transform: translate(0%, -75%);
+        }
+    }
+    figure,img{
+        height: 100%;
+        width: 100%;
+        aspect-ratio: 1;
+        display: block;
+        object-fit: cover;
+        margin: unset;
+        position: relative;
+        z-index: 1;
+    }
+    figure{
+        height: calc(100% - 8px);
+        width: auto;
+        border-radius: 6%;
+        overflow: hidden;
+    }
+    .text-to-reveal{
+        position: absolute;
+        bottom: 0;
+        display: grid;
+        grid-template-rows: minmax(0px,0fr);
+        background-color: #FF6920;
+        transition: all 300ms ease;
+        width: 100%;
+        border-radius: 30px;
+        text-align: center;
+        box-sizing: border-box;
+        z-index: 1;
+        overflow: clip;
+        div{
+            padding: 12px;
+        }
+    }
+    p,h3{
+        margin: unset;
+        margin-bottom: 6px;
+    }
+}
