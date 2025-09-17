@@ -1,0 +1,135 @@
+.wp-block-sws2025-tabs-big{
+    padding: 40px 0;
+    .tabContainer{
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        position: relative;
+        padding-left: 20px;
+        &:before{
+            content: " ";
+            background-color: lightgrey;
+            height: 100%;
+            border-radius: 30px;
+            position: absolute;
+            left: calc((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size))/2);
+            right: calc((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size))/2);
+        }
+    }
+    .tabNavigation{
+        display: grid;
+        gap: 10px;
+        padding: 20px;
+        background-color: white;
+        border-radius: 30px;
+
+        position: relative;
+        z-index: 1;
+    }
+    .button{
+        @include button;
+        &:not(.current){
+            background-color: rgb(66, 66, 66);
+        }
+    }
+    .tabPane{
+        display: none;
+        height: 100%;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        position: relative;
+        &.open{
+            display: block;
+        }
+    }
+    
+    .tabWrap{
+        display: grid;
+        grid-template-rows: minmax(0px,1fr);
+        transition: all 600ms ease;
+        overflow: hidden;
+        opacity: 0;
+        padding: 40px;
+        padding-right: 60px;
+        clip-path: polygon(0 0, 0% 0, 0% 100%, 0% 100%);
+        &.open{
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+            grid-template-rows: minmax(0px,1fr);
+            opacity: 1;
+        }
+    }
+    figure{
+        width: 300px;
+        float: right;
+        margin: 20px;
+        margin-right: 0px;
+
+        grid-row: 1;
+        aspect-ratio: 4/3;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        transition: all 300ms ease;
+        overflow: hidden;
+        img{
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            overflow: hidden;
+            z-index: 1;
+        }
+    }
+    .has_border{
+        figure{
+            img{
+                height: calc(100% - 8px);
+                width: calc(100% - 8px);
+            }
+            &:after{
+                content: " ";
+                position: absolute;
+                background: #ffcd29;
+                background: -webkit-linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
+                background: -moz-linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
+                background: linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
+                filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#FFCD29", endColorstr="#FF6920", GradientType=0);
+                width: 100%;
+                aspect-ratio: 1;
+                top: 0;
+            }
+            &:before{
+                content: " ";
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                box-sizing: border-box;
+            }
+        }
+    }
+    .opening-right figure::before{
+        border-right: solid $imageBorderWidth white;
+        height: $openingSize;
+    }
+    .opening-bottom figure::before{
+        border-bottom: solid $imageBorderWidth white;
+        width: $openingSize;
+    }
+    .opening-left figure::before{
+        border-left: solid $imageBorderWidth white;
+        height: $openingSize;
+    }
+    .opening-top figure::before{
+        border-top: solid $imageBorderWidth white;
+        width: $openingSize;
+    }
+    .is_rounded{
+        figure,img,figure::after{
+            border-radius: 6%;
+        }
+    }
+}

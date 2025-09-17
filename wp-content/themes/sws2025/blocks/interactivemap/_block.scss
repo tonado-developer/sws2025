@@ -1,0 +1,461 @@
+/**
+ * Interactive Map Block Styles
+ * Vollständig barrierefrei und responsive
+ */
+
+/* Base Container */
+
+.wp-block-interactive-map[data-align="wide"] {
+    margin-left: calc(25% - 25vw);
+    margin-right: calc(25% - 25vw);
+}
+
+.wp-block-interactive-map[data-align="full"] {
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+}
+
+/* Skip Link (Screen Reader) */
+.skip-link {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.skip-link:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 10px 15px;
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    z-index: 100000;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+/* Map Container */
+.map-container {
+    position: relative;
+    background: #f5f5f5;
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 300px;
+}
+
+/* Consent Overlay */
+.map-consent-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.consent-content {
+    text-align: center;
+    padding: 2rem;
+    max-width: 500px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.consent-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    filter: grayscale(0.2);
+}
+
+.consent-content p {
+    margin: 0 0 1.5rem 0;
+    color: #2c3e50;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Load Map Button */
+.load-map-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.load-map-btn:hover:not(:disabled) {
+    background: #5a67d8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.load-map-btn:focus {
+    outline: 3px solid #764ba2;
+    outline-offset: 2px;
+}
+
+.load-map-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Leaflet Map */
+.leaflet-map {
+    width: 100%;
+    height: 100%;
+    outline: none;
+}
+
+.leaflet-map.map-focused {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
+}
+
+/* Custom Map Controls */
+.custom-map-controls {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.custom-map-controls a {
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    background: white;
+    border-bottom: 1px solid #ddd;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.custom-map-controls a:last-child {
+    border-bottom: none;
+}
+
+.custom-map-controls a:hover {
+    background: #f4f4f4;
+    color: #000;
+}
+
+.custom-map-controls a:focus {
+    outline: 2px solid #667eea;
+    outline-offset: -2px;
+    background: #f0f0f0;
+}
+
+.custom-map-controls a:active {
+    background: #e0e0e0;
+}
+
+/* Custom Popup Styles */
+.leaflet-popup .custom-popup .leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+}
+
+.custom-popup .leaflet-popup-content {
+    margin: 13px 19px;
+    line-height: 1.5;
+}
+
+.custom-popup strong {
+    color: #2c3e50;
+    font-size: 1.1em;
+    display: block;
+    margin-bottom: 0.5em;
+}
+
+.custom-popup small {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* Textuelle Alternative */
+.map-text-alternative {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.map-text-alternative summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #495057;
+    padding: 0.5rem;
+    user-select: none;
+}
+
+.map-text-alternative summary:hover {
+    color: #212529;
+}
+
+.map-text-alternative summary:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+.map-text-alternative[open] summary {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.location-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.location-list li {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.location-list li:last-child {
+    margin-bottom: 0;
+}
+
+.location-list strong {
+    color: #2c3e50;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .map-container {
+        border-radius: 4px;
+    }
+    
+    .consent-content {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .consent-icon {
+        font-size: 3rem;
+    }
+    
+    .load-map-btn {
+        padding: 10px 24px;
+        font-size: 0.9rem;
+    }
+    
+    .custom-map-controls a {
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .consent-content {
+        padding: 1rem;
+    }
+    
+    .consent-content p {
+        font-size: 0.9rem;
+    }
+    
+    .custom-map-controls {
+        transform: scale(0.9);
+        transform-origin: top left;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .map-container {
+        background: #1a1a1a;
+    }
+    
+    .map-consent-overlay {
+        background: linear-gradient(135deg, #434343 0%, #000000 100%);
+    }
+    
+    .consent-content {
+        background: rgba(30, 30, 30, 0.95);
+    }
+    
+    .consent-content p {
+        color: #e0e0e0;
+    }
+    
+    .load-map-btn {
+        background: #4a5568;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .load-map-btn:hover:not(:disabled) {
+        background: #2d3748;
+    }
+    
+    .map-text-alternative {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .map-text-alternative summary {
+        color: #cbd5e0;
+    }
+    
+    .location-list li {
+        background: #1a202c;
+        border-color: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    .location-list strong {
+        color: #f7fafc;
+    }
+    
+    /* Leaflet Dark Mode Overrides */
+    .leaflet-control-attribution {
+        background: rgba(0, 0, 0, 0.8) !important;
+        color: #aaa !important;
+    }
+    
+    .leaflet-control-attribution a {
+        color: #0078A8 !important;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .map-container {
+        border: 2px solid black;
+    }
+    
+    .load-map-btn {
+        border: 2px solid black;
+        background: white;
+        color: black;
+    }
+    
+    .load-map-btn:hover:not(:disabled) {
+        background: black;
+        color: white;
+    }
+    
+    .custom-map-controls a {
+        border: 2px solid black;
+    }
+    
+    .custom-map-controls a:hover {
+        background: black;
+        color: white;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .load-map-btn,
+    .custom-map-controls a {
+        transition: none;
+    }
+    
+    .load-map-btn:hover:not(:disabled) {
+        transform: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .map-container {
+        page-break-inside: avoid;
+    }
+    
+    .map-consent-overlay {
+        display: none !important;
+    }
+    
+    .leaflet-map::after {
+        content: "Interaktive Karte - siehe Online-Version";
+        display: block;
+        padding: 2rem;
+        text-align: center;
+        background: #f0f0f0;
+        border: 1px solid #333;
+    }
+    
+    .custom-map-controls {
+        display: none;
+    }
+    
+    .map-text-alternative {
+        page-break-inside: avoid;
+    }
+    
+    .map-text-alternative[open] {
+        display: block !important;
+    }
+}
+
+/* WordPress Editor Specific */
+.block-editor .map-container {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.block-editor .map-consent-overlay {
+    background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+}
+
+/* Loading State */
+.map-container.loading::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Error State */
+.map-container.error {
+    background: #fee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c00;
+}
+
+.map-container.error::before {
+    content: "⚠ Karte konnte nicht geladen werden";
+    font-weight: bold;
+    padding: 1rem;
+}

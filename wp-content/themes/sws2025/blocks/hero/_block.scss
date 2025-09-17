@@ -1,0 +1,36 @@
+.wp-block-sws2025-hero{
+    max-height: 100vh;
+    position: relative;
+    padding: 20px;
+    text-align: center;
+    overflow: hidden;
+    .imageWrap,img{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        margin: unset;
+        display: block;
+        top: 0;
+        left: 0;
+        object-fit: cover;
+    }
+    &.heightBig {
+        height: 70vh;
+    }
+    &.heightMedium {
+        height: 50vh;
+    }
+    &.heightSmall {
+        height: 30vh;
+    }
+    &.borderRadiusFalse {
+        border-radius: unset;
+    }
+    &.borderRadiusTrue {
+        border-radius: 40px;
+    }
+    h1{
+        position: relative;
+        z-index: 1;
+    }
+}

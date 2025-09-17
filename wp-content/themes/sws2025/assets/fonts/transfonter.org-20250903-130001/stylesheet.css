@@ -1,0 +1,18 @@
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('SourceSansPro-Regular.woff2') format('woff2'),
+        url('SourceSansPro-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Zekton Hv';
+    src: url('ZektonHv-Regular.woff2') format('woff2'),
+        url('ZektonHv-Regular.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+

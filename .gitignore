@@ -1,0 +1,25 @@
+/.vscode/
+
+# WordPress Core Files
+/wp-admin/
+/wp-includes/
+/wp-*.php
+/xmlrpc.php
+/readme.html
+/license.txt
+
+# Config & Uploads
+wp-config.php
+/wp-content/uploads/
+/wp-content/upgrade/
+
+# Plugins (außer custom)
+/wp-content/plugins/
+!/wp-content/plugins/your-custom-plugin/
+
+# Themes (außer custom)  
+/wp-content/themes/twenty*/
+!/wp-content/themes/your-theme/
+
+# Composer
+/vendor/
