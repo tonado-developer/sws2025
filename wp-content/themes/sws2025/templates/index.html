@@ -1,6 +1,14 @@
 <!-- wp:template-part {"slug":"header"} /-->
-<!-- wp:group {"tagName":"main"} -->
-<main class="wp-block-group">
-    <!-- wp:template-part {"slug":"container","tagName":"div"} /-->
+<!-- wp:template-part {"slug":"static-background","tagName":"div","className":"backgroundWrap"} /-->
+
+<!-- wp:group {"tagName":"main","className":"subpage"} -->
+<main class="wp-block-group subpage">
+    <!-- wp:group {"tagName":"container","className":"card"} -->
+    <container class="card wp-block-group">
+        <!-- wp:post-content /-->
+         <!-- wp:template-part {"slug":"footer"} /-->
+    </container>
+    <!-- /wp:group -->
+
 </main>
 <!-- /wp:group -->

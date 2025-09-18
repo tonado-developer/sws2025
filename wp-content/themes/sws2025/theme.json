@@ -309,6 +309,11 @@
                     "fontFamily": "var:preset|font-family|zekton-hv",
                     "lineHeight": "140%"
                 }
+            },
+            "link": {
+                "color": {
+                    "text": "var:preset|color|accent-1"
+                }
             }
         },
         "blocks": {

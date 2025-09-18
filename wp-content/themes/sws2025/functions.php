@@ -313,3 +313,31 @@ function create_custom_menu_taxonomy()
     );
 }
 add_action('init', 'create_custom_menu_taxonomy');
+
+add_action('enqueue_block_editor_assets', function () {
+    wp_enqueue_script(
+        'custom-social-icons',
+        get_template_directory_uri() . '/assets/js/social-icons.js',
+        ['wp-blocks', 'wp-element', 'wp-dom-ready'],
+        wp_get_theme()->get('Version'),
+        true
+    );
+});
+
+// Frontend rendering mit CSS masks
+add_filter('render_block_core/social-link', function ($block_content, $block) {
+    $service = $block['attrs']['service'] ?? '';
+
+    $custom_services = ['linkedin', 'instagram', 'xing'];
+
+    if (in_array($service, $custom_services)) {
+        // SVG durch leeren Span ersetzen und custom class hinzufügen
+        $block_content = preg_replace(
+            '/(<a[^>]*class="[^"]*)(")([^>]*>)<svg.*?<\/svg>/s',
+            '$1 custom-' . $service . '$2$3<span class="custom-social-icon"></span>',
+            $block_content
+        );
+    }
+
+    return $block_content;
+}, 10, 2);
