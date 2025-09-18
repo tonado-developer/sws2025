@@ -46,6 +46,8 @@ class SliderController {
         
         // Bind events
         this.bindEvents();
+
+        
     }
     
     bindEvents() {
@@ -262,12 +264,16 @@ const SliderDebug = {
     }
 };
 
-// Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize sliders - works for both initial load and dynamic content
+function initSliders() {
     const sliders = document.querySelectorAll('.wp-block-sws2025-slider');
     
     sliders.forEach(container => {
+        // Skip if already initialized
+        if (container._sliderInitialized) return;
+        
         const instance = new SliderController(container);
+        container._sliderInitialized = true;
         
         // Store for debug access
         if (SliderDebug.active) {
@@ -276,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Expose debug utilities
-    if (SliderDebug.active) {
+    if (SliderDebug.active && !window.sliderDebug) {
         window.sliderDebug = SliderDebug;
         console.log('🎮 Debug Commands:');
         console.log('  sliderDebug.disable() - Debug ausschalten');
@@ -284,4 +290,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('  sliderDebug.stopAll() - Alle Slider stoppen');
         console.log('  sliderDebug.status() - Status aller Slider');
     }
-});
+}
+
+// Initialize on DOM ready OR immediately if DOM already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSliders);
+} else {
+    initSliders();
+}
+
+// Also initialize when overlay content is loaded
+document.addEventListener('wpOverlayContentReady', initSliders);

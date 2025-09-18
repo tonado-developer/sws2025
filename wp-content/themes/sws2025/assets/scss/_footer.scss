@@ -3,6 +3,9 @@ footer {
         margin: unset;
     }
 
+    &.is-hidden{
+        display: none;
+    }
     container:first-of-type {
         padding: unset;
         display: grid;
@@ -16,7 +19,7 @@ footer {
             width: 150px;
             height: 100%;
             transform-origin: top;
-            transform: scale(1.003);
+            transform: scale(1.02);
         }
 
         &:before {

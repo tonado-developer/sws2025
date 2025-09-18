@@ -1926,8 +1926,13 @@ class ScrollExtension {
 
         // Listen for wheel events
         const handleWheel = (e) => {
+            // Check if overlay is open - NEW CHECK
+            if (this.isOverlayOpen()) {
+                return;
+            }
+
             e.preventDefault();
-            console.log("handleWheel", { 1: this.mapper.state.zooming })
+            
             if (this.mapper.state.zooming) return;
 
             const now = Date.now();
@@ -1940,14 +1945,12 @@ class ScrollExtension {
 
             scrollAccumulator += e.deltaY;
             lastScrollTime = now;
-            console.log("handleWheel true")
+            
             // Trigger animation when threshold reached
             if (Math.abs(scrollAccumulator) > this.config.scrollSensitivity) {
                 if (scrollAccumulator > 0) {
-                    console.log("nextMarker")
                     this.nextMarker();
                 } else {
-                    console.log("previousMarker")
                     this.previousMarker();
                 }
                 scrollAccumulator = 0;
@@ -1963,13 +1966,19 @@ class ScrollExtension {
         console.log('Simple animation mode initialized');
     }
 
+
     /**
      * Setup keyboard navigation
      */
     setupKeyboardNavigation() {
         const handleKeydown = (e) => {
+            // Check if overlay is open - NEW CHECK
+            if (this.isOverlayOpen()) {
+                return; // Let overlay handle keys
+            }
+            
             if (this.mapper.state.zooming) return;
-
+    
             switch (e.key) {
                 case 'ArrowDown':
                 case 'ArrowRight':
@@ -1991,7 +2000,7 @@ class ScrollExtension {
                     break;
             }
         };
-
+    
         document.addEventListener('keydown', handleKeydown);
         this._keydownHandler = handleKeydown;
     }
@@ -2002,20 +2011,30 @@ class ScrollExtension {
     setupTouchScroll() {
         let touchStartY = 0;
         let touchAccumulator = 0;
-
+    
         const handleTouchStart = (e) => {
+            // Check if overlay is open - NEW CHECK
+            if (this.isOverlayOpen()) {
+                return;
+            }
+            
             touchStartY = e.touches[0].clientY;
             touchAccumulator = 0;
         };
-
+    
         const handleTouchMove = (e) => {
+            // Check if overlay is open - NEW CHECK
+            if (this.isOverlayOpen()) {
+                return;
+            }
+            
             if (this.mapper.state.zooming) return;
-
+    
             const touchY = e.touches[0].clientY;
             const diff = touchStartY - touchY;
             touchAccumulator += diff;
             touchStartY = touchY;
-
+    
             if (Math.abs(touchAccumulator) > this.config.scrollSensitivity / 2) {
                 if (touchAccumulator > 0) {
                     this.nextMarker();
@@ -2025,10 +2044,10 @@ class ScrollExtension {
                 touchAccumulator = 0;
             }
         };
-
+    
         window.addEventListener('touchstart', handleTouchStart, { passive: true });
         window.addEventListener('touchmove', handleTouchMove, { passive: false });
-
+    
         this._touchStartHandler = handleTouchStart;
         this._touchMoveHandler = handleTouchMove;
     }
@@ -2037,12 +2056,17 @@ class ScrollExtension {
      * Navigate to next marker
      */
     nextMarker() {
+        // Check if overlay is open - NEW CHECK
+        if (this.isOverlayOpen()) {
+            return;
+        }
+        
         if (this.mapper.state.zooming) {
             return;
         }
-
+    
         const nextIndex = this.state.currentMarkerIndex + 1;
-
+    
         if (nextIndex < this.state.markers.length) {
             this.navigateToMarkerIndex(nextIndex);
         } else {
@@ -2054,12 +2078,17 @@ class ScrollExtension {
      * Navigate to previous marker
      */
     previousMarker() {
+        // Check if overlay is open - NEW CHECK
+        if (this.isOverlayOpen()) {
+            return;
+        }
+        
         if (this.mapper.state.zooming) {
             return;
         }
-
+    
         const previousIndex = this.state.currentMarkerIndex - 1;
-
+    
         if (previousIndex >= -1) {
             if (previousIndex === -1) {
                 // Go back to overview (zoom out completely)
@@ -2301,6 +2330,21 @@ class ScrollExtension {
         // Remove visual indicator
         markerData.element.classList.remove('scroll-target');
     }
+
+    /**
+     * Utility function to check if overlay is open
+     */
+    isOverlayOpen() {
+        // Check for global overlay instance
+        if (window.wpOverlay && window.wpOverlay.state && window.wpOverlay.state.isOpen) {
+            return true;
+        }
+        
+        // Fallback: check for overlay container with active class
+        const overlayContainer = document.querySelector('.wp-overlay-container.active');
+        return overlayContainer !== null;
+    }
+
 
     /**
      * Load ScrollTrigger plugin
