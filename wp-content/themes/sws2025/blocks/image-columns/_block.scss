@@ -17,54 +17,36 @@
         aspect-ratio: 1;
         width: 100%;
         position: relative;
-        border-radius: 6%;
         display: flex;
         align-items: center;
         justify-content: center;
         text-decoration: none;
         transition: all 300ms ease;
-        overflow: hidden;
         &:hover{
             .text-to-reveal{
                 grid-template-rows: minmax(0px,1fr);
+                opacity: 1;
+            }
+            figure.has_effect{
+                img.effect{
+                    opacity: 1;
+                }
             }
         }
-        &:after{
-            content: " ";
-            position: absolute;
-            background: #ffcd29;
-            background: -webkit-linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
-            background: -moz-linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
-            background: linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
-            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#FFCD29", endColorstr="#FF6920", GradientType=0);
-            width: 100%;
-            aspect-ratio: 1;
-            top: 0;
-            border-radius: 6%;
+        &:not(.right,.left,.top,.bottom){
+            @include mask-border();
         }
-        &:before{
-            content: " ";
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            box-sizing: border-box;
+        &.right{
+            @include mask-border(right);
         }
-        &.right:before{
-            border-right: solid $imageBorderWidth white;
-            height: $openingSize;
+        &.bottom{
+            @include mask-border(bottom);
         }
-        &.bottom:before{
-            border-bottom: solid $imageBorderWidth white;
-            width: $openingSize;
+        &.left{
+            @include mask-border(left);
         }
-        &.left:before{
-            border-left: solid $imageBorderWidth white;
-            height: $openingSize;
-        }
-        &.top:before{
-            border-top: solid $imageBorderWidth white;
-            width: $openingSize;
+        &.top{
+            @include mask-border(top);
         }
     }
     figure,img{
@@ -78,14 +60,13 @@
         z-index: 1;
     }
     figure{
-        height: calc(100% - 8px);
         width: auto;
-        border-radius: 6%;
+        border-radius: 20px;
         overflow: hidden;
         display: grid;
         img{
             grid-area: 1 / 1 / 1 / 1;
-            transition: all 500ms ease;
+            transition: all 100ms ease;
         }
         &.has_effect{
             img:not(.effect){
@@ -94,11 +75,6 @@
             img.effect{
                 opacity: 0;
             }
-            &:hover{
-                img.effect{
-                    opacity: 1;
-                }
-            }
         }
     }
     .text-to-reveal{
@@ -106,7 +82,7 @@
         bottom: 0;
         display: grid;
         grid-template-rows: minmax(0px,0fr);
-        background-color: #FF6920;
+        background-color: var(--wp--preset--color--accent-1);
         transition: all 300ms ease;
         width: 100%;
         border-radius: 30px;
@@ -114,6 +90,8 @@
         box-sizing: border-box;
         z-index: 1;
         overflow: clip;
+        max-height: 100%;
+        opacity: 0;
         div{
             padding: 12px;
         }

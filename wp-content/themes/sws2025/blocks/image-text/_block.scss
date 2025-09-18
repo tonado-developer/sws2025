@@ -24,7 +24,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: var(--wp--preset--color--base);
         text-decoration: none;
         transition: all 300ms ease;
         overflow: hidden;
@@ -37,53 +37,26 @@
             z-index: 1;
         }
     }
-    .has_border{
-        figure{
-            img{
-                height: calc(100% - 8px);
-                width: calc(100% - 8px);
-            }
-            &:after{
-                content: " ";
-                position: absolute;
-                background: #ffcd29;
-                background: -webkit-linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
-                background: -moz-linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
-                background: linear-gradient(26deg, rgba(255, 205, 41, 1) 0%, rgba(255, 105, 32, 1) 100%);
-                filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#FFCD29", endColorstr="#FF6920", GradientType=0);
-                width: 100%;
-                aspect-ratio: 1;
-                top: 0;
-            }
-            &:before{
-                content: " ";
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                z-index: 1;
-                box-sizing: border-box;
-            }
+    container.has_border{
+        &:not(.opening-right):not(.opening-left):not(.opening-top):not(.opening-bottom) figure{
+            @include mask-border();
         }
-    }
-    .opening-right figure::before{
-        border-right: solid $imageBorderWidth white;
-        height: $openingSize;
-    }
-    .opening-bottom figure::before{
-        border-bottom: solid $imageBorderWidth white;
-        width: $openingSize;
-    }
-    .opening-left figure::before{
-        border-left: solid $imageBorderWidth white;
-        height: $openingSize;
-    }
-    .opening-top figure::before{
-        border-top: solid $imageBorderWidth white;
-        width: $openingSize;
+        &.opening-right figure{
+            @include mask-border(right);
+        }
+        &.opening-bottom figure{
+            @include mask-border(bottom);
+        }
+        &.opening-left figure{
+            @include mask-border(left);
+        }
+        &.opening-top figure{
+            @include mask-border(top);
+        }
     }
     .is_rounded{
         figure,img,figure::after{
-            border-radius: 6%;
+            border-radius: 20px;
         }
     }
 }

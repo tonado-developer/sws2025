@@ -21,8 +21,8 @@
             border-radius: 30px;
         }
         &.dark{
-            background-color: #505050;
-            color: white;
+            background-color: var(--wp--preset--color--accent-2);
+            color: var(--wp--preset--color--base);
         }
         &.light{
             background-color: rgb(233, 233, 233);

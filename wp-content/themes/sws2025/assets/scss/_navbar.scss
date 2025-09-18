@@ -7,8 +7,8 @@ header{
     z-index: 1000;
     display: grid;
     grid-template-columns: auto auto 1fr;
-    grid-template-rows: calc($headerHeight - 60px) 60px;
-    height: calc($headerHeight - 60px);
+    grid-template-rows: calc($headerHeight - 50px) 50px;
+    height: calc($headerHeight - 50px);
     filter: drop-shadow(2px 4px 12px rgba(0,0,0,0.1));
     nav{
         grid-area: 1/1/2/4;
@@ -32,28 +32,28 @@ header{
 }
 
 .wp-block-navigation:not(.has-background) .wp-block-navigation__responsive-container.is-menu-open{
-    color: white;
+    color: var(--wp--preset--color--base);
     background: linear-gradient(to right, 
-    transparent 440px, 
-    rgba(black,0.7) 440px
+    transparent 340px, 
+    rgba(black,0.7) 340px
     );
     &:after{
         content: " ";
         position: absolute;
         top: 0;
-        left: 290px;
+        left: 190px;
         width: 150px;
-        height: 60px;
+        height: 50px;
         background-color: rgba(black,0.7);
         clip-path: url(#headerTransitionReverse);
     }
     &:before{
         content: " ";
         position: absolute;
-        top: 60px;
+        top: 50px;
         left: 0px;
         bottom: 0;
-        width: 440px;
+        width: 340px;
         background-color: rgba(black,0.7);
     }
 }
@@ -62,18 +62,19 @@ header{
     position: relative;
     z-index: 1200000;
     a{
-        padding: 25px 35px;
+        padding: 15px 35px;
+        padding-right: 0px;
         display: block;
     }
 }
 .whitepanel{
-    background-color: white;
+    background-color: var(--wp--preset--color--base);
     opacity: 0.8;
     // backdrop-filter: blur(6px);
     &.image{
         grid-area: 2/2/2/2;
         height: 100%;
-        background: white;
+        background: var(--wp--preset--color--base);
         width: 150px;
         clip-path: url(#headerTransition);
     }
@@ -130,7 +131,7 @@ header{
         position: absolute;
         width: 90%;
         height: 3px;
-        background-color: #000;
+        background-color: var(--wp--preset--color--contrast);
         transform-origin: center left;
         transform: rotate(45deg);
         left: 20%;
@@ -141,7 +142,7 @@ header{
         position: absolute;
         width: 90%;
         height: 3px;
-        background-color: #000;
+        background-color: var(--wp--preset--color--contrast);
         transform-origin: center right;
         transform: rotate(-45deg);
         right: 20%;
@@ -214,8 +215,8 @@ nav{
         font-size: 1.3rem;
     }
     .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__responsive-container-content .has-child .wp-block-navigation__submenu-container .current-menu-item a{
-        color: white;
-        border-bottom: solid 2px white;
+        color: var(--wp--preset--color--base);
+        border-bottom: solid 2px var(--wp--preset--color--base);
     }
     .wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__responsive-container-content .wp-block-navigation-item{
         display: inline-block;

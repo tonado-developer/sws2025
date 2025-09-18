@@ -1,26 +1,21 @@
 .wp-block-sws2025-text{
     padding: 40px 0px;
     .headingCircledTrue{
-        padding: 12px 0px 12px 20px;
+        @include mask-border();
+        padding: 16px 0px 16px 20px;
         position: relative;
         text-align: left;
-        &:before{
-            content: " ";
+        &::after{
+            inset: 0;
             aspect-ratio: 1;
             height: 100%;
-            min-height: 75px;
-            border: solid 2px #FF6920;
-            border-radius: 12px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            box-sizing: border-box;
         }
         *{
             margin: unset;
-            background-color: white;
+            background-color: var(--wp--preset--color--base);
             position: relative;
             padding: 6px;
+            z-index: 2;
         }
     }
     .textIndentTrue{
@@ -28,7 +23,7 @@
     }
     hr{
         margin: unset;
-        border-color: #ff6920;
+        border-color: var(--wp--preset--color--accent-1);
         border-style: solid;
         max-width: 500px;
         display: inline-block;

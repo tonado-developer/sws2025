@@ -549,7 +549,8 @@ registerBlockType('sws2025/image-mapper', {
                     'div',
                     { className: 'side-text' },
                     attributes.sideText
-                )
+                ),
+                wp.element.createElement('div',{ className: 'fakeCorner' })
             ),
             attributes.personImage && wp.element.createElement(
                 'img',
@@ -705,7 +706,8 @@ registerBlockType('sws2025/image-mapper', {
                                     className: 'side-link-button'
                                 },
                                 'ZUR ÜBERSICHT'
-                            )
+                            ),
+                            wp.element.createElement('div',{ className: 'fakeCorner' })
                         )
                     );
                 }
