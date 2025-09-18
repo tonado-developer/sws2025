@@ -303,7 +303,7 @@ class WordPressImageMapper {
      */
     hideAllElements(onComplete) {
         const elementsToHide = [];
-
+    
         // Global elements
         if (this.state.globalElements) {
             Object.values(this.state.globalElements).forEach(elementArray => {
@@ -312,35 +312,38 @@ class WordPressImageMapper {
                 ));
             });
         }
-
+    
         // Related elements
         elementsToHide.push(...this.getAllVisibleRelatedElements());
-
-        // NEU: SVG Checkpoints cleanup
+    
+        // SVG Checkpoints und Position Handlers cleanup
         const svgContainers = this.state.rootContainer?.querySelectorAll('.svg-path-container.open');
         if (svgContainers) {
             svgContainers.forEach(container => {
+                // Remove position update handler
+                if (container._positionUpdateHandler) {
+                    gsap.ticker.remove(container._positionUpdateHandler);
+                    delete container._positionUpdateHandler;
+                }
                 this.cleanupSVGCheckpoints(container);
             });
         }
-
+    
         if (elementsToHide.length === 0) {
             if (onComplete) onComplete();
             return;
         }
-
+    
         const tl = gsap.timeline({
             onComplete: () => {
                 elementsToHide.forEach(el => {
                     el.classList.remove(this.config.classes.open);
                 });
-
                 this.state.currentlyVisibleElements.clear();
-
                 if (onComplete) onComplete();
             }
         });
-
+    
         return tl;
     }
 
@@ -354,69 +357,61 @@ class WordPressImageMapper {
         this.hideAllElements(() => {
             const elements = this.getRelatedElements(markerId);
             const elementsToShow = [];
-
-            // Finde den zugehörigen Marker für Position/Größe
+    
+            // WICHTIG: Marker aus aktuellem Container holen, nicht aus this.markers
             let targetMarker = null;
-            if (this.markers) {
-                targetMarker = Array.from(this.markers).find(m =>
+            if (this.state.currentContainer) {
+                const currentMarkers = this.state.currentContainer.querySelectorAll(this.config.selectors.marker);
+                targetMarker = Array.from(currentMarkers).find(m =>
                     m.dataset.hotspotId === markerId
                 );
             }
-
+    
             Object.entries(elements).forEach(([key, el]) => {
                 if (el) {
-                    // Special handling für svg-path
                     if (key === 'svgPath') {
-                        // SVG Path nach kurzer Verzögerung initialisieren
-                        setTimeout(() => {
-                            this.initSingleSVGPath(el);
-                        }, 100);
-
-                        // Marker position tracking like before...
+                        this.initSingleSVGPath(el);
+                        
                         if (targetMarker) {
-                            const markerRect = targetMarker.getBoundingClientRect();
-                            const containerRect = this.state.rootContainer.getBoundingClientRect();
-
-                            el.style.position = 'absolute';
-                            el.style.left = `${markerRect.left - containerRect.left}px`;
-                            el.style.top = `${markerRect.top - containerRect.top}px`;
-                            el.style.width = `${markerRect.width}px`;
-                            el.style.height = `${markerRect.height}px`;
-
-                            if (!el._positionUpdateHandler) {
-                                el._positionUpdateHandler = () => {
-                                    const newMarkerRect = targetMarker.getBoundingClientRect();
-                                    const newContainerRect = this.state.rootContainer.getBoundingClientRect();
-                                    el.style.left = `${newMarkerRect.left - newContainerRect.left}px`;
-                                    el.style.top = `${newMarkerRect.top - newContainerRect.top}px`;
-                                    el.style.width = `${newMarkerRect.width}px`;
-                                    el.style.height = `${newMarkerRect.height}px`;
-                                };
+                            const updatePosition = () => {
+                                const markerRect = targetMarker.getBoundingClientRect();
+                                const containerRect = this.state.rootContainer.getBoundingClientRect();
+                                
+                                el.style.position = 'absolute';
+                                el.style.left = `${markerRect.left - containerRect.left}px`;
+                                el.style.top = `${markerRect.top - containerRect.top}px`;
+                                el.style.width = `${markerRect.width}px`;
+                                el.style.height = `${markerRect.height}px`;
+                            };
+                            
+                            updatePosition();
+                            
+                            if (el._positionUpdateHandler) {
+                                gsap.ticker.remove(el._positionUpdateHandler);
                             }
-
+                            
+                            el._positionUpdateHandler = updatePosition;
                             gsap.ticker.add(el._positionUpdateHandler);
                         }
                     }
-
+    
                     elementsToShow.push(el);
                     el.classList.add(this.config.classes.open);
                     this.state.currentlyVisibleElements.add(el);
                 }
             });
-
+    
             if (elementsToShow.length === 0) {
                 if (onComplete) onComplete();
                 return;
             }
-
-            // Animiere Einblendung
+    
             const tl = gsap.timeline({ onComplete });
-
             elementsToShow.forEach(el => {
                 tl.to(el, {
                     duration: this.config.animation.elementFadeIn,
                     ease: 'power2.inOut'
-                }, 0.1);
+                }, 0);
             });
         });
     }
@@ -442,7 +437,7 @@ class WordPressImageMapper {
         const checkpointsWrapper = svgContainer.querySelector('.checkpointsWrapper');
         const checkpoints = svgContainer.querySelectorAll('.checkpoint-marker');
         const hotspotId = svgContainer.dataset.hotspotId;
-
+        
         if (!svgImg || !checkpointsWrapper || checkpoints.length === 0) {
             return;
         }
@@ -451,6 +446,7 @@ class WordPressImageMapper {
         const pathData = await this.loadAndCacheSVGPath(svgImg.src, hotspotId);
         if (!pathData) return;
 
+        
         // Checkpoints registrieren für Live-Updates
         checkpoints.forEach(checkpoint => {
             checkpoint._svgContainer = svgContainer;
@@ -1104,87 +1100,77 @@ class WordPressImageMapper {
         
         this.state.zooming = true;
         
-        // Kill existing animation
         if (this.state.zoomTimeline) {
             this.state.zoomTimeline.kill();
         }
         
-        
-        // Update state für neuen Marker
         const previousMarker = this.state.zoomedMarker;
         this.state.zoomedMarker = newMarker;
         
-        // Remove zoomed class from old marker
         if (previousMarker) {
             previousMarker.classList.remove(this.config.classes.zoomed);
         }
         
-        // Add zoomed class to new marker
         newMarker.classList.add(this.config.classes.zoomed);
         
         const keepData = this.state.zoomHistory[this.state.zoomHistory.length - 1];
-
         this.state.currentContainer = keepData.container;
         const preview = newMarker.querySelector(this.config.selectors.preview);
-        const parent = preview.querySelector(this.config.selectors.parentImg);
+        const parent = preview?.querySelector(this.config.selectors.parentImg);
         this.state.parentContainer = keepData.parent;
-        this.parent = parent
-
-        // Store zoom history
+        this.parent = parent;
+    
+        // Marker Collection aktualisieren
+        this.markers = this.state.currentContainer.querySelectorAll(this.config.selectors.marker);
+    
         this.state.zoomHistory.push({
             parent: this.state.parentContainer,
             container: this.state.currentContainer,
             marker: newMarker,
-            originalParentSrc: this.parent.src
+            originalParentSrc: this.parent?.src
         });
         this.state.zoomLevel++;
         this.state.zoomedMarker = newMarker;
-
-        // Jetzt können wir korrekte neue Zoom-Daten berechnen
+    
         const newZoomData = this.calculateZoomTransformReset(newMarker);
         
-        
-        // Remove hover von altem Marker
         if (previousMarker) {
             this.setHoverState(previousMarker, false);
         }
         
-        // Detach events during switch (wie bei normalem Zoom)
         if (this.markers) {
             this.markers.forEach(m => this.detachMarkerEvents(m));
         }
         
-        // Timeline für direkten Übergang erstellen
         const tl = gsap.timeline({
             onComplete: () => {
                 this.state.zooming = false;
-                // Preserve root container during switch
                 const currentRoot = this.state.rootContainer;
                 this.onZoomComplete(newMarker);
                 this.state.rootContainer = currentRoot;
             }
         });
         
-        // Elemente parallel zur Animation wechseln (wie bei animateZoomIn)
-        this.hideAllElements(() => {
-            // Show elements for new marker
-            if (newMarkerId) {
-                this.showElementsForMarker(newMarkerId);
-            }
-        });
+        // Elements mit korrektem Timing wechseln
+        tl.add(() => {
+            this.hideAllElements(() => {
+                if (newMarkerId) {
+                    // Verzögerung für DOM-Update
+                    requestAnimationFrame(() => {
+                        this.showElementsForMarker(newMarkerId);
+                    });
+                }
+            });
+        }, 0);
         
-        // Direkte Animation zum neuen Marker (verwendet die bestehende Zoom-Logik)
         tl.to(this.state.currentContainer, {
-            duration: this.config.animation.zoomDuration * 0.8, // Etwas schneller für Switch
+            duration: this.config.animation.zoomDuration * 0.8,
             scale: newZoomData.scale,
             x: newZoomData.translateX,
             y: newZoomData.translateY,
             transformOrigin: "center center",
             ease: this.config.animation.ease
-        }, 0); // Start sofort
-        
-        // Back button handling (bleibt bestehen da wir im gleichen Zoom-Level sind)
-        // Kein addBackButton() nötig, da wir schon gezoomt sind
+        }, 0);
         
         this.state.zoomTimeline = tl;
     }
@@ -1263,7 +1249,6 @@ class WordPressImageMapper {
             x: markerRect.left + markerRect.width / 2,
             y: markerRect.top + markerRect.height / 2
         };
-        console.log("Elements",{0:markerCenter,1:container,2:this.parent})
 
         const viewportCenter = {
             x: window.innerWidth / 2,
@@ -1469,23 +1454,41 @@ class WordPressImageMapper {
     zoomOut() {
         if (this.state.zoomHistory.length === 0 || this.state.zooming) return;
         this.state.zooming = true;
-
+    
         const lastZoom = this.state.zoomHistory.pop();
         this.state.zoomLevel--;
         this.state.zoomedMarker = null;
-
+    
+        // WICHTIG: ScrollExtension State zurücksetzen
+        if (window.wpScrollExtension) {
+            // Finde den Index des Markers, zu dem wir zurückkehren
+            if (lastZoom.marker && this.state.zoomHistory.length > 0) {
+                const previousZoom = this.state.zoomHistory[this.state.zoomHistory.length - 1];
+                const previousMarkers = previousZoom.container?.querySelectorAll(this.config.selectors.marker);
+                if (previousMarkers) {
+                    const markerIndex = Array.from(previousMarkers).findIndex(m => 
+                        m === previousZoom.marker
+                    );
+                    window.wpScrollExtension.state.currentMarkerIndex = markerIndex;
+                }
+            } else {
+                // Komplett ausgezoomt - zurück zur Übersicht
+                window.wpScrollExtension.state.currentMarkerIndex = -1;
+            }
+        }
+    
         // Kill existing animation
         if (this.state.zoomTimeline) {
             this.state.zoomTimeline.kill();
         }
-
+    
         // Hide current elements
         this.hideAllElements(() => {
             // Show global elements again if we're back at level 0
             if (this.state.zoomLevel === 0) {
                 // Re-fetch global elements from root container
                 this.state.globalElements = this.getGlobalElements();
-
+    
                 if (this.state.globalElements) {
                     // Show original global elements
                     Object.values(this.state.globalElements).forEach(elementArray => {
@@ -1498,9 +1501,17 @@ class WordPressImageMapper {
                 }
             }
         });
-
+    
         // Animate zoom out
         this.animateZoomOut(lastZoom);
+    }
+
+    /**
+     * Reset state when zoom out is triggered externally (e.g., back button)
+     */
+    resetToOverview() {
+        this.state.currentMarkerIndex = -1;
+        this.state.isNavigating = false;
     }
 
     /**
@@ -1552,25 +1563,25 @@ class WordPressImageMapper {
         // Reset state to previous container
         this.state.parentContainer = zoomData.parent;
         this.state.currentContainer = zoomData.container;
-
+    
         // Re-initialize the parent container
         setTimeout(() => {
             const containerElement = zoomData.parent ||
                 zoomData.container.closest(this.config.selectors.container);
-
+    
             if (containerElement) {
                 // Store current root to preserve it
                 const currentRoot = this.state.rootContainer;
                 this.initContainer(containerElement);
                 // Ensure root container is preserved
                 this.state.rootContainer = currentRoot;
-
+    
                 // Force re-attachment of all event listeners
                 if (this.markers) {
                     this.markers.forEach((marker, index) => {
                         // Re-attach events
                         this.attachMarkerEvents(marker);
-
+    
                         // Re-prepare canvas if image is loaded
                         const img = marker.querySelector(this.config.selectors.overlay);
                         if (img && img.complete && img.naturalWidth > 0) {
@@ -1578,7 +1589,14 @@ class WordPressImageMapper {
                         }
                     });
                 }
-
+    
+                // WICHTIGER FIX: ScrollExtension Marker aktualisieren
+                if (window.wpScrollExtension) {
+                    window.wpScrollExtension.refreshMarkers();
+                    // Reset current marker index to overview state
+                    window.wpScrollExtension.state.currentMarkerIndex = -1;
+                }
+    
                 this.debug('Zoom-out complete, container re-initialized')
             }
         }, 100);
@@ -1612,15 +1630,21 @@ class WordPressImageMapper {
      */
     addBackButton() {
         this.removeBackButton();
-
+    
         const btn = document.createElement('button');
         btn.className = 'zoom-back-btn';
         btn.textContent = 'Zurück';
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
+            
+            // Notify ScrollExtension before zooming out
+            if (window.wpScrollExtension) {
+                window.wpScrollExtension.syncWithMapperState();
+            }
+            
             this.zoomOut();
         });
-
+    
         document.body.appendChild(btn);
     }
 
@@ -2130,13 +2154,16 @@ class ScrollExtension {
      * Go to overview (zoom out completely)
      */
     goToOverview() {
-
-        // Zoom out completely
-        while (this.mapper.state.zoomLevel > 0) {
+        if (this.mapper.state.zooming) {
+            return;
+        }
+    
+        this.state.currentMarkerIndex = -1;
+        
+        // Nur einmal auszoomen - Rest handled das normale System
+        if (this.mapper.state.zoomLevel > 0) {
             this.mapper.zoomOut();
         }
-
-        this.state.currentMarkerIndex = -1;
     }
 
     /**
@@ -2219,6 +2246,39 @@ class ScrollExtension {
 
         this.virtualScrollContainer = scrollContainer;
         console.log(`Virtual scroll container created with height: ${totalHeight}vh`);
+    }
+
+    /**
+     * Refresh markers after zoom changes
+     */
+    refreshMarkers() {
+        // Store current state
+        const previousIndex = this.state.currentMarkerIndex;
+        
+        // Re-collect markers from root level
+        this.collectMarkers();
+        
+        // Sync with mapper state
+        this.syncWithMapperState();
+        
+    }
+
+    
+    /**
+     * Sync state with mapper's zoom level
+     */
+    syncWithMapperState() {
+        if (this.mapper.state.zoomLevel === 0) {
+            this.state.currentMarkerIndex = -1;
+        } else if (this.mapper.state.zoomedMarker) {
+            // Find index of current zoomed marker
+            const markerIndex = this.state.markers.findIndex(m => 
+                m.element === this.mapper.state.zoomedMarker
+            );
+            if (markerIndex !== -1) {
+                this.state.currentMarkerIndex = markerIndex;
+            }
+        }
     }
 
     /**
