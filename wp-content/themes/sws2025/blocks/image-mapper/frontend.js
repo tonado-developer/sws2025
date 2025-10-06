@@ -1124,13 +1124,12 @@ class WordPressImageMapper {
         // Marker Collection aktualisieren
         this.markers = this.state.currentContainer.querySelectorAll(this.config.selectors.marker);
 
-        this.state.zoomHistory.push({
-            parent: this.state.parentContainer,
-            container: this.state.currentContainer,
-            marker: newMarker,
-            originalParentSrc: this.parent?.src
-        });
-        this.state.zoomLevel++;
+        // KORREKTUR: Letzten History-Eintrag UPDATEN statt neuen zu pushen
+        if (this.state.zoomHistory.length > 0) {
+            this.state.zoomHistory[this.state.zoomHistory.length - 1].marker = newMarker;
+        }
+        // zoomLevel NICHT erhöhen - wir bleiben auf gleicher Ebene
+        // this.state.zoomLevel++; // ENTFERNT
         this.state.zoomedMarker = newMarker;
 
         const newZoomData = this.calculateZoomTransformReset(newMarker);
@@ -1156,9 +1155,8 @@ class WordPressImageMapper {
         tl.add(() => {
             this.hideAllElements(() => {
                 if (newMarkerId) {
-                    // Verzögerung für DOM-Update
                     requestAnimationFrame(() => {
-                        this.showElementsForMarker(newMarkerId);
+                        this.showElementsForMarker(newMarkerId, null, newMarker);
                     });
                 }
             });
