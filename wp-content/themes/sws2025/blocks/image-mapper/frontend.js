@@ -3,7 +3,7 @@
  * WordPress Image Mapper Frontend with GSAP - Extended Version
  * 
  * @description Interactive image mapper with global elements support
- * @version 3.0.0
+ * @version 3.0.1
  * @requires GSAP 3.x
  * 
  * Features:
