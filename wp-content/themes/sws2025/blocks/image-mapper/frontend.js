@@ -1298,72 +1298,80 @@ class WordPressImageMapper {
     calculateZoomTransformReset(marker) {
         const container = this.state.currentContainer;
         const containerRect = container.getBoundingClientRect();
+        const markerRect = marker.getBoundingClientRect();
         const parentRect = this.parent.getBoundingClientRect();
-
+    
         const currentTransform = {
             scale: gsap.getProperty(container, "scale") || 1,
             x: gsap.getProperty(container, "x") || 0,
             y: gsap.getProperty(container, "y") || 0
         };
-
-
-        // --- Marker "ursprüngliche" Position im Container berechnen ---
-        // Wir holen NICHT getBoundingClientRect(), sondern offset + Größe im Container
-        const markerWidth = marker.offsetWidth;
-        const markerHeight = marker.offsetHeight;
-
-        const markerLeft = marker.offsetLeft;
-        const markerTop = marker.offsetTop;
-
-        const markerCenterOriginal = {
-            x: markerLeft + markerWidth / 2,
-            y: markerTop + markerHeight / 2
+    
+        // Container-Center VOR Transformation (im Parent-Koordinatensystem)
+        const containerOriginalCenter = {
+            x: (container.offsetLeft + container.offsetWidth / 2),
+            y: (container.offsetTop + container.offsetHeight / 2)
         };
-
-        // Rückrechnen: aktuelle Transformation vom Container aufheben
-        const markerCenter = {
-            x: containerRect.left + markerCenterOriginal.x * currentTransform.scale + currentTransform.x,
-            y: containerRect.top + markerCenterOriginal.y * currentTransform.scale + currentTransform.y
+    
+        // Aktuelles Container-Center (transformiert)
+        const containerCurrentCenter = {
+            x: containerRect.left + containerRect.width / 2 - parentRect.left,
+            y: containerRect.top + containerRect.height / 2 - parentRect.top
         };
-        console.log("Elements", { 0: markerCenter, 1: container, 2: this.parent });
-        const containerCenter = {
-            x: containerRect.left + containerRect.width / 2,
-            y: containerRect.top + containerRect.height / 2
+    
+        // Marker-Center im aktuellen (transformierten) Zustand
+        const markerCurrentCenter = {
+            x: markerRect.left + markerRect.width / 2 - parentRect.left,
+            y: markerRect.top + markerRect.height / 2 - parentRect.top
         };
-
+    
+        // Rückrechnung der Original-Position des Markers
+        // Distanz vom transformierten Container-Center zum Marker
+        const deltaX = markerCurrentCenter.x - containerCurrentCenter.x;
+        const deltaY = markerCurrentCenter.y - containerCurrentCenter.y;
+    
+        // Diese Distanz durch Scale teilen für Original-Distanz
+        const originalDeltaX = deltaX / currentTransform.scale;
+        const originalDeltaY = deltaY / currentTransform.scale;
+    
+        // Original Marker-Center
+        const markerOriginalCenter = {
+            x: containerOriginalCenter.x + originalDeltaX,
+            y: containerOriginalCenter.y + originalDeltaY
+        };
+    
+        // Jetzt calculateZoomTransform-Logik mit den korrekten Werten anwenden
         const viewportCenter = {
             x: window.innerWidth / 2,
             y: window.innerHeight / 2
         };
-
-        // --- Scale berechnen ---
+    
         const targetHeight = window.innerHeight * this.config.zoom.targetViewportHeight;
         const targetWidth = window.innerWidth * this.config.zoom.targetViewportWidth;
-
+    
         let scale = Math.min(
-            targetHeight / markerHeight,
-            targetWidth / markerWidth
+            targetHeight / (markerRect.height / currentTransform.scale),
+            targetWidth / (markerRect.width / currentTransform.scale)
         );
-
-        // --- Translation berechnen ---
+    
+        // Translation berechnen (Parent-Koordinaten zu Viewport)
         const scaledMarkerOffset = {
-            x: (markerCenter.x - containerCenter.x) * scale,
-            y: (markerCenter.y - containerCenter.y) * scale
+            x: (markerOriginalCenter.x - containerOriginalCenter.x) * scale,
+            y: (markerOriginalCenter.y - containerOriginalCenter.y) * scale
         };
-
-        let translateX = viewportCenter.x - containerCenter.x - scaledMarkerOffset.x;
-        let translateY = viewportCenter.y - containerCenter.y - scaledMarkerOffset.y;
-
-        // --- Boundary Constraints anwenden ---
+    
+        let translateX = viewportCenter.x - (parentRect.left + containerOriginalCenter.x) - scaledMarkerOffset.x;
+        let translateY = viewportCenter.y - (parentRect.top + containerOriginalCenter.y) - scaledMarkerOffset.y;
+    
         const bounds = this.calculateBoundaryConstraints(
             parentRect, containerRect, scale, translateX, translateY
         );
-
-        translateX = bounds.x;
-        translateY = bounds.y;
-        scale = bounds.scale;
-
-        return { scale, translateX, translateY };
+    
+        return { 
+            scale: bounds.scale, 
+            translateX: bounds.x, 
+            translateY: bounds.y 
+        };
     }
 
 
