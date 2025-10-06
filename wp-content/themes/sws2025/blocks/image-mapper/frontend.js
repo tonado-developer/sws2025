@@ -303,7 +303,7 @@ class WordPressImageMapper {
      */
     hideAllElements(onComplete) {
         const elementsToHide = [];
-    
+
         // Global elements
         if (this.state.globalElements) {
             Object.values(this.state.globalElements).forEach(elementArray => {
@@ -312,10 +312,10 @@ class WordPressImageMapper {
                 ));
             });
         }
-    
+
         // Related elements
         elementsToHide.push(...this.getAllVisibleRelatedElements());
-    
+
         // SVG Checkpoints und Position Handlers cleanup
         const svgContainers = this.state.rootContainer?.querySelectorAll('.svg-path-container.open');
         if (svgContainers) {
@@ -328,12 +328,12 @@ class WordPressImageMapper {
                 this.cleanupSVGCheckpoints(container);
             });
         }
-    
+
         if (elementsToHide.length === 0) {
             if (onComplete) onComplete();
             return;
         }
-    
+
         const tl = gsap.timeline({
             onComplete: () => {
                 elementsToHide.forEach(el => {
@@ -343,7 +343,7 @@ class WordPressImageMapper {
                 if (onComplete) onComplete();
             }
         });
-    
+
         return tl;
     }
 
@@ -352,60 +352,61 @@ class WordPressImageMapper {
      * @param {string} markerId - Marker ID to show elements for
      * @param {Function} onComplete - Callback when showing is complete
      */
-    showElementsForMarker(markerId, onComplete) {
-        // Erst alle verstecken und SVG aufräumen
+    showElementsForMarker(markerId, onComplete, explicitMarker = null) {
         this.hideAllElements(() => {
             const elements = this.getRelatedElements(markerId);
             const elementsToShow = [];
-    
-            // WICHTIG: Marker aus aktuellem Container holen, nicht aus this.markers
-            let targetMarker = null;
-            if (this.state.currentContainer) {
+
+            // KORREKTUR: Verwende explicitMarker falls übergeben
+            let targetMarker = explicitMarker;
+
+            // Fallback: aus currentContainer suchen
+            if (!targetMarker && this.state.currentContainer) {
                 const currentMarkers = this.state.currentContainer.querySelectorAll(this.config.selectors.marker);
                 targetMarker = Array.from(currentMarkers).find(m =>
                     m.dataset.hotspotId === markerId
                 );
             }
-    
+
             Object.entries(elements).forEach(([key, el]) => {
                 if (el) {
                     if (key === 'svgPath') {
                         this.initSingleSVGPath(el);
-                        
+
                         if (targetMarker) {
                             const updatePosition = () => {
                                 const markerRect = targetMarker.getBoundingClientRect();
                                 const containerRect = this.state.rootContainer.getBoundingClientRect();
-                                
+
                                 el.style.position = 'absolute';
                                 el.style.left = `${markerRect.left - containerRect.left}px`;
                                 el.style.top = `${markerRect.top - containerRect.top}px`;
                                 el.style.width = `${markerRect.width}px`;
                                 el.style.height = `${markerRect.height}px`;
                             };
-                            
+
                             updatePosition();
-                            
+
                             if (el._positionUpdateHandler) {
                                 gsap.ticker.remove(el._positionUpdateHandler);
                             }
-                            
+
                             el._positionUpdateHandler = updatePosition;
                             gsap.ticker.add(el._positionUpdateHandler);
                         }
                     }
-    
+
                     elementsToShow.push(el);
                     el.classList.add(this.config.classes.open);
                     this.state.currentlyVisibleElements.add(el);
                 }
             });
-    
+
             if (elementsToShow.length === 0) {
                 if (onComplete) onComplete();
                 return;
             }
-    
+
             const tl = gsap.timeline({ onComplete });
             elementsToShow.forEach(el => {
                 tl.to(el, {
@@ -437,7 +438,7 @@ class WordPressImageMapper {
         const checkpointsWrapper = svgContainer.querySelector('.checkpointsWrapper');
         const checkpoints = svgContainer.querySelectorAll('.checkpoint-marker');
         const hotspotId = svgContainer.dataset.hotspotId;
-        
+
         if (!svgImg || !checkpointsWrapper || checkpoints.length === 0) {
             return;
         }
@@ -446,7 +447,7 @@ class WordPressImageMapper {
         const pathData = await this.loadAndCacheSVGPath(svgImg.src, hotspotId);
         if (!pathData) return;
 
-        
+
         // Checkpoints registrieren für Live-Updates
         checkpoints.forEach(checkpoint => {
             checkpoint._svgContainer = svgContainer;
@@ -1047,7 +1048,7 @@ class WordPressImageMapper {
      * @param {HTMLElement} marker - Target marker
      */
     zoomToMarker(marker) {
-        
+
         if (this.state.zooming) return;
         this.state.zooming = true;
 
@@ -1092,37 +1093,37 @@ class WordPressImageMapper {
      */
     switchToMarker(newMarker) {
         if (this.state.zooming || !newMarker) return;
-        
+
         const oldMarkerId = this.state.zoomedMarker?.dataset.hotspotId;
         const newMarkerId = newMarker.dataset.hotspotId;
-        
+
         if (oldMarkerId === newMarkerId) return;
-        
+
         this.state.zooming = true;
-        
+
         if (this.state.zoomTimeline) {
             this.state.zoomTimeline.kill();
         }
-        
+
         const previousMarker = this.state.zoomedMarker;
         this.state.zoomedMarker = newMarker;
-        
+
         if (previousMarker) {
             previousMarker.classList.remove(this.config.classes.zoomed);
         }
-        
+
         newMarker.classList.add(this.config.classes.zoomed);
-        
+
         const keepData = this.state.zoomHistory[this.state.zoomHistory.length - 1];
         this.state.currentContainer = keepData.container;
         const preview = newMarker.querySelector(this.config.selectors.preview);
         const parent = preview?.querySelector(this.config.selectors.parentImg);
         this.state.parentContainer = keepData.parent;
         this.parent = parent;
-    
+
         // Marker Collection aktualisieren
         this.markers = this.state.currentContainer.querySelectorAll(this.config.selectors.marker);
-    
+
         this.state.zoomHistory.push({
             parent: this.state.parentContainer,
             container: this.state.currentContainer,
@@ -1131,17 +1132,17 @@ class WordPressImageMapper {
         });
         this.state.zoomLevel++;
         this.state.zoomedMarker = newMarker;
-    
+
         const newZoomData = this.calculateZoomTransformReset(newMarker);
-        
+
         if (previousMarker) {
             this.setHoverState(previousMarker, false);
         }
-        
+
         if (this.markers) {
             this.markers.forEach(m => this.detachMarkerEvents(m));
         }
-        
+
         const tl = gsap.timeline({
             onComplete: () => {
                 this.state.zooming = false;
@@ -1150,7 +1151,7 @@ class WordPressImageMapper {
                 this.state.rootContainer = currentRoot;
             }
         });
-        
+
         // Elements mit korrektem Timing wechseln
         tl.add(() => {
             this.hideAllElements(() => {
@@ -1162,7 +1163,7 @@ class WordPressImageMapper {
                 }
             });
         }, 0);
-        
+
         tl.to(this.state.currentContainer, {
             duration: this.config.animation.zoomDuration * 0.8,
             scale: newZoomData.scale,
@@ -1171,7 +1172,7 @@ class WordPressImageMapper {
             transformOrigin: "center center",
             ease: this.config.animation.ease
         }, 0);
-        
+
         this.state.zoomTimeline = tl;
     }
 
@@ -1294,73 +1295,73 @@ class WordPressImageMapper {
         const container = this.state.currentContainer;
         const containerRect = container.getBoundingClientRect();
         const parentRect = this.parent.getBoundingClientRect();
-    
+
         const currentTransform = {
             scale: gsap.getProperty(container, "scale") || 1,
             x: gsap.getProperty(container, "x") || 0,
             y: gsap.getProperty(container, "y") || 0
         };
-        
-    
+
+
         // --- Marker "ursprüngliche" Position im Container berechnen ---
         // Wir holen NICHT getBoundingClientRect(), sondern offset + Größe im Container
         const markerWidth = marker.offsetWidth;
         const markerHeight = marker.offsetHeight;
-    
+
         const markerLeft = marker.offsetLeft;
         const markerTop = marker.offsetTop;
-    
+
         const markerCenterOriginal = {
             x: markerLeft + markerWidth / 2,
             y: markerTop + markerHeight / 2
         };
-    
+
         // Rückrechnen: aktuelle Transformation vom Container aufheben
         const markerCenter = {
             x: containerRect.left + markerCenterOriginal.x * currentTransform.scale + currentTransform.x,
             y: containerRect.top + markerCenterOriginal.y * currentTransform.scale + currentTransform.y
         };
-        console.log("Elements", {0: markerCenter, 1: container, 2: this.parent});
+        console.log("Elements", { 0: markerCenter, 1: container, 2: this.parent });
         const containerCenter = {
             x: containerRect.left + containerRect.width / 2,
             y: containerRect.top + containerRect.height / 2
         };
-    
+
         const viewportCenter = {
             x: window.innerWidth / 2,
             y: window.innerHeight / 2
         };
-    
+
         // --- Scale berechnen ---
         const targetHeight = window.innerHeight * this.config.zoom.targetViewportHeight;
         const targetWidth = window.innerWidth * this.config.zoom.targetViewportWidth;
-    
+
         let scale = Math.min(
             targetHeight / markerHeight,
             targetWidth / markerWidth
         );
-    
+
         // --- Translation berechnen ---
         const scaledMarkerOffset = {
             x: (markerCenter.x - containerCenter.x) * scale,
             y: (markerCenter.y - containerCenter.y) * scale
         };
-    
+
         let translateX = viewportCenter.x - containerCenter.x - scaledMarkerOffset.x;
         let translateY = viewportCenter.y - containerCenter.y - scaledMarkerOffset.y;
-    
+
         // --- Boundary Constraints anwenden ---
         const bounds = this.calculateBoundaryConstraints(
             parentRect, containerRect, scale, translateX, translateY
         );
-    
+
         translateX = bounds.x;
         translateY = bounds.y;
         scale = bounds.scale;
-    
+
         return { scale, translateX, translateY };
     }
-    
+
 
     /**
      * Calculate boundary constraints to keep parent image in viewport
@@ -1454,11 +1455,11 @@ class WordPressImageMapper {
     zoomOut() {
         if (this.state.zoomHistory.length === 0 || this.state.zooming) return;
         this.state.zooming = true;
-    
+
         const lastZoom = this.state.zoomHistory.pop();
         this.state.zoomLevel--;
         this.state.zoomedMarker = null;
-    
+
         // WICHTIG: ScrollExtension State zurücksetzen
         if (window.wpScrollExtension) {
             // Finde den Index des Markers, zu dem wir zurückkehren
@@ -1466,7 +1467,7 @@ class WordPressImageMapper {
                 const previousZoom = this.state.zoomHistory[this.state.zoomHistory.length - 1];
                 const previousMarkers = previousZoom.container?.querySelectorAll(this.config.selectors.marker);
                 if (previousMarkers) {
-                    const markerIndex = Array.from(previousMarkers).findIndex(m => 
+                    const markerIndex = Array.from(previousMarkers).findIndex(m =>
                         m === previousZoom.marker
                     );
                     window.wpScrollExtension.state.currentMarkerIndex = markerIndex;
@@ -1476,19 +1477,19 @@ class WordPressImageMapper {
                 window.wpScrollExtension.state.currentMarkerIndex = -1;
             }
         }
-    
+
         // Kill existing animation
         if (this.state.zoomTimeline) {
             this.state.zoomTimeline.kill();
         }
-    
+
         // Hide current elements
         this.hideAllElements(() => {
             // Show global elements again if we're back at level 0
             if (this.state.zoomLevel === 0) {
                 // Re-fetch global elements from root container
                 this.state.globalElements = this.getGlobalElements();
-    
+
                 if (this.state.globalElements) {
                     // Show original global elements
                     Object.values(this.state.globalElements).forEach(elementArray => {
@@ -1501,7 +1502,7 @@ class WordPressImageMapper {
                 }
             }
         });
-    
+
         // Animate zoom out
         this.animateZoomOut(lastZoom);
     }
@@ -1563,25 +1564,25 @@ class WordPressImageMapper {
         // Reset state to previous container
         this.state.parentContainer = zoomData.parent;
         this.state.currentContainer = zoomData.container;
-    
+
         // Re-initialize the parent container
         setTimeout(() => {
             const containerElement = zoomData.parent ||
                 zoomData.container.closest(this.config.selectors.container);
-    
+
             if (containerElement) {
                 // Store current root to preserve it
                 const currentRoot = this.state.rootContainer;
                 this.initContainer(containerElement);
                 // Ensure root container is preserved
                 this.state.rootContainer = currentRoot;
-    
+
                 // Force re-attachment of all event listeners
                 if (this.markers) {
                     this.markers.forEach((marker, index) => {
                         // Re-attach events
                         this.attachMarkerEvents(marker);
-    
+
                         // Re-prepare canvas if image is loaded
                         const img = marker.querySelector(this.config.selectors.overlay);
                         if (img && img.complete && img.naturalWidth > 0) {
@@ -1589,14 +1590,14 @@ class WordPressImageMapper {
                         }
                     });
                 }
-    
+
                 // WICHTIGER FIX: ScrollExtension Marker aktualisieren
                 if (window.wpScrollExtension) {
                     window.wpScrollExtension.refreshMarkers();
                     // Reset current marker index to overview state
                     window.wpScrollExtension.state.currentMarkerIndex = -1;
                 }
-    
+
                 this.debug('Zoom-out complete, container re-initialized')
             }
         }, 100);
@@ -1630,21 +1631,21 @@ class WordPressImageMapper {
      */
     addBackButton() {
         this.removeBackButton();
-    
+
         const btn = document.createElement('button');
         btn.className = 'zoom-back-btn';
         btn.textContent = 'Zurück';
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            
+
             // Notify ScrollExtension before zooming out
             if (window.wpScrollExtension) {
                 window.wpScrollExtension.syncWithMapperState();
             }
-            
+
             this.zoomOut();
         });
-    
+
         document.body.appendChild(btn);
     }
 
@@ -1956,7 +1957,7 @@ class ScrollExtension {
             }
 
             e.preventDefault();
-            
+
             if (this.mapper.state.zooming) return;
 
             const now = Date.now();
@@ -1969,7 +1970,7 @@ class ScrollExtension {
 
             scrollAccumulator += e.deltaY;
             lastScrollTime = now;
-            
+
             // Trigger animation when threshold reached
             if (Math.abs(scrollAccumulator) > this.config.scrollSensitivity) {
                 if (scrollAccumulator > 0) {
@@ -2000,9 +2001,9 @@ class ScrollExtension {
             if (this.isOverlayOpen()) {
                 return; // Let overlay handle keys
             }
-            
+
             if (this.mapper.state.zooming) return;
-    
+
             switch (e.key) {
                 case 'ArrowDown':
                 case 'ArrowRight':
@@ -2024,7 +2025,7 @@ class ScrollExtension {
                     break;
             }
         };
-    
+
         document.addEventListener('keydown', handleKeydown);
         this._keydownHandler = handleKeydown;
     }
@@ -2035,30 +2036,30 @@ class ScrollExtension {
     setupTouchScroll() {
         let touchStartY = 0;
         let touchAccumulator = 0;
-    
+
         const handleTouchStart = (e) => {
             // Check if overlay is open - NEW CHECK
             if (this.isOverlayOpen()) {
                 return;
             }
-            
+
             touchStartY = e.touches[0].clientY;
             touchAccumulator = 0;
         };
-    
+
         const handleTouchMove = (e) => {
             // Check if overlay is open - NEW CHECK
             if (this.isOverlayOpen()) {
                 return;
             }
-            
+
             if (this.mapper.state.zooming) return;
-    
+
             const touchY = e.touches[0].clientY;
             const diff = touchStartY - touchY;
             touchAccumulator += diff;
             touchStartY = touchY;
-    
+
             if (Math.abs(touchAccumulator) > this.config.scrollSensitivity / 2) {
                 if (touchAccumulator > 0) {
                     this.nextMarker();
@@ -2068,10 +2069,10 @@ class ScrollExtension {
                 touchAccumulator = 0;
             }
         };
-    
+
         window.addEventListener('touchstart', handleTouchStart, { passive: true });
         window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    
+
         this._touchStartHandler = handleTouchStart;
         this._touchMoveHandler = handleTouchMove;
     }
@@ -2084,13 +2085,13 @@ class ScrollExtension {
         if (this.isOverlayOpen()) {
             return;
         }
-        
+
         if (this.mapper.state.zooming) {
             return;
         }
-    
+
         const nextIndex = this.state.currentMarkerIndex + 1;
-    
+
         if (nextIndex < this.state.markers.length) {
             this.navigateToMarkerIndex(nextIndex);
         } else {
@@ -2106,13 +2107,13 @@ class ScrollExtension {
         if (this.isOverlayOpen()) {
             return;
         }
-        
+
         if (this.mapper.state.zooming) {
             return;
         }
-    
+
         const previousIndex = this.state.currentMarkerIndex - 1;
-    
+
         if (previousIndex >= -1) {
             if (previousIndex === -1) {
                 // Go back to overview (zoom out completely)
@@ -2157,9 +2158,9 @@ class ScrollExtension {
         if (this.mapper.state.zooming) {
             return;
         }
-    
+
         this.state.currentMarkerIndex = -1;
-        
+
         // Nur einmal auszoomen - Rest handled das normale System
         if (this.mapper.state.zoomLevel > 0) {
             this.mapper.zoomOut();
@@ -2254,16 +2255,16 @@ class ScrollExtension {
     refreshMarkers() {
         // Store current state
         const previousIndex = this.state.currentMarkerIndex;
-        
+
         // Re-collect markers from root level
         this.collectMarkers();
-        
+
         // Sync with mapper state
         this.syncWithMapperState();
-        
+
     }
 
-    
+
     /**
      * Sync state with mapper's zoom level
      */
@@ -2272,7 +2273,7 @@ class ScrollExtension {
             this.state.currentMarkerIndex = -1;
         } else if (this.mapper.state.zoomedMarker) {
             // Find index of current zoomed marker
-            const markerIndex = this.state.markers.findIndex(m => 
+            const markerIndex = this.state.markers.findIndex(m =>
                 m.element === this.mapper.state.zoomedMarker
             );
             if (markerIndex !== -1) {
@@ -2381,10 +2382,10 @@ class ScrollExtension {
         this.mapper.state.zoomedMarker = markerData.element;
         this.mapper.state.zoomLevel = markerData.level + 1;
 
-        // Show related elements
+        // Show related elements - KORREKTUR: targetMarker direkt übergeben
         const markerId = markerData.element.dataset.hotspotId;
         if (markerId) {
-            this.mapper.showElementsForMarker(markerId);
+            this.mapper.showElementsForMarker(markerId, null, markerData.element);
         }
 
         // Remove visual indicator
@@ -2399,7 +2400,7 @@ class ScrollExtension {
         if (window.wpOverlay && window.wpOverlay.state && window.wpOverlay.state.isOpen) {
             return true;
         }
-        
+
         // Fallback: check for overlay container with active class
         const overlayContainer = document.querySelector('.wp-overlay-container.active');
         return overlayContainer !== null;
