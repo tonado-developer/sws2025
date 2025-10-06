@@ -1017,7 +1017,6 @@ class WordPressImageMapper {
             }
         }
 
-        // If we found a marker with opaque pixel, handle the click
         if (clickedMarker) {
             e.preventDefault();
             e.stopPropagation();
@@ -1029,16 +1028,16 @@ class WordPressImageMapper {
                 return;
             }
 
-            // Zoom to marker or switch if already zoomed
-            if (this.state.zoomLevel > 0 && this.state.zoomedMarker !== clickedMarker) {
-                // Future: Switch to different marker
-                // this.switchToMarker(clickedMarker);
-                // For now, just zoom to the new marker normally
-                if (!clickedMarker.classList.contains(this.config.classes.zoomed)) {
-                    this.zoomToMarker(clickedMarker);
-                }
-            } else if (!clickedMarker.classList.contains(this.config.classes.zoomed)) {
+            // Zoom to marker
+            if (!clickedMarker.classList.contains(this.config.classes.zoomed)) {
                 this.zoomToMarker(clickedMarker);
+
+                // SYNC MIT SCROLLEXTENSION NACH MANUELLEM CLICK
+                if (window.wpScrollExtension && !this._isCalledFromScroll) {
+                    setTimeout(() => {
+                        window.wpScrollExtension.syncWithClickedMarker(clickedMarker);
+                    }, 50);
+                }
             }
         }
     }
@@ -1047,10 +1046,12 @@ class WordPressImageMapper {
      * Zoom to specific marker
      * @param {HTMLElement} marker - Target marker
      */
-    zoomToMarker(marker) {
-
+    zoomToMarker(marker, isFromScroll = false) {
         if (this.state.zooming) return;
         this.state.zooming = true;
+
+        // Store flag temporarily
+        this._isCalledFromScroll = isFromScroll;
 
         // Kill existing animation
         if (this.state.zoomTimeline) {
@@ -1085,6 +1086,11 @@ class WordPressImageMapper {
 
         // Create animation timeline
         this.animateZoomIn(zoomData, marker, markerId);
+
+        // Sync with scroll extension if it exists
+        if (window.scrollExtension && window.scrollExtension.syncWithManualZoom) {
+            window.scrollExtension.syncWithManualZoom(marker);
+        }
     }
 
     /**
@@ -1851,6 +1857,11 @@ document.addEventListener('DOMContentLoaded', () => {
         alphaThreshold: 10,
         debug: false
     });
+    window.scrollExtension = new ScrollExtension(window.wpImageMapper, {
+        mode: 'simple-animation',
+        scrollSensitivity: 100,
+        enableKeyboardNavigation: true
+    });
 });
 
 
@@ -1956,7 +1967,8 @@ class ScrollExtension {
 
             e.preventDefault();
 
-            if (this.mapper.state.zooming) return;
+            // Skip if currently navigating or zooming
+            if (this.mapper.state.zooming || this.state.isNavigating) return;
 
             const now = Date.now();
             const timeDiff = now - lastScrollTime;
@@ -1987,6 +1999,15 @@ class ScrollExtension {
         this.setupTouchScroll();
 
         console.log('Simple animation mode initialized');
+    }
+
+    // In ScrollExtension class
+    syncWithManualZoom(marker) {
+        const markerIndex = this.state.markers.findIndex(m => m.element === marker);
+        if (markerIndex !== -1) {
+            this.state.currentMarkerIndex = markerIndex;
+            console.log(`Synced manual zoom to marker index ${markerIndex}`);
+        }
     }
 
 
@@ -2140,12 +2161,11 @@ class ScrollExtension {
         this.state.currentMarkerIndex = targetIndex;
 
         if (currentIndex === -1) {
-            // Currently in overview, zoom to marker
-            this.mapper.zoomToMarker(targetMarker.element);
+            // Currently in overview, zoom to marker with flag
+            this.mapper.zoomToMarker(targetMarker.element, true);
         } else {
-            // Currently viewing a marker, switch directly to another marker
+            // Currently viewing a marker, switch directly
             this.mapper.switchToMarker(targetMarker.element);
-
         }
     }
 
@@ -2494,5 +2514,30 @@ class ScrollExtension {
         console.log('Destroying scroll extension');
         this.cleanup();
         this.state.initialized = false;
+    }
+
+    syncWithClickedMarker(marker) {
+        if (!marker || this.state.markers.length === 0) return;
+
+        // Find index of clicked marker
+        const markerIndex = this.state.markers.findIndex(m =>
+            m.element === marker
+        );
+
+        if (markerIndex !== -1) {
+            console.log(`Manual click sync: Setting index to ${markerIndex}`);
+            this.state.currentMarkerIndex = markerIndex;
+
+            // Reset scroll accumulator to prevent immediate navigation
+            if (this._scrollAccumulator !== undefined) {
+                this._scrollAccumulator = 0;
+            }
+
+            // Set flag to skip next scroll event briefly
+            this.state.isNavigating = true;
+            setTimeout(() => {
+                this.state.isNavigating = false;
+            }, 300);
+        }
     }
 }
