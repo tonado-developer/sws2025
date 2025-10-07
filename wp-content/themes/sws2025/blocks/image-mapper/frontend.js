@@ -142,6 +142,8 @@ class WordPressImageMapper {
         this.state.initialized = true;
         this.debug('Image Mapper initialized with root container');
 
+        this.initGlobalElements();
+
         this.startSVGPositioning();
 
         window.wpScrollExtension = new ScrollExtension(this, {
@@ -163,6 +165,23 @@ class WordPressImageMapper {
  * Badge Viewport-Positioning System
  * Pre-calculates positions, applies on hover
  */
+
+    initGlobalElements() {
+        const containers = document.querySelectorAll(this.config.selectors.container);
+        if (!containers.length) return;
+
+        containers.forEach(container => {
+            // Finde alle globalen Illustrationen (ohne data-hotspot-id)
+            const globalIllustrations = container.querySelectorAll(
+                `${this.config.selectors.illustrationImage}:not([data-hotspot-id])`
+            );
+
+            if (globalIllustrations.length > 0) {
+                console.log('Initializing global illustrations on page load');
+                this.setupIllustrationAnimation(Array.from(globalIllustrations));
+            }
+        });
+    }
 
     initBadgePositioning() {
         this.badgePositions = new Map(); // Cache für berechnete Positionen
@@ -315,8 +334,6 @@ class WordPressImageMapper {
 
         // Track initially visible global elements
         this.updateVisibleElements();
-
-        this.setupIllustrationAnimation(this.state.globalElements.illustrationImage);
 
         // Reset transforms
         gsap.set(preview, { clearProps: "all" });
@@ -815,7 +832,7 @@ class WordPressImageMapper {
                     return el;
                 },
 
-                "fadeIn": (el,onComplete) => {
+                "fadeIn": (el, onComplete) => {
                     const wings = el.querySelectorAll("path");
                     if (wings.length != 2) return;
 
@@ -875,92 +892,158 @@ class WordPressImageMapper {
      * Start Animation for illustration images
      */
     setupIllustrationAnimation(elements) {
-        if (!elements || elements.length == 0) return;
+        if (!elements || elements.length === 0) return;
 
         const illustrationAnimationTypes = this.illustrationAnimationTypes();
         const type = "wings";
-        const initializedElements = [];
-        
-        if (type && illustrationAnimationTypes[type]) {
-            const currentType = illustrationAnimationTypes[type];
-            
-            elements.forEach(el => {
-                // Stop existing animations
-                gsap.killTweensOf(el.querySelectorAll("path"));
-                
-                // Initialize and collect
-                const initializedEl = currentType.init(el);
-                initializedElements.push(initializedEl);
-                el.classList.add(this.config.classes.IllustrationInitialized);
+
+        if (!type || !illustrationAnimationTypes[type]) return;
+
+        const currentType = illustrationAnimationTypes[type];
+
+        elements.forEach(el => {
+            // Skip wenn bereits animiert
+            if (el.classList.contains(this.config.classes.IllustrationAnimated)) {
+                return;
+            }
+
+            // Kill existing animations
+            gsap.killTweensOf(el.querySelectorAll("path"));
+            gsap.killTweensOf(el);
+
+            // Initialize element
+            currentType.init(el);
+            el.classList.add(this.config.classes.IllustrationInitialized);
+
+            // Start animation
+            el.classList.add(this.config.classes.IllustrationAnimating);
+            currentType.fadeIn(el, () => {
+                el.classList.remove(this.config.classes.IllustrationAnimating);
+                el.classList.add(this.config.classes.IllustrationAnimated);
             });
-            
-            // Start fade-in animation
-            initializedElements.forEach(el => {
-                el.classList.add(this.config.classes.IllustrationAnimating);
-                currentType.fadeIn(el, () => {
-                    el.classList.remove(this.config.classes.IllustrationAnimating);
-                    el.classList.add(this.config.classes.IllustrationAnimated);
-                });
-            });
-        }
+        });
     }
 
     /**
      * Reset IllustrationAnimation - stops and resets to initial state
      */
-    resetIllustrationAnimation() {
+    resetIllustrationAnimation(markerId = null) {
         const root = this.state.rootContainer;
         if (!root) return;
-        
-        const elements = root.querySelectorAll(`.${this.config.classes.IllustrationInitialized}`);
-        if (!elements || elements.length == 0) return;
-        
-        console.log('Resetting illustration animations', this.state.rootContainer);
 
-        const illustrationAnimationTypes = this.illustrationAnimationTypes();
-        const type = "wings";
-        const currentType = illustrationAnimationTypes[type];
-        
+        // Selektiere entweder spezifische Marker-Illustrationen oder alle
+        const selector = markerId
+            ? `.${this.config.classes.IllustrationInitialized}[data-hotspot-id="${markerId}"]`
+            : `.${this.config.classes.IllustrationInitialized}`;
+
+        const elements = root.querySelectorAll(selector);
+        if (!elements || elements.length === 0) return;
+
+        console.log(`Resetting illustration animations ${markerId ? `for marker ${markerId}` : 'globally'}`);
+
         elements.forEach(el => {
             // Kill all running animations
             gsap.killTweensOf(el.querySelectorAll("path"));
             gsap.killTweensOf(el);
-            
+
             // Remove animation classes
             el.classList.remove(
                 this.config.classes.IllustrationAnimating,
-                this.config.classes.IllustrationAnimated
+                this.config.classes.IllustrationAnimated,
+                this.config.classes.IllustrationInitialized
             );
-            
+
             // Reset to initial state
             const wings = el.querySelectorAll("path");
             gsap.set(wings, {
                 scale: 0,
                 opacity: 0,
                 rotation: 0,
-                clearProps: "transform"
+                clearProps: "all"
             });
-            gsap.set(el, { opacity: 0, display: 'none' });
+            gsap.set(el, {
+                opacity: 0,
+                display: 'none',
+                clearProps: "all"
+            });
         });
     }
 
     /**
      * Restart IllustrationAnimation - resets and starts new animation
      */
-    restartIllustrationAnimation() {
-        this.resetIllustrationAnimation();
-        
-        // Wait a frame for reset to complete
-        requestAnimationFrame(() => {
-            const elements = this.state.rootContainer?.querySelectorAll(
-                `.${this.config.classes.IllustrationInitialized}`
-            );
+    restartIllustrationAnimation(markerId = null) {
+        // Reset nur die relevanten Illustrationen
+        this.resetIllustrationAnimation(markerId);
+
+        // Kurze Verzögerung für Reset
+        setTimeout(() => {
+            let elements;
+
+            if (markerId) {
+                // Restart für spezifischen Marker
+                elements = this.state.rootContainer?.querySelectorAll(
+                    `${this.config.selectors.illustrationImage}[data-hotspot-id="${markerId}"]`
+                );
+            } else {
+                // Restart für globale Illustrationen
+                elements = this.state.rootContainer?.querySelectorAll(
+                    `${this.config.selectors.illustrationImage}:not([data-hotspot-id])`
+                );
+            }
+
             if (elements && elements.length > 0) {
                 this.setupIllustrationAnimation(Array.from(elements));
             }
+        }, 50); // 50ms delay für sauberen Reset
+    }
+
+    hideGlobalIllustrations() {
+        const globalIllustrations = this.state.rootContainer?.querySelectorAll(
+            `${this.config.selectors.illustrationImage}:not([data-hotspot-id])`
+        );
+        
+        if (!globalIllustrations) return;
+        
+        globalIllustrations.forEach(el => {
+            if (el.classList.contains(this.config.classes.IllustrationAnimated)) {
+                gsap.to(el, {
+                    opacity: 0,
+                    duration: this.config.animation.elementFadeOut,
+                    onComplete: () => {
+                        el.style.display = 'none';
+                    }
+                });
+            }
+        });
+    }
+    
+    showGlobalIllustrations() {
+        const globalIllustrations = this.state.rootContainer?.querySelectorAll(
+            `${this.config.selectors.illustrationImage}:not([data-hotspot-id])`
+        );
+        
+        if (!globalIllustrations) return;
+        
+        globalIllustrations.forEach(el => {
+            el.style.display = '';
+            this.restartIllustrationAnimation(); // Restart globale Animation
         });
     }
 
+    resetAllMarkerIllustrations() {
+        const markerIllustrations = this.state.rootContainer?.querySelectorAll(
+            `${this.config.selectors.illustrationImage}[data-hotspot-id]`
+        );
+        
+        if (!markerIllustrations) return;
+        
+        markerIllustrations.forEach(el => {
+            const markerId = el.dataset.hotspotId;
+            this.resetIllustrationAnimation(markerId);
+        });
+    }
+    
     /**
      * Setup container-specific event listeners
      * @param {HTMLElement} container - Container element
@@ -1416,8 +1499,6 @@ class WordPressImageMapper {
         if (this.state.zooming) return;
         this.state.zooming = true;
 
-        this.resetIllustrationAnimation()
-
         // Store flag temporarily
         this._isCalledFromScroll = isFromScroll;
 
@@ -1428,6 +1509,14 @@ class WordPressImageMapper {
 
         // Get marker ID
         const markerId = marker.dataset.hotspotId;
+
+        // Verstecke globale Illustrationen beim Zoom-In
+        this.hideGlobalIllustrations();
+        
+        // Starte Marker-spezifische Illustrationen
+        if (markerId) {
+            this.restartIllustrationAnimation(markerId);
+        }
 
         // Store zoom history
         this.state.zoomHistory.push({
@@ -1887,6 +1976,11 @@ class WordPressImageMapper {
 
         // Animate zoom out
         this.animateZoomOut(lastZoom);
+
+        this.resetAllMarkerIllustrations();
+    
+        // Zeige globale Illustrationen wieder
+        this.showGlobalIllustrations();
     }
 
     /**
