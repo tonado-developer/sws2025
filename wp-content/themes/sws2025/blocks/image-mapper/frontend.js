@@ -674,23 +674,54 @@ class WordPressImageMapper {
     /**
      * Position a single checkpoint on the path
      */
+    /**
+ * Position a single checkpoint on the path with proper bounding box handling
+ */
     positionCheckpointOnPath(checkpoint, svgContainer, pathData) {
         const pathPosition = parseFloat(checkpoint.dataset.pathPosition) || 0;
-
         const containerRect = svgContainer.getBoundingClientRect();
+
+        // Path's bounding box im SVG-Koordinatensystem
+        const pathBBox = pathData.pathElement.getBBox();
+
+        // Berechne die tatsächliche Position auf dem Path
+        const distanceAlongPath = (pathPosition / 100) * pathData.pathLength;
+        const point = pathData.pathElement.getPointAtLength(distanceAlongPath);
+
+        // Berechne Skalierungsfaktoren basierend auf der Container-Größe vs SVG-ViewBox
         const scaleX = containerRect.width / pathData.svgWidth;
         const scaleY = containerRect.height / pathData.svgHeight;
 
-        const distanceAlongPath = (pathPosition / 100) * pathData.pathLength;
-        console.log('Distance along path:', distanceAlongPath, 'for position', pathPosition);
-        const point = pathData.pathElement.getPointAtLength(distanceAlongPath);
-
+        // Konvertiere SVG-Koordinaten zu Container-Koordinaten
+        // Berücksichtige dass der Path nicht bei (0,0) starten muss
         const x = point.x * scaleX;
         const y = point.y * scaleY;
 
+        // Positioniere den Checkpoint
         checkpoint.style.position = 'absolute';
         checkpoint.style.left = `${x}px`;
         checkpoint.style.top = `${y}px`;
+
+        // Debug-Ausgabe
+        if (this.config.debug) {
+            console.log('Checkpoint positioning:', {
+                pathPosition: pathPosition + '%',
+                pathLength: pathData.pathLength,
+                distanceAlongPath,
+                svgPoint: { x: point.x, y: point.y },
+                pathBBox,
+                containerSize: {
+                    width: containerRect.width,
+                    height: containerRect.height
+                },
+                svgSize: {
+                    width: pathData.svgWidth,
+                    height: pathData.svgHeight
+                },
+                scale: { x: scaleX, y: scaleY },
+                finalPosition: { x, y }
+            });
+        }
     }
 
     /**

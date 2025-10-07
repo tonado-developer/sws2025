@@ -243,49 +243,6 @@ registerBlockType('sws2025/image-mapper', {
             }
         }, []);
 
-        useEffect(() => {
-            if (props.attributes.hotspots?.length > 0) {
-                props.attributes.hotspots.forEach((hotspotArray, index) => {
-                    const pathSvgObj = hotspotArray.find(item => item.name === 'pathSvg');
-                    const svgCodeObj = hotspotArray.find(item => item.name === 'svgPathCode');
-
-                    if (pathSvgObj?.pathSvg && !svgCodeObj) {
-                        fetch(pathSvgObj.pathSvg)
-                            .then(response => response.text())
-                            .then(svgCode => {
-                                const updatedHotspots = [...props.attributes.hotspots];
-                                const updatedHotspotArray = [...updatedHotspots[index]];
-
-                                const existingIndex = updatedHotspotArray.findIndex(
-                                    item => item.name === 'svgPathCode'
-                                );
-
-                                const svgCodeItem = {
-                                    name: "svgPathCode",
-                                    type: "html",
-                                    svgPathCode: svgCode  // ← WICHTIG: Der Key muss dem name entsprechen
-                                };
-
-                                if (existingIndex > -1) {
-                                    updatedHotspotArray[existingIndex] = svgCodeItem;
-                                } else {
-                                    updatedHotspotArray.push(svgCodeItem);
-                                }
-
-                                updatedHotspots[index] = updatedHotspotArray;
-                                props.setAttributes({ hotspots: updatedHotspots });
-                            })
-                            .catch(error => {
-                                console.error("Fehler beim Laden des SVG:", error);
-                            });
-                    }
-                });
-            }
-        }, [JSON.stringify(props.attributes.hotspots?.map(ha => {
-            const pathObj = ha.find(item => item.name === 'pathSvg');
-            return pathObj?.pathSvg || '';
-        }))]);
-
         return wp.element.createElement('div', null,
 
             // Block Title
@@ -788,8 +745,6 @@ registerBlockType('sws2025/image-mapper', {
 
                 // SVG Path with Checkpoints
                 if (hotspot.pathSvg) {
-                    console.log("Hotspot object:", hotspot);
-                    console.log("svgPathCode value:", hotspot.svgPathCode);
 
                     elements.push(wp.element.createElement(
                         'div',
@@ -797,17 +752,11 @@ registerBlockType('sws2025/image-mapper', {
                             className: 'svg-path-container',
                             'data-hotspot-id': index
                         },
-                        hotspot.svgPathCode ?
-                            wp.element.createElement('div', {
-                                className: 'svg-path-wrapper',
-                                dangerouslySetInnerHTML: { __html: hotspot.svgPathCode }
-                            }) :
-                            wp.element.createElement('img', {
-                                className: 'svg-path',
-                                src: hotspot.pathSvg,
-                                alt: ''
-                            }),
-
+                        wp.element.createElement('img', {
+                            className: 'svg-path',
+                            src: hotspot.pathSvg,
+                            alt: ''
+                        }),
                         // Checkpoints
                         hotspot.checkpoints && Array.isArray(hotspot.checkpoints) && hotspot.checkpoints.length > 0 &&
                         wp.element.createElement(
