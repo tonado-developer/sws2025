@@ -17,7 +17,7 @@ class WPOverlay {
                 ease: 'power3.inOut',
                 scaleOrigin: 20, // Origin point size
                 background: "#FF6920",
-                width: "1200"
+                width: "1300"
             },
             
             // Classes

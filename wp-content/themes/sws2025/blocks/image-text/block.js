@@ -18,6 +18,14 @@ wp.blocks.registerBlockType('sws2025/image-text', {
             title: "Fließtext",
             description: "Der Hauptbestandteil an text neben dem Bild"
         }),
+        button_text: pbw.p.attr({
+            selector: 'a.button',
+            title: "Button Text",
+            description: "Dieser Text steht später auf dem Button"
+        }),
+        link: pbw.link.attr({
+            title: "Button Verlinkung",
+        }),
         opening: pbw.choose.attr({
             default: 'right',
             title: 'Randöffnung',
@@ -72,6 +80,10 @@ wp.blocks.registerBlockType('sws2025/image-text', {
                     pbw.h1.input(props, "h1", "heading"),
                     // Text Input
                     pbw.p.input(props, "p", "text"),
+                    // Button-Text Input
+                    pbw.p.input(props, "p", "button_text"),
+                    // Button-Link Input
+                    pbw.link.input(props, "link"),
                 )
             ),
             
@@ -178,7 +190,8 @@ wp.blocks.registerBlockType('sws2025/image-text', {
                     'div',
                     { className: `textWrap`},
                     pbw.h1.output(props,"h3","heading"),
-                    pbw.p.output(props,"p","text")
+                    pbw.p.output(props,"p","text"),
+                    pbw.link.output(props,"link",pbw.p.output(props,"span","button_text")),
                 )
             )
         );

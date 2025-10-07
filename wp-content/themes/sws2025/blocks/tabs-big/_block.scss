@@ -104,4 +104,7 @@
             border-radius: 20px;
         }
     }
+    .link{
+        @include button;
+    }
 }

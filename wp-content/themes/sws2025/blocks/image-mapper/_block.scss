@@ -589,8 +589,7 @@ img.parent_img.hdImage {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(10px);
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -638,6 +637,7 @@ img.parent_img.hdImage {
 
 .wp-overlay-close:hover {
     background: var(--wp--preset--color--base);
+    color: var(--wp--preset--color--accent-1);
 }
 
 /* Body */

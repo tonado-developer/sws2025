@@ -40,6 +40,15 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
                         title: 'Text',
                         description: 'Der Beschreibungstext'
                     }, 
+                    link: { 
+                        type: 'link', 
+                        title: 'Button Verlinkung',
+                    }, 
+                    button_text: { 
+                        type: 'text', 
+                        title: 'Button Text',
+                        description: 'Dieser Text steht später auf dem Button'
+                    }, 
                     opening: { 
                         type: 'choose', 
                         title: 'Randöffnung',
@@ -203,7 +212,8 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
                                 wp.element.createElement(wp.blockEditor.RichText.Content, {
                                     tagName: 'p',
                                     value: item.text || "", // Zugriff auf den ersten Wert
-                                })
+                                }),
+                                pbw.link.output({attributes:item},"link",pbw.p.output({attributes:item},"span","button_text")),
                             )
                         );
                     })
