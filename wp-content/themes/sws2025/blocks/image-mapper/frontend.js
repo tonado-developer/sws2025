@@ -438,19 +438,6 @@ class WordPressImageMapper {
         // Related elements
         elementsToHide.push(...this.getAllVisibleRelatedElements());
 
-        // SVG Checkpoints und Position Handlers cleanup
-        const svgContainers = this.state.rootContainer?.querySelectorAll('.svg-path-container.open');
-        if (svgContainers) {
-            svgContainers.forEach(container => {
-                // Remove position update handler
-                if (container._positionUpdateHandler) {
-                    gsap.ticker.remove(container._positionUpdateHandler);
-                    delete container._positionUpdateHandler;
-                }
-                this.cleanupSVGCheckpoints(container);
-            });
-        }
-
         if (elementsToHide.length === 0) {
             if (onComplete) onComplete();
             return;
@@ -458,6 +445,21 @@ class WordPressImageMapper {
 
         const tl = gsap.timeline({
             onComplete: () => {
+
+                // SVG Checkpoints und Position Handlers cleanup
+                // const svgContainers = this.state.rootContainer?.querySelectorAll('.svg-path-container.open');
+                // console.log('Cleaning up SVG containers:', svgContainers);
+                // if (svgContainers) {
+                //     svgContainers.forEach(container => {
+                //         // Remove position update handler
+                //         if (container._positionUpdateHandler) {
+                //             gsap.ticker.remove(container._positionUpdateHandler);
+                //             delete container._positionUpdateHandler;
+                //         }
+                //         this.cleanupSVGCheckpoints(container);
+                //     });
+                // }
+
                 elementsToHide.forEach(el => {
                     el.classList.remove(this.config.classes.open);
                 });
