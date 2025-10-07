@@ -880,12 +880,21 @@ class WordPressImageMapper {
         const illustrationAnimationTypes = this.illustrationAnimationTypes();
         const type = "wings";
         const initializedElements = [];
+        
         if (type && illustrationAnimationTypes[type]) {
             const currentType = illustrationAnimationTypes[type];
+            
             elements.forEach(el => {
-                initializedElements.push(currentType.init(el))
+                // Stop existing animations
+                gsap.killTweensOf(el.querySelectorAll("path"));
+                
+                // Initialize and collect
+                const initializedEl = currentType.init(el);
+                initializedElements.push(initializedEl);
                 el.classList.add(this.config.classes.IllustrationInitialized);
             });
+            
+            // Start fade-in animation
             initializedElements.forEach(el => {
                 el.classList.add(this.config.classes.IllustrationAnimating);
                 currentType.fadeIn(el, () => {
@@ -893,27 +902,63 @@ class WordPressImageMapper {
                     el.classList.add(this.config.classes.IllustrationAnimated);
                 });
             });
-
-            // Optional: fade out after some time
-            // setTimeout(() => initializedElements.forEach(el => currentType.fadeOut(el)), 2000);
         }
     }
 
     /**
-     * reset IllustrationAnimation
+     * Reset IllustrationAnimation - stops and resets to initial state
      */
     resetIllustrationAnimation() {
         const root = this.state.rootContainer;
         if (!root) return;
+        
         const elements = root.querySelectorAll(`.${this.config.classes.IllustrationInitialized}`);
         if (!elements || elements.length == 0) return;
-        console.log('Resetting illustration animations',this.state.rootContainer);
+        
+        console.log('Resetting illustration animations', this.state.rootContainer);
 
         const illustrationAnimationTypes = this.illustrationAnimationTypes();
-
         const type = "wings";
         const currentType = illustrationAnimationTypes[type];
-        elements.forEach(el => {currentType.init(el)});
+        
+        elements.forEach(el => {
+            // Kill all running animations
+            gsap.killTweensOf(el.querySelectorAll("path"));
+            gsap.killTweensOf(el);
+            
+            // Remove animation classes
+            el.classList.remove(
+                this.config.classes.IllustrationAnimating,
+                this.config.classes.IllustrationAnimated
+            );
+            
+            // Reset to initial state
+            const wings = el.querySelectorAll("path");
+            gsap.set(wings, {
+                scale: 0,
+                opacity: 0,
+                rotation: 0,
+                clearProps: "transform"
+            });
+            gsap.set(el, { opacity: 0, display: 'none' });
+        });
+    }
+
+    /**
+     * Restart IllustrationAnimation - resets and starts new animation
+     */
+    restartIllustrationAnimation() {
+        this.resetIllustrationAnimation();
+        
+        // Wait a frame for reset to complete
+        requestAnimationFrame(() => {
+            const elements = this.state.rootContainer?.querySelectorAll(
+                `.${this.config.classes.IllustrationInitialized}`
+            );
+            if (elements && elements.length > 0) {
+                this.setupIllustrationAnimation(Array.from(elements));
+            }
+        });
     }
 
     /**
