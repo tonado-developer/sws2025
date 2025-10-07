@@ -338,7 +338,7 @@ class WordPressImageMapper {
         this.initMarkers();
 
         this.initAllSVGPaths();
-        
+
         this.initBadgePositioning();
 
         this.debug(`Container initialized with ${markers.length} markers, ${Object.keys(this.state.globalElements || {}).length} global element types`);
@@ -556,19 +556,53 @@ class WordPressImageMapper {
      * Initialize a single SVG path container
      */
     async initSingleSVGPath(svgContainer) {
-        const svgImg = svgContainer.querySelector('.svg-path');
         const checkpointsWrapper = svgContainer.querySelector('.checkpointsWrapper');
         const checkpoints = svgContainer.querySelectorAll('.checkpoint-marker');
         const hotspotId = svgContainer.dataset.hotspotId;
 
-        if (!svgImg || !checkpointsWrapper || checkpoints.length === 0) {
+        if (!checkpointsWrapper || checkpoints.length === 0) {
             return;
         }
 
-        // SVG Pfad-Daten laden und cachen
-        const pathData = await this.loadAndCacheSVGPath(svgImg.src, hotspotId);
-        if (!pathData) return;
+        // GEÄNDERT: Prüfe erst auf inline SVG, dann auf img
+        let pathData;
 
+        // Variante 1: Inline SVG (direkt im DOM)
+        const inlineSvg = svgContainer.querySelector('svg');
+        if (inlineSvg) {
+            const pathElement = inlineSvg.querySelector('path');
+            if (!pathElement) {
+                this.debug('No path found in inline SVG');
+                return;
+            }
+
+            // Direkt aus dem DOM lesen, kein fetch nötig
+            const cacheKey = `inline-${hotspotId}`;
+
+            if (!this.svgPaths.has(cacheKey)) {
+                pathData = {
+                    pathElement: pathElement.cloneNode(true),
+                    viewBox: inlineSvg.viewBox.baseVal,
+                    svgWidth: inlineSvg.viewBox.baseVal.width || inlineSvg.width.baseVal.value || 100,
+                    svgHeight: inlineSvg.viewBox.baseVal.height || inlineSvg.height.baseVal.value || 100,
+                    pathLength: pathElement.getTotalLength(),
+                    svgUrl: cacheKey
+                };
+                this.svgPaths.set(cacheKey, pathData);
+            } else {
+                pathData = this.svgPaths.get(cacheKey);
+            }
+        }
+        // Variante 2: IMG-Tag (altes System)
+        else {
+            const svgImg = svgContainer.querySelector('.svg-path');
+            if (!svgImg || !svgImg.src) {
+                return;
+            }
+
+            pathData = await this.loadAndCacheSVGPath(svgImg.src, hotspotId);
+            if (!pathData) return;
+        }
 
         // Checkpoints registrieren für Live-Updates
         checkpoints.forEach(checkpoint => {
@@ -648,6 +682,7 @@ class WordPressImageMapper {
         const scaleY = containerRect.height / pathData.svgHeight;
 
         const distanceAlongPath = (pathPosition / 100) * pathData.pathLength;
+        console.log('Distance along path:', distanceAlongPath, 'for position', pathPosition);
         const point = pathData.pathElement.getPointAtLength(distanceAlongPath);
 
         const x = point.x * scaleX;
