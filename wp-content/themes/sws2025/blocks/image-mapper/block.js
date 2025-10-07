@@ -243,22 +243,93 @@ registerBlockType('sws2025/image-mapper', {
             }
         }, []);
 
-        // SVG laden und Maschinen zählen
+        // SVG laden für globale Illustration und Hotspot-Illustrationen
         useEffect(() => {
+            // Globale Illustration laden
             if (props.attributes.illustrationImage && props.attributes.illustrationImage !== "") {
-            fetch(props.attributes.illustrationImage)
-                .then((response) => response.text())
-                .then((illustrationImagesvgCode) => {
-                props.setAttributes({ illustrationImagesvgCode: illustrationImagesvgCode });
-                })
-                .catch((error) => {
-                console.error("Fehler beim Laden des SVG:", error);
-                props.setAttributes({ illustrationImagesvgCode: "" });
-                });
+                fetch(props.attributes.illustrationImage)
+                    .then((response) => response.text())
+                    .then((illustrationImagesvgCode) => {
+                        props.setAttributes({ illustrationImagesvgCode: illustrationImagesvgCode });
+                    })
+                    .catch((error) => {
+                        console.error("Fehler beim Laden des globalen SVG:", error);
+                        props.setAttributes({ illustrationImagesvgCode: "" });
+                    });
             } else {
-            props.setAttributes({ illustrationImagesvgCode: "" });
+                props.setAttributes({ illustrationImagesvgCode: "" });
             }
-        }, [props.attributes.illustrationImage]);
+
+            // Hotspot-Illustrationen laden
+            if (props.attributes.hotspots && props.attributes.hotspots.length > 0) {
+                const updatedHotspots = [...props.attributes.hotspots];
+                let hasChanges = false;
+
+                updatedHotspots.forEach((hotspot, index) => {
+                    if (Array.isArray(hotspot)) {
+                        const illustrationField = hotspot.find(item => item.name === 'illustrationImage');
+
+                        if (illustrationField && illustrationField.illustrationImage) {
+                            // Prüfe ob SVG-Code bereits existiert oder sich die URL geändert hat
+                            const svgCodeField = hotspot.find(item => item.name === 'illustrationImageSvgCode');
+                            const currentSvgUrl = illustrationField.illustrationImage;
+
+                            // Nur laden wenn noch kein SVG-Code vorhanden oder URL geändert
+                            if (!svgCodeField || svgCodeField.illustrationImageUrl !== currentSvgUrl) {
+                                fetch(currentSvgUrl)
+                                    .then((response) => response.text())
+                                    .then((svgCode) => {
+                                        const newHotspots = [...props.attributes.hotspots];
+                                        const newHotspot = [...newHotspots[index]];
+
+                                        // Finde oder erstelle das SVG-Code Feld
+                                        let svgFieldIndex = newHotspot.findIndex(item => item.name === 'illustrationImageSvgCode');
+
+                                        if (svgFieldIndex === -1) {
+                                            // Feld existiert nicht, erstelle es
+                                            newHotspot.push({
+                                                name: 'illustrationImageSvgCode',
+                                                type: 'text',
+                                                illustrationImageSvgCode: svgCode,
+                                                illustrationImageUrl: currentSvgUrl // Speichere URL zur Änderungserkennung
+                                            });
+                                        } else {
+                                            // Feld existiert, aktualisiere es
+                                            newHotspot[svgFieldIndex] = {
+                                                ...newHotspot[svgFieldIndex],
+                                                illustrationImageSvgCode: svgCode,
+                                                illustrationImageUrl: currentSvgUrl
+                                            };
+                                        }
+
+                                        newHotspots[index] = newHotspot;
+                                        props.setAttributes({ hotspots: newHotspots });
+                                    })
+                                    .catch((error) => {
+                                        console.error(`Fehler beim Laden des Hotspot ${index} SVG:`, error);
+                                    });
+                            }
+                        } else if (illustrationField && !illustrationField.illustrationImage) {
+                            // Illustration wurde entfernt, lösche auch den SVG-Code
+                            const svgFieldIndex = hotspot.findIndex(item => item.name === 'illustrationImageSvgCode');
+                            if (svgFieldIndex !== -1) {
+                                const newHotspots = [...props.attributes.hotspots];
+                                const newHotspot = [...newHotspots[index]];
+                                newHotspot[svgFieldIndex] = {
+                                    ...newHotspot[svgFieldIndex],
+                                    illustrationImageSvgCode: '',
+                                    illustrationImageUrl: ''
+                                };
+                                newHotspots[index] = newHotspot;
+                                props.setAttributes({ hotspots: newHotspots });
+                            }
+                        }
+                    }
+                });
+            }
+        }, [props.attributes.illustrationImage, props.attributes.hotspots]);
+
+
 
         return wp.element.createElement('div', null,
 
@@ -587,17 +658,6 @@ registerBlockType('sws2025/image-mapper', {
                     transform: 'translate(-20%,100%) scale(.7)',
                 },
             }),
-            // wp.element.createElement(
-            //     'img',
-            //     {
-            //         className: 'illustration-image open',
-            //         src: attributes.illustrationImage,
-            //         alt: attributes.illustrationImageAlt || '',
-            //         style: {
-            //             transform: 'translate(-20%,100%) scale(.7)',
-            //         },
-            //     }
-            // ),
             // Base Preview Structure
             wp.element.createElement(
                 'div',
@@ -752,14 +812,13 @@ registerBlockType('sws2025/image-mapper', {
                 }
 
                 // Illustration
-                if (hotspot.illustrationImage) {
+                if (hotspot.illustrationImageSvgCode) {
                     elements.push(wp.element.createElement(
-                        'img',
+                        'div',
                         {
                             className: 'illustration-image',
                             'data-hotspot-id': index,
-                            src: hotspot.illustrationImage,
-                            alt: hotspot.illustrationImageAlt || '',
+                            dangerouslySetInnerHTML: { __html: hotspot.illustrationImageSvgCode },
                             style: {
                                 transform: 'translate(-20%,100%) scale(.7)',
                             },
