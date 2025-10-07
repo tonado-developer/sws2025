@@ -173,10 +173,13 @@ img.parent_img.hdImage {
     width: 200%;
     object-fit: contain;
     object-position: bottom left;
-    transition: all 1.8s ease;
+    transition: transform 1.8s ease;
     z-index: 6;
     opacity: 0;
     pointer-events: none;
+    svg{
+        height: 100%;
+    }
 }
 
 @media screen and (min-width:$navbarBreakpoint) {
@@ -251,7 +254,7 @@ img.parent_img.hdImage {
     }
 }
 
-.side-content.open,.person-image.open,.illustration-image.open {
+.side-content.open,.person-image.open {
     display: block;
     transform: unset !important;
     opacity: 1;
@@ -260,6 +263,9 @@ img.parent_img.hdImage {
             transform: unset;
         }
     }
+}
+.illustration-image.open {
+    transform: unset !important;
 }
 
 .side-text {

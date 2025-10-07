@@ -39,7 +39,10 @@ class WordPressImageMapper {
                 current: 'current',
                 open: 'open',
                 active: 'image-mapper-active',
-                hidden: 'element-hidden' // New class for hiding elements
+                hidden: 'element-hidden', // New class for hiding elements,
+                IllustrationInitialized: "IllustrationInitialized",
+                IllustrationAnimating: "IllustrationAnimating",
+                IllustrationAnimated: "IllustrationAnimated",
             },
 
             // Animation settings
@@ -312,6 +315,8 @@ class WordPressImageMapper {
 
         // Track initially visible global elements
         this.updateVisibleElements();
+
+        this.setupIllustrationAnimation(this.state.globalElements.illustrationImage);
 
         // Reset transforms
         gsap.set(preview, { clearProps: "all" });
@@ -785,6 +790,132 @@ class WordPressImageMapper {
         });
     }
 
+    illustrationAnimationTypes() {
+        return {
+            "wings": {
+                "init": (el) => {
+                    const wings = el.querySelectorAll("path");
+                    if (wings.length != 2) {
+                        console.warn("Expected 2 wings, found:", wings.length);
+                        return;
+                    }
+
+                    gsap.set(el, { opacity: 1 });
+                    el.style.display = 'block';
+
+                    wings.forEach((wing) => {
+                        gsap.set(wings, {
+                            scale: 0,
+                            opacity: 0.6,
+                            transformOrigin: (i) => (i === 0 ? "right bottom" : "left bottom")
+                        });
+
+                    });
+
+                    return el;
+                },
+
+                "fadeIn": (el,onComplete) => {
+                    const wings = el.querySelectorAll("path");
+                    if (wings.length != 2) return;
+
+                    wings.forEach((wing, index) => {
+                        // Kleine zufällige Verzögerung, damit die Flügel nicht exakt synchron starten
+                        const delay = index * 0.1 + (Math.random() * 0.1); // 0–0.1 Sek. Unterschied
+
+                        gsap.to(wing, {
+                            scale: 1,
+                            duration: 1.5,
+                            ease: "back.out(1.7)",
+                            stagger: 0.1,
+                            opacity: 1,
+                            delay: delay,
+                            onComplete: () => {
+                                // Leichte dauerhafte Flatterbewegung, kaum Variation
+                                const direction = index === 0 ? -1 : 1;
+                                const baseAngle = 8;
+                                const angleVariation = (Math.random() * 2) - 1; // ±1 Grad Variation
+                                gsap.to(wing, {
+                                    rotation: (baseAngle + angleVariation) * direction,
+                                    transformOrigin: index === 0 ? "right bottom" : "left bottom",
+                                    duration: 1.2,
+                                    ease: "sine.inOut",
+                                    repeat: -1,
+                                    yoyo: true
+                                });
+                                onComplete && onComplete();
+                            }
+                        });
+                    });
+
+                    return el;
+                },
+
+
+
+                "fadeOut": (el) => {
+                    const wings = el.querySelectorAll("path");
+                    gsap.to(wings, {
+                        scale: 0,
+                        opacity: 0,
+                        duration: 0.8,
+                        ease: "power2.in",
+                        onComplete: () => {
+                            el.style.display = 'none';
+                        }
+                    });
+                }
+            }
+        };
+    }
+
+
+
+    /**
+     * Start Animation for illustration images
+     */
+    setupIllustrationAnimation(elements) {
+        if (!elements || elements.length == 0) return;
+
+        const illustrationAnimationTypes = this.illustrationAnimationTypes();
+        const type = "wings";
+        const initializedElements = [];
+        if (type && illustrationAnimationTypes[type]) {
+            const currentType = illustrationAnimationTypes[type];
+            elements.forEach(el => {
+                initializedElements.push(currentType.init(el))
+                el.classList.add(this.config.classes.IllustrationInitialized);
+            });
+            initializedElements.forEach(el => {
+                el.classList.add(this.config.classes.IllustrationAnimating);
+                currentType.fadeIn(el, () => {
+                    el.classList.remove(this.config.classes.IllustrationAnimating);
+                    el.classList.add(this.config.classes.IllustrationAnimated);
+                });
+            });
+
+            // Optional: fade out after some time
+            // setTimeout(() => initializedElements.forEach(el => currentType.fadeOut(el)), 2000);
+        }
+    }
+
+    /**
+     * reset IllustrationAnimation
+     */
+    resetIllustrationAnimation() {
+        const root = this.state.rootContainer;
+        if (!root) return;
+        const elements = root.querySelectorAll(`.${this.config.classes.IllustrationInitialized}`);
+        if (!elements || elements.length == 0) return;
+        console.log('Resetting illustration animations',this.state.rootContainer);
+
+        const illustrationAnimationTypes = this.illustrationAnimationTypes();
+
+        const type = "wings";
+        const currentType = illustrationAnimationTypes[type];
+        elements.forEach(el => {currentType.init(el)});
+    }
+
     /**
      * Setup container-specific event listeners
      * @param {HTMLElement} container - Container element
@@ -1240,6 +1371,8 @@ class WordPressImageMapper {
         if (this.state.zooming) return;
         this.state.zooming = true;
 
+        this.resetIllustrationAnimation()
+
         // Store flag temporarily
         this._isCalledFromScroll = isFromScroll;
 
@@ -1294,6 +1427,8 @@ class WordPressImageMapper {
         const newMarkerId = newMarker.dataset.hotspotId;
 
         if (oldMarkerId === newMarkerId) return;
+
+        this.resetIllustrationAnimation()
 
         this.state.zooming = true;
 

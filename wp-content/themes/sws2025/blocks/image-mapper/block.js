@@ -243,6 +243,23 @@ registerBlockType('sws2025/image-mapper', {
             }
         }, []);
 
+        // SVG laden und Maschinen zählen
+        useEffect(() => {
+            if (props.attributes.illustrationImage && props.attributes.illustrationImage !== "") {
+            fetch(props.attributes.illustrationImage)
+                .then((response) => response.text())
+                .then((illustrationImagesvgCode) => {
+                props.setAttributes({ illustrationImagesvgCode: illustrationImagesvgCode });
+                })
+                .catch((error) => {
+                console.error("Fehler beim Laden des SVG:", error);
+                props.setAttributes({ illustrationImagesvgCode: "" });
+                });
+            } else {
+            props.setAttributes({ illustrationImagesvgCode: "" });
+            }
+        }, [props.attributes.illustrationImage]);
+
         return wp.element.createElement('div', null,
 
             // Block Title
@@ -563,17 +580,24 @@ registerBlockType('sws2025/image-mapper', {
                     },
                 }
             ),
-            wp.element.createElement(
-                'img',
-                {
-                    className: 'illustration-image open',
-                    src: attributes.illustrationImage,
-                    alt: attributes.illustrationImageAlt || '',
-                    style: {
-                        transform: 'translate(-20%,100%) scale(.7)',
-                    },
-                }
-            ),
+            wp.element.createElement('div', {
+                className: 'illustration-image open',
+                dangerouslySetInnerHTML: { __html: attributes.illustrationImagesvgCode },
+                style: {
+                    transform: 'translate(-20%,100%) scale(.7)',
+                },
+            }),
+            // wp.element.createElement(
+            //     'img',
+            //     {
+            //         className: 'illustration-image open',
+            //         src: attributes.illustrationImage,
+            //         alt: attributes.illustrationImageAlt || '',
+            //         style: {
+            //             transform: 'translate(-20%,100%) scale(.7)',
+            //         },
+            //     }
+            // ),
             // Base Preview Structure
             wp.element.createElement(
                 'div',
