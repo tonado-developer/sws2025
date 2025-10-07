@@ -244,28 +244,36 @@ registerBlockType('sws2025/image-mapper', {
         }, []);
 
         useEffect(() => {
-            console.log("useeffect for svg loading triggered");
-            if (props.attributes.hotspots && Array.isArray(props.attributes.hotspots)) {
+            if (props.attributes.hotspots?.length > 0) {
                 props.attributes.hotspots.forEach((hotspotArray, index) => {
                     const pathSvgObj = hotspotArray.find(item => item.name === 'pathSvg');
+                    const svgCodeObj = hotspotArray.find(item => item.name === 'svgPathCode');
 
-                    if (pathSvgObj && pathSvgObj.pathSvg && pathSvgObj.pathSvg !== "") {
+                    if (pathSvgObj?.pathSvg && !svgCodeObj) {
                         fetch(pathSvgObj.pathSvg)
                             .then(response => response.text())
                             .then(svgCode => {
                                 const updatedHotspots = [...props.attributes.hotspots];
                                 const updatedHotspotArray = [...updatedHotspots[index]];
 
-                                // Neues Objekt ans Array anhängen
-                                updatedHotspotArray.push({
+                                const existingIndex = updatedHotspotArray.findIndex(
+                                    item => item.name === 'svgPathCode'
+                                );
+
+                                const svgCodeItem = {
                                     name: "svgPathCode",
                                     type: "html",
-                                    svgPathCode: svgCode
-                                });
+                                    svgPathCode: svgCode  // ← WICHTIG: Der Key muss dem name entsprechen
+                                };
+
+                                if (existingIndex > -1) {
+                                    updatedHotspotArray[existingIndex] = svgCodeItem;
+                                } else {
+                                    updatedHotspotArray.push(svgCodeItem);
+                                }
 
                                 updatedHotspots[index] = updatedHotspotArray;
                                 props.setAttributes({ hotspots: updatedHotspots });
-                                console.log("updated props after SVG load:", updatedHotspotArray);
                             })
                             .catch(error => {
                                 console.error("Fehler beim Laden des SVG:", error);
@@ -273,10 +281,10 @@ registerBlockType('sws2025/image-mapper', {
                     }
                 });
             }
-        }, [props.attributes.hotspots?.map(ha => {
+        }, [JSON.stringify(props.attributes.hotspots?.map(ha => {
             const pathObj = ha.find(item => item.name === 'pathSvg');
             return pathObj?.pathSvg || '';
-        }).join(',')]);
+        }))]);
 
         return wp.element.createElement('div', null,
 
@@ -780,7 +788,9 @@ registerBlockType('sws2025/image-mapper', {
 
                 // SVG Path with Checkpoints
                 if (hotspot.pathSvg) {
-                    // console.log("Rendering SVG Path for hotspot", index, hotspot);
+                    console.log("Hotspot object:", hotspot);
+                    console.log("svgPathCode value:", hotspot.svgPathCode);
+
                     elements.push(wp.element.createElement(
                         'div',
                         {
@@ -788,21 +798,15 @@ registerBlockType('sws2025/image-mapper', {
                             'data-hotspot-id': index
                         },
                         hotspot.svgPathCode ?
-                            wp.element.createElement(
-                                'div',
-                                {
-                                    className: 'svg-path',
-                                    dangerouslySetInnerHTML: { __html: hotspot.svgPathCode }
-                                }
-                            )
-                            : hotspot.pathSvg && wp.element.createElement(
-                                'img',
-                                {
-                                    className: 'svg-path',
-                                    src: hotspot.pathSvg,
-                                    alt: 'Path',
-                                }
-                            ),
+                            wp.element.createElement('div', {
+                                className: 'svg-path-wrapper',
+                                dangerouslySetInnerHTML: { __html: hotspot.svgPathCode }
+                            }) :
+                            wp.element.createElement('img', {
+                                className: 'svg-path',
+                                src: hotspot.pathSvg,
+                                alt: ''
+                            }),
 
                         // Checkpoints
                         hotspot.checkpoints && Array.isArray(hotspot.checkpoints) && hotspot.checkpoints.length > 0 &&
