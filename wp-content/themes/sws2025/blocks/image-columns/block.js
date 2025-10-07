@@ -11,48 +11,53 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
             title: "Anzahl der Spalten",
             description: "Wieviele Bilder sollen auf dem Desktop nebeneinander stehen?"
         }),
-        sectionBackground: pbw.choose.attr({ 
+        sectionBackground: pbw.choose.attr({
             default: "none",
             title: 'Sektion Hintergrund',
             description: 'Wie soll die Fläche allgemein hinter dem Block gefärbt sein?',
         }),
-        cardBackground: pbw.choose.attr({ 
+        cardBackground: pbw.choose.attr({
             default: "none",
             title: 'Karte',
             description: 'Soll der Block in eine Karte verpackt werden? Wenn ja welcher Farbmodus?',
+        }),
+        onhover: pbw.choose.attr({
+            default: "onhover",
+            title: 'Text erst beim Hovern?',
+            description: 'Soll der Text erst beim Hovern über das Bild erscheinen?',
         }),
         items: {
             type: 'array',
             title: 'Spalten-Elemente',
             default: [
                 {
-                    image: { 
-                        type: 'img', 
+                    image: {
+                        type: 'img',
                         title: 'Bild',
                         description: "Das Bild das man als erstes sieht"
                     },
-                    hoverimage: { 
-                        type: 'img', 
+                    hoverimage: {
+                        type: 'img',
                         title: 'Effekt-Bild',
                         description: "Das Bild das man erst beim hovern sieht"
                     },
-                    headline: { 
-                        type: 'text', 
+                    headline: {
+                        type: 'text',
                         title: 'Überschrift',
                         description: 'Die Überschrift für diese Spalte'
-                    }, 
-                    text: { 
-                        type: 'text', 
+                    },
+                    text: {
+                        type: 'text',
                         title: 'Text',
                         description: 'Der Beschreibungstext'
-                    }, 
-                    link: { 
-                        type: 'link', 
-                        title: 'Link',
-                        description: 'Falls erwünscht: Verlinkung zu weiteren Informationen'
-                    }, 
-                    opening: { 
-                        type: 'choose', 
+                    },
+                    link: {
+                        type: 'link',
+                        title: 'Link (ggfs. mit Mail Funktion)',
+                        description: 'Falls erwünscht: Verlinkung zu weiteren Informationen oder "mailto:" für E-Mail'
+                    },
+                    opening: {
+                        type: 'choose',
                         title: 'Randöffnung',
                         description: 'An welcher Seite soll sich eine Öffnung im Rand befinden?',
                         options: [
@@ -71,10 +76,10 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
         attributes: {
             heading: pbw.h1.example,
             text: pbw.p.example
-        }, 
+        },
     },
     edit: function (props) {
-        return wp.element.createElement(wp.element.Fragment,null,
+        return wp.element.createElement(wp.element.Fragment, null,
             // Block Info
             pbw.block.title(props),
 
@@ -108,6 +113,11 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
                         { label: 'Ja, Hell', value: 'light' },
                         { label: 'Ja, Dunkel', value: 'dark' },
                         { label: 'Ja, Farbig', value: 'color' }
+                    ]),
+                    // onhover
+                    pbw.choose.input(props, 'onhover', [
+                        { label: 'Ja bitte erst beim hovern anzeigen', value: 'onhover' },
+                        { label: 'Nein bitte immer anzeigen', value: '' },
                     ])
                 )
             ),
@@ -116,13 +126,13 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
             // Haupt Inputs
             wp.element.createElement(
                 'details',
-                { 
+                {
                     className: 'wp-block-config',
                     style: { borderLeft: '4px solid #ff6920', padding: '10px' },
                     open: true
                 },
                 wp.element.createElement(
-                    'summary', 
+                    'summary',
                     { style: { cursor: 'pointer', fontWeight: 'bold' } },
                     'Inhalt'
                 ),
@@ -134,16 +144,16 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
                 )
             ),
 
-            
+
             // Konfigurations Inputs
             wp.element.createElement(
                 'details',
-                { 
+                {
                     className: 'wp-block-config',
                     style: { borderLeft: '4px solid #ffcb20', padding: '10px' }
                 },
                 wp.element.createElement(
-                    'summary', 
+                    'summary',
                     { style: { cursor: 'pointer', fontWeight: 'bold' } },
                     'Konfiguration'
                 ),
@@ -175,67 +185,83 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
         );
     },
     save: function (props) {
-        return wp.element.createElement('section',{ 
-            className: "bg-" + pbw.choose.output(props, "sectionBackground") + " card-" + pbw.choose.output(props, "cardBackground"),
-        },
+        return wp.element.createElement(
+            'section',
+            {
+                className: "bg-" + pbw.choose.output(props, "sectionBackground") +
+                    " card-" + pbw.choose.output(props, "cardBackground"),
+            },
             wp.element.createElement(
                 'container',
-                { 
+                {
                     className: "columns-" + pbw.choose.output(props, "columns"),
                 },
-                pbw.array.output(props, "items", function(item) {
-                    const Component = item.link ? 'a' : 'div';
-                    
-                    // Prepare props object for the main component (a or div)
+                pbw.array.output(props, "items", function (item) {
+                    const isMailLink = item.link && item.link.startsWith("mailto:");
+                    const hasNormalLink = item.link && !isMailLink;
+                    const Component = hasNormalLink ? 'a' : 'div';
+
+                    // Grundprops
                     const componentProps = {
-                        className: 'kachel-text-reveal ' + (item.opening ?? "right"),
+                        className: 'kachel-text-reveal ' + (item.opening ?? "right") +
+                            " " + pbw.choose.output(props, "onhover"),
                         key: item.key
                     };
-                
-                    // Add href only if link exists
-                    if (item.link) {
+
+                    // Nur bei normalen Links href hinzufügen
+                    if (hasNormalLink) {
                         componentProps.href = item.link;
                     }
-                
-                    return wp.element.createElement(
-                        Component, 
-                        componentProps,
+
+                    // Inhalt der Karte
+                    const children = [
                         wp.element.createElement(
                             'figure',
-                            { className: `wp-block-image ` + (item.hoverimage && "has_effect"), key: item.key },
+                            { className: `wp-block-image ` + (item.hoverimage && "has_effect"), key: item.key + "_figure" },
                             item.image && wp.element.createElement(
                                 'img',
-                                { 
-                                    src: item.image, 
+                                {
+                                    src: item.image,
                                     alt: item.imageAlt || 'Bild',
                                 }
                             ),
                             item.hoverimage && wp.element.createElement(
                                 'img',
-                                { 
-                                    src: item.hoverimage, 
+                                {
+                                    src: item.hoverimage,
                                     alt: item.hoverimageAlt || 'Bild',
                                     class: "effect"
                                 }
-                            ),
+                            )
                         ),
                         (item.headline || item.text) && wp.element.createElement(
                             'div',
-                            { className: `text-to-reveal`, key: item.key },
-                            wp.element.createElement('div',{ className: ``, key: item.key },
+                            { className: `text-to-reveal `, key: item.key + "_text" },
+                            wp.element.createElement('div', { key: item.key + "_inner" },
                                 wp.element.createElement(wp.blockEditor.RichText.Content, {
                                     tagName: 'h3',
-                                    value: item.headline || "", // Zugriff auf den ersten Wert
+                                    value: item.headline || "",
                                 }),
                                 wp.element.createElement(wp.blockEditor.RichText.Content, {
                                     tagName: 'p',
-                                    value: item.text || "", // Zugriff auf den ersten Wert
-                                })
+                                    value: item.text || "",
+                                }),
+                                isMailLink && wp.element.createElement(
+                                    'div',
+                                    { className: 'mail-icon-container', key: item.key + "_mail" },
+                                    wp.element.createElement(
+                                        'a',
+                                        { href: item.link, className: 'mail-icon' },
+                                        wp.element.createElement('span', { className: 'dashicons dashicons-email' })
+                                    )
+                                )
                             )
                         )
-                    );
+                    ];
+                    return wp.element.createElement(Component, componentProps, children);
                 })
             )
         );
-    },
+    }
+
 });

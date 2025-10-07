@@ -17,8 +17,12 @@
         padding: 25px;
         padding-bottom: 45px;
         position: relative;
+        
         &.is_rounded{
             border-radius: 30px;
+            img{
+                border-radius: 22px;
+            }
         }
         &.dark{
             background-color: var(--wp--preset--color--accent-2);

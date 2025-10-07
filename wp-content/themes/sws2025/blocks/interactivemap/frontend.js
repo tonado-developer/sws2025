@@ -90,7 +90,7 @@ function loadMap(mapId, config) {
         zoom: config.zoom || 13,
         zoomControl: false,
         attributionControl: false,
-        scrollWheelZoom: true,
+        scrollWheelZoom: false,
         doubleClickZoom: true,
         dragging: true,
         touchZoom: true,
@@ -141,6 +141,14 @@ function loadMap(mapId, config) {
                     popupContent += '<p>' + location.description + '</p>';
                 }
                 marker.bindPopup(popupContent);
+
+                // Popup bei Hover statt Klick
+                marker.on('mouseover', function () {
+                    this.openPopup();
+                });
+                marker.on('mouseout', function () {
+                    this.closePopup();
+                });
             }
 
             marker.addTo(map);
@@ -154,6 +162,7 @@ function loadMap(mapId, config) {
             map.fitBounds(group.getBounds().pad(0.1));
         }
     }
+
 
     // Keyboard Navigation für Accessibility
     mapElement.addEventListener('keydown', (e) => {
