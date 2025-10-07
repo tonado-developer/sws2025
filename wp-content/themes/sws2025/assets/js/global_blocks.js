@@ -15,31 +15,31 @@
  */
 
 // BLOCK EDITOR KOMPONENTEN (wp.blockEditor)
-const { 
-    URLInput,           
-    URLInputButton,     
-    InnerBlocks,        
-    MediaUpload,        
-    InspectorControls,  
-    RichText,          
-    useBlockProps,     
-    ColorPalette       
+const {
+    URLInput,
+    URLInputButton,
+    InnerBlocks,
+    MediaUpload,
+    InspectorControls,
+    RichText,
+    useBlockProps,
+    ColorPalette
 } = wp.blockEditor;
 
 // UI KOMPONENTEN (wp.components) 
-const { 
-    Button,            
-    PanelBody,         
-    TextControl,       
-    SelectControl,     
-    ExternalLink,      
-    BaseControl        
+const {
+    Button,
+    PanelBody,
+    TextControl,
+    SelectControl,
+    ExternalLink,
+    BaseControl
 } = wp.components;
 
 // REACT-ÄHNLICHE FUNKTIONEN (wp.element)
-const { 
-    createElement,     
-    Fragment          
+const {
+    createElement,
+    Fragment
 } = wp.element;
 
 // BLOCK REGISTRATION (wp.blocks)
@@ -60,7 +60,7 @@ const { __ } = wp.i18n;
  * @param {*} defaultValue - Fallback-Wert
  */
 function safeGet(obj, path, defaultValue = null) {
-    return path.split('.').reduce((acc, part) => 
+    return path.split('.').reduce((acc, part) =>
         acc && acc[part] !== undefined ? acc[part] : defaultValue, obj);
 }
 
@@ -112,46 +112,46 @@ function debounce(func, wait) {
 function createEnhancedSetAttributes(originalSetAttributes, blockName, currentAttributes) {
     const blockType = wp.blocks.getBlockType(blockName);
     const definedAttributes = blockType?.attributes || {};
-    
+
     // Cache für Performance
     const cache = new WeakMap();
-    
+
     return function enhancedSetAttributes(newAttributes) {
         try {
             // 1. Migriere fehlende Attribute mit Default-Werten
             const migratedAttributes = { ...currentAttributes };
-            
+
             Object.keys(definedAttributes).forEach(attrName => {
                 if (!(attrName in migratedAttributes)) {
                     const attrConfig = definedAttributes[attrName];
-                    migratedAttributes[attrName] = attrConfig.default !== undefined 
-                        ? attrConfig.default 
+                    migratedAttributes[attrName] = attrConfig.default !== undefined
+                        ? attrConfig.default
                         : getDefaultForType(attrConfig.type);
                 }
             });
-            
+
             // 2. Spezielle Behandlung für Array-Attribute 
             Object.keys(definedAttributes).forEach(attrName => {
                 const attrConfig = definedAttributes[attrName];
                 if (attrConfig.type === 'array' && Array.isArray(migratedAttributes[attrName])) {
                     migratedAttributes[attrName] = migrateArrayStructure(
-                        migratedAttributes[attrName], 
+                        migratedAttributes[attrName],
                         attrConfig.default || []
                     );
                 }
             });
-            
+
             // 3. Validierung der neuen Attribute
             const validatedAttributes = validateAttributes(newAttributes, definedAttributes);
-            
+
             // 4. Setze alle Attribute (alte + neue + Updates)
             const finalAttributes = {
                 ...migratedAttributes,
                 ...validatedAttributes
             };
-            
+
             originalSetAttributes(finalAttributes);
-            
+
         } catch (error) {
             console.error('[PBW Framework] Error in enhancedSetAttributes:', error);
             // Fallback: Setze nur die neuen Attribute
@@ -165,16 +165,16 @@ function createEnhancedSetAttributes(originalSetAttributes, blockName, currentAt
  */
 function validateAttributes(attributes, definitions) {
     const validated = {};
-    
+
     Object.keys(attributes).forEach(key => {
         const value = attributes[key];
         const definition = definitions[key];
-        
+
         if (!definition) {
             validated[key] = value;
             return;
         }
-        
+
         // Type checking und Konvertierung
         switch (definition.type) {
             case 'string':
@@ -196,7 +196,7 @@ function validateAttributes(attributes, definitions) {
                 validated[key] = value;
         }
     });
-    
+
     return validated;
 }
 
@@ -205,73 +205,81 @@ function validateAttributes(attributes, definitions) {
  */
 function migrateArrayStructure(existingArray, templateArray) {
     if (!templateArray || templateArray.length === 0) return existingArray;
-    
+
     const template = templateArray[0];
     const templateKeys = Object.keys(template);
-    
+
     return existingArray.map(item => {
         if (!item) return null;
-        
-        // Handle both array and object formats
+
+        // OBJEKT-FORMAT zu ARRAY-FORMAT konvertieren
+        if (!Array.isArray(item) && typeof item === 'object') {
+            const newArrayItem = [];
+
+            templateKeys.forEach(fieldName => {
+                const fieldConfig = template[fieldName];
+                const existingData = item[fieldName] || {};
+
+                const newField = {
+                    name: fieldName,
+                    type: fieldConfig.type,
+                    label: fieldConfig.label || fieldName
+                };
+
+                if (fieldConfig.type === 'img') {
+                    newField[fieldName] = existingData[fieldName] || null;
+                    newField[fieldName + 'Alt'] = existingData[fieldName + 'Alt'] || '';
+                    newField[fieldName + 'Data'] = existingData[fieldName + 'Data'] || '';
+                    newField[fieldName + 'Id'] = existingData[fieldName + 'Id'] || null; // FIX: Id auch migrieren
+                } else if (fieldConfig.type === 'nested_array') {
+                    newField[fieldName] = existingData[fieldName] || [];
+                } else if (fieldConfig.type === 'choose') {
+                    newField[fieldName] = existingData[fieldName] || fieldConfig.default || '';
+                } else {
+                    newField[fieldName] = existingData[fieldName] || fieldConfig.default || '';
+                }
+
+                newArrayItem.push(newField);
+            });
+
+            return newArrayItem;
+        }
+
+        // ARRAY-FORMAT: Fehlende Felder hinzufügen
         if (Array.isArray(item)) {
             const migratedItem = [...item];
-            
-            // Füge fehlende Felder basierend auf Template hinzu
+
             templateKeys.forEach(fieldName => {
                 const fieldConfig = template[fieldName];
                 const existingField = migratedItem.find(field => field && field.name === fieldName);
-                
+
                 if (!existingField) {
                     const newField = {
                         name: fieldName,
                         type: fieldConfig.type,
                         label: fieldConfig.label || fieldName
                     };
-                    
-                    // Feldtyp-spezifische Defaults
+
                     if (fieldConfig.type === 'img') {
                         newField[fieldName] = null;
                         newField[fieldName + 'Alt'] = '';
+                        newField[fieldName + 'Data'] = '';
+                        newField[fieldName + 'Id'] = null; // FIX: Id auch initialisieren
                     } else if (fieldConfig.type === 'nested_array') {
                         newField[fieldName] = [];
+                    } else if (fieldConfig.type === 'choose') {
+                        newField[fieldName] = fieldConfig.default || '';
                     } else {
                         newField[fieldName] = fieldConfig.default || '';
                     }
-                    
+
                     migratedItem.push(newField);
                 }
             });
-            
-            return migratedItem;
-        } else if (typeof item === 'object') {
-            // Objekt-Format wird beibehalten aber erweitert
-            const migratedItem = { ...item };
-            
-            // Füge fehlende Felder basierend auf Template hinzu
-            templateKeys.forEach(fieldName => {
-                const fieldConfig = template[fieldName];
-                
-                if (!(fieldName in migratedItem)) {
-                    migratedItem[fieldName] = {
-                        type: fieldConfig.type,
-                        label: fieldConfig.label || fieldName
-                    };
-                    
-                    // Feldtyp-spezifische Defaults
-                    if (fieldConfig.type === 'img') {
-                        migratedItem[fieldName][fieldName] = null;
-                        migratedItem[fieldName][fieldName + 'Alt'] = '';
-                    } else if (fieldConfig.type === 'nested_array') {
-                        migratedItem[fieldName][fieldName] = [];
-                    } else {
-                        migratedItem[fieldName][fieldName] = fieldConfig.default || '';
-                    }
-                }
-            });
-            
+
             return migratedItem;
         }
-        
+
         return item;
     }).filter(item => item !== null);
 }
@@ -302,7 +310,7 @@ function getDefaultForType(type) {
  */
 function renderBlockIcon(icon) {
     if (!icon) return null;
-    
+
     // Function die ein Icon returned
     if (typeof icon === 'function') {
         try {
@@ -312,14 +320,14 @@ function renderBlockIcon(icon) {
             return null;
         }
     }
-    
+
     // Dashicon (string)
     if (typeof icon === 'string') {
         return wp.element.createElement(
             'span',
-            { 
+            {
                 className: `dashicons dashicons-${icon}`,
-                style: { 
+                style: {
                     fontSize: '24px',
                     width: '24px',
                     height: '24px',
@@ -330,13 +338,13 @@ function renderBlockIcon(icon) {
             }
         );
     }
-    
+
     // SVG Element oder React Component
     if (wp.element.isValidElement(icon)) {
         return wp.element.createElement(
             'span',
-            { 
-                style: { 
+            {
+                style: {
                     display: 'inline-block',
                     width: '24px',
                     height: '24px',
@@ -347,7 +355,7 @@ function renderBlockIcon(icon) {
             icon
         );
     }
-    
+
     // Object mit verschiedenen Properties
     if (typeof icon === 'object' && icon !== null) {
         // Object mit src property
@@ -357,7 +365,7 @@ function renderBlockIcon(icon) {
                 return wp.element.createElement(
                     'span',
                     {
-                        style: { 
+                        style: {
                             display: 'inline-block',
                             width: '24px',
                             height: '24px',
@@ -368,7 +376,7 @@ function renderBlockIcon(icon) {
                     icon.src
                 );
             }
-            
+
             // src ist ein String
             if (typeof icon.src === 'string') {
                 // SVG String (inline)
@@ -377,7 +385,7 @@ function renderBlockIcon(icon) {
                         'span',
                         {
                             dangerouslySetInnerHTML: { __html: icon.src },
-                            style: { 
+                            style: {
                                 display: 'inline-block',
                                 width: '24px',
                                 height: '24px',
@@ -387,7 +395,7 @@ function renderBlockIcon(icon) {
                         }
                     );
                 }
-                
+
                 // URL zu einem Bild
                 if (icon.src.match(/\.(svg|png|jpg|jpeg|gif|webp)$/i) || icon.src.startsWith('http') || icon.src.startsWith('data:')) {
                     return wp.element.createElement(
@@ -395,7 +403,7 @@ function renderBlockIcon(icon) {
                         {
                             src: icon.src,
                             alt: '',
-                            style: { 
+                            style: {
                                 width: '24px',
                                 height: '24px',
                                 marginRight: '10px',
@@ -405,13 +413,13 @@ function renderBlockIcon(icon) {
                         }
                     );
                 }
-                
+
                 // Dashicon name in src
                 return wp.element.createElement(
                     'span',
-                    { 
+                    {
                         className: `dashicons dashicons-${icon.src}`,
-                        style: { 
+                        style: {
                             fontSize: '24px',
                             width: '24px',
                             height: '24px',
@@ -423,17 +431,17 @@ function renderBlockIcon(icon) {
                 );
             }
         }
-        
+
         // Object mit background/foreground (WordPress Core Block Style)
         if (icon.background || icon.foreground) {
-            const iconContent = icon.foreground 
-                ? (typeof icon.foreground === 'string' 
+            const iconContent = icon.foreground
+                ? (typeof icon.foreground === 'string'
                     ? wp.element.createElement('span', {
                         dangerouslySetInnerHTML: { __html: icon.foreground }
-                      })
+                    })
                     : icon.foreground)
                 : wp.element.createElement('span', null, '■');
-                
+
             return wp.element.createElement(
                 'span',
                 {
@@ -458,8 +466,8 @@ function renderBlockIcon(icon) {
                             transform: 'translate(-50%, -50%)',
                             width: '20px',
                             height: '20px',
-                            fill: icon.foreground && typeof icon.foreground === 'string' && icon.foreground.startsWith('#') 
-                                ? icon.foreground 
+                            fill: icon.foreground && typeof icon.foreground === 'string' && icon.foreground.startsWith('#')
+                                ? icon.foreground
                                 : '#fff'
                         }
                     },
@@ -468,13 +476,13 @@ function renderBlockIcon(icon) {
             );
         }
     }
-    
+
     // Fallback: Default Block Icon
     return wp.element.createElement(
         'span',
-        { 
+        {
             className: 'dashicons dashicons-block-default',
-            style: { 
+            style: {
                 fontSize: '24px',
                 width: '24px',
                 height: '24px',
@@ -496,17 +504,17 @@ function text_input(props, tag, name) {
 
     const blockType = wp.blocks.getBlockType(props.name);
     const attributeConfig = blockType?.attributes?.[name];
-    
+
     const title = "✏️ " + (attributeConfig?.title || 'Text');
-    
+
     // Debounced onChange für Performance
     const debouncedOnChange = debounce((value) => {
         setAttributes({ [name]: value });
     }, 300);
-    
+
     return wp.element.createElement(
         'div',
-        { 
+        {
             className: 'field-group pbw-text-input',
             style: {
                 backgroundColor: '#fff',
@@ -519,9 +527,9 @@ function text_input(props, tag, name) {
         },
         wp.element.createElement(
             'h4',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
                     color: '#2c3e50',
                     fontSize: '14px',
                     fontWeight: '600'
@@ -531,10 +539,10 @@ function text_input(props, tag, name) {
         ),
         attributeConfig?.description && wp.element.createElement(
             'p',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
-                    color: '#666', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
+                    color: '#666',
                     fontSize: '12px'
                 }
             },
@@ -547,9 +555,7 @@ function text_input(props, tag, name) {
                 placeholder: attributeConfig?.placeholder || 'Text hier eingeben...',
                 value: safeGet(props.attributes, name, ''),
                 onChange: (value) => setAttributes({ [name]: value }),
-                className: `wp-block-${tag}`,
                 allowedFormats: attributeConfig?.allowedFormats || ['core/bold', 'core/italic', 'core/link'],
-                multiline: attributeConfig?.multiline || false,
             }
         )
     );
@@ -557,35 +563,46 @@ function text_input(props, tag, name) {
 
 function text_output(props, tag, name) {
     return props.attributes[name] ? wp.element.createElement(
-        wp.blockEditor.RichText.Content,
-        { 
-            tagName: tag, 
-            value: props.attributes[name], 
-            className: 'wp-block-' + tag 
+        tag,
+        {
+            className: 'wp-block-' + tag,
+            dangerouslySetInnerHTML: { __html: props.attributes[name] },
         }
     ) : "";
 }
+
 /**
  * MEDIA INPUT/OUTPUT FUNCTIONS - ENHANCED
  * =====================================================
  */
 
-function media_input(props, name) {
+function media_input(props, name, options = {}) {
     const { setAttributes } = props;
-    
-    // Erstelle enhanced setAttributes
+
+    // Options mit Defaults
+    const {
+        allowedTypes = null, // null = alle Medientypen erlaubt
+        title = null,
+        description = null
+    } = options;
+
     const enhancedSetAttributes = createEnhancedSetAttributes(setAttributes, props.name, props.attributes);
-    
+
     const blockType = wp.blocks.getBlockType(props.name);
     const attributeConfig = blockType?.attributes?.[name];
-    const title = "🖼️ " + (attributeConfig?.title || 'Bild');
-    
+
+    // Medientypen Priorität: Parameter > AttributeConfig > null (alle)
+    const mediaTypes = allowedTypes || attributeConfig?.allowedTypes || null;
+
+    const displayTitle = title || "🖼️ " + (attributeConfig?.title || 'Media');
+    const displayDescription = description || attributeConfig?.description;
+
     const currentValue = safeGet(props.attributes, name);
     const currentAlt = safeGet(props.attributes, `${name}Alt`, '');
-    
+
     const regularInput = wp.element.createElement(
         'div',
-        { 
+        {
             className: 'field-group pbw-media-input',
             style: {
                 backgroundColor: '#fff',
@@ -598,34 +615,34 @@ function media_input(props, name) {
         },
         wp.element.createElement(
             'h4',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
                     color: '#2c3e50',
                     fontSize: '14px',
                     fontWeight: '600'
                 }
             },
-            title
+            displayTitle
         ),
-        attributeConfig?.description && wp.element.createElement(
+        displayDescription && wp.element.createElement(
             'p',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
-                    color: '#666', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
+                    color: '#666',
                     fontSize: '12px'
                 }
             },
-            attributeConfig.description
+            displayDescription
         ),
         wp.element.createElement(
             'div',
-            { 
-                style: { 
-                    display: 'flex', 
+            {
+                style: {
+                    display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px' 
+                    gap: '12px'
                 }
             },
             // Media Preview
@@ -639,10 +656,10 @@ function media_input(props, name) {
                         border: '1px solid #e0e0e0'
                     }
                 },
-                wp.element.createElement('img', { 
-                    src: currentValue, 
-                    alt: currentAlt || name, 
-                    style: { 
+                wp.element.createElement('img', {
+                    src: currentValue,
+                    alt: currentAlt || name,
+                    style: {
                         width: '100%',
                         height: 'auto',
                         display: 'block'
@@ -663,13 +680,14 @@ function media_input(props, name) {
                     wp.blockEditor.MediaUpload,
                     {
                         onSelect: (media) => {
-                            enhancedSetAttributes({ 
+                            enhancedSetAttributes({
                                 [name]: media.url,
                                 [name + 'Alt']: media.alt || '',
                                 [name + 'Id']: media.id || null,
+                                [name + 'Data']: JSON.stringify(media) || null
                             });
                         },
-                        allowedTypes: attributeConfig?.allowedTypes || ['image'],
+                        allowedTypes: mediaTypes,
                         value: props.attributes[name + 'Id'],
                         render: ({ open }) => wp.element.createElement(
                             wp.components.Button,
@@ -678,7 +696,7 @@ function media_input(props, name) {
                                 isSecondary: !!currentValue,
                                 onClick: open
                             },
-                            !currentValue ? "Bild auswählen" : "Bild ändern"
+                            !currentValue ? "Medium auswählen" : "Medium ändern"
                         )
                     }
                 ),
@@ -686,10 +704,11 @@ function media_input(props, name) {
                     wp.components.Button,
                     {
                         isDestructive: true,
-                        onClick: () => enhancedSetAttributes({ 
+                        onClick: () => enhancedSetAttributes({
                             [name]: null,
                             [name + 'Alt']: '',
                             [name + 'Id']: null,
+                            [name + 'Data']: null
                         })
                     },
                     "Entfernen"
@@ -710,7 +729,7 @@ function media_input(props, name) {
             )
         )
     );
-    
+
     return wp.element.createElement(
         wp.element.Fragment,
         null,
@@ -719,128 +738,207 @@ function media_input(props, name) {
 }
 
 /**
- * Media Output für Frontend mit Video und Bild Support + Fancybox
- * Erkennt automatisch Video-Dateien und rendert entsprechende HTML-Elemente
- * 
- * WICHTIG: Für Fancybox muss die Bibliothek eingebunden werden:
- * - CSS: @fancyapps/ui/dist/fancybox/fancybox.css
- * - JS: @fancyapps/ui/dist/fancybox/fancybox.umd.js
+ * Media Output für Frontend mit automatischer Dateityp-Erkennung
+ * Unterstützt: Bilder, Videos, Audio, PDFs, Dokumente
  * 
  * @param {Object} props - Block Properties
  * @param {string} name - Media Attributname
- * @param {Object} settings - Zusätzliche Einstellungen
- * @param {boolean} settings.fancybox - Aktiviert Fancybox-Funktionalität
- * @param {string} settings.fancyboxGroup - Fancybox Gruppe (default: 'gallery')
- * @returns {React.Element|null} HTML Figure Element oder null
+ * @param {Object} settings - Einstellungen
+ * @param {string} settings.size - Eigene Größe vorgeben
+ * @param {boolean} settings.fancybox - Aktiviert Fancybox
+ * @param {string} settings.fancyboxGroup - Fancybox Gruppe
+ * @param {boolean} settings.videoControls - Video Controls anzeigen (default: true)
+ * @param {boolean} settings.audioControls - Audio Controls anzeigen (default: true)
+ * @param {boolean} settings.autoplay - Autoplay für Video/Audio
+ * @param {boolean} settings.loop - Loop für Video/Audio
+ * @param {boolean} settings.muted - Muted für Video/Audio
+ * @param {string} settings.className - Zusätzliche CSS-Klasse
+ * @returns {React.Element|null}
  */
 function media_output(props, name, settings = {}) {
-    const mediaUrl = props.attributes[name];
+    let mediaUrl = props.attributes[name];
     const mediaAlt = props.attributes[name + 'Alt'];
-    const thumbnail = props.attributes["thumbnail"]; // Optional: Video Thumbnail
-    const { fancybox = false, fancyboxGroup = 'gallery' } = settings;
+    const mediaId = props.attributes[name + 'Id'];
+    const mediaDataRaw = props.attributes[name + 'Data'];
+    const thumbnail = props.attributes["thumbnail"];
+
+    const {
+        size = null,
+        fancybox = false,
+        fancyboxGroup = 'gallery',
+        videoControls = true,
+        audioControls = true,
+        autoplay = false,
+        loop = false,
+        muted = false,
+        className = ''
+    } = settings;
+
+    // MediaData parsen
+    let mediaData = null;
+    let selectedSize = null;
+
+    if (mediaDataRaw) {
+        try {
+            mediaData = JSON.parse(mediaDataRaw);
+
+            console.log('[PBW Framework] Parsed mediaData:', mediaData);
+
+            if (size && mediaData.sizes?.[size]) {
+                selectedSize = mediaData.sizes[size];
+                mediaUrl = selectedSize.url;
+            } else if (!mediaUrl && mediaData.sizes?.full) {
+                selectedSize = mediaData.sizes.full;
+                mediaUrl = selectedSize.url;
+            } else if (!mediaUrl && mediaData.url) {
+                mediaUrl = mediaData.url;
+            }
+        } catch (e) {
+            console.error('[PBW Framework] Invalid mediaData JSON:', e);
+        }
+    }
 
     if (!mediaUrl) return null;
 
-    const url = mediaUrl;
-    const alt = mediaAlt || name;
+    const alt = mediaAlt || mediaData?.alt || name;
+    const fileExtension = String(mediaUrl?.url || mediaUrl || '')
+        .split('.')
+        .pop()
+        .split('?')[0]
+        .toLowerCase();
 
-    // Dateierweiterung extrahieren für Typ-Erkennung
-    const fileExtension = url.split('.').pop().toLowerCase();
-    const videoExtensions = ['mp4', 'webm', 'ogg'];
+    const mediaTypes = {
+        image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'],
+        video: ['mp4', 'webm', 'ogg', 'mov', 'avi'],
+        audio: ['mp3', 'wav', 'ogg', 'aac', 'm4a'],
+        pdf: ['pdf'],
+        document: ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'zip', 'rar']
+    };
 
-    // Video-Rendering mit Custom Controls
-    if (videoExtensions.includes(fileExtension)) {
-        const videoProps = { 
-            src: url, 
-            className: name, 
-            controls: false, // Custom Controls verwenden
+    const getMediaType = (ext) => {
+        for (const [type, extensions] of Object.entries(mediaTypes)) {
+            if (extensions.includes(ext)) return type;
+        }
+        return 'unknown';
+    };
+
+    const mediaType = getMediaType(fileExtension);
+
+    // === VIDEO ===
+    if (mediaType === 'video') {
+        const videoProps = {
+            src: mediaUrl,
+            className: `media-video ${name} ${className}`.trim(),
+            controls: videoControls,
+            ...(autoplay && { autoPlay: true }),
+            ...(loop && { loop: true }),
+            ...(muted && { muted: true }),
+            playsInline: true,
+            ...(thumbnail && { poster: thumbnail })
         };
 
-        // Thumbnail falls verfügbar
-        if (thumbnail && thumbnail.url) {
-            videoProps.poster = thumbnail.url;
-        }
+        const videoElement = wp.element.createElement('video', videoProps, "Ihr Browser unterstützt das Video-Tag nicht.");
 
-        const videoElement = wp.element.createElement(
-            'video',
-            videoProps,
-            "Your browser does not support the video tag."
-        );
-
-        // Video Controls
-        const videoControls = [
-            wp.element.createElement(
-                'span',
-                {className: "videoPlay", key: "play"},
-                wp.element.createElement('span')
-            ),
-            wp.element.createElement(
-                'span',
-                {className: "videoProgress", key: "progress"},
-                wp.element.createElement('span')
-            )
-        ];
-
-        // Fancybox Wrapper für Video
         if (fancybox) {
             return wp.element.createElement(
                 'figure',
-                {className: "videoWrap fancybox-enabled"},
-                wp.element.createElement(
-                    'a',
-                    {
-                        href: url,
-                        'data-fancybox': fancyboxGroup,
-                        className: 'fancybox'
-                    },
-                    videoElement
-                ),
-                ...videoControls
+                { className: "media-wrap media-wrap--video fancybox-enabled" },
+                wp.element.createElement('a', {
+                    href: mediaUrl,
+                    'data-fancybox': fancyboxGroup,
+                    'data-type': 'video',
+                    className: 'fancybox'
+                }, videoElement)
             );
         }
 
-        // Standard Video ohne Fancybox
+        return wp.element.createElement('figure', { className: "media-wrap media-wrap--video" }, videoElement);
+    }
+
+    // === AUDIO ===
+    if (mediaType === 'audio') {
+        const audioProps = {
+            src: mediaUrl,
+            className: `media-audio ${name} ${className}`.trim(),
+            controls: audioControls,
+            ...(autoplay && { autoPlay: true }),
+            ...(loop && { loop: true }),
+            ...(muted && { muted: true })
+        };
+
         return wp.element.createElement(
             'figure',
-            {className: "videoWrap"},
-            videoElement,
-            ...videoControls
+            { className: "media-wrap media-wrap--audio" },
+            wp.element.createElement('audio', audioProps, "Ihr Browser unterstützt das Audio-Tag nicht."),
+            alt && wp.element.createElement('figcaption', { className: 'media-caption' }, alt)
         );
     }
 
-    // Standard Bild-Rendering
-    const imageElement = wp.element.createElement(
-        'img',
-        { 
-            src: url, 
-            alt: alt,
-            className: name,
-        }
-    );
-
-    // Fancybox Wrapper für Bilder
-    if (fancybox) {
+    // === PDF ===
+    if (mediaType === 'pdf') {
         return wp.element.createElement(
             'figure',
-            {className: "imageWrap fancybox-enabled"},
-            wp.element.createElement(
-                'a',
-                {
-                    href: url,
+            { className: "media-wrap media-wrap--pdf" },
+            wp.element.createElement('a', {
+                href: mediaUrl,
+                className: `media-pdf ${name} ${className}`.trim(),
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                ...(fancybox && {
                     'data-fancybox': fancyboxGroup,
-                    className: 'fancybox'
-                },
-                imageElement
+                    'data-type': 'iframe'
+                })
+            },
+                wp.element.createElement('span', { className: 'media-pdf__icon' }, '📄'),
+                wp.element.createElement('span', { className: 'media-pdf__text' }, alt || 'PDF öffnen')
             )
         );
     }
 
-    // Standard Bild ohne Fancybox
-    return wp.element.createElement(
-        'figure',
-        {className: "imageWrap"},
-        imageElement
-    );
+    // === DOKUMENT ===
+    if (mediaType === 'document') {
+        return wp.element.createElement(
+            'figure',
+            { className: "media-wrap media-wrap--document" },
+            wp.element.createElement('a', {
+                href: mediaUrl,
+                className: `media-document ${name} ${className}`.trim(),
+                download: true
+            },
+                wp.element.createElement('span', { className: 'media-document__icon' }, '📎'),
+                wp.element.createElement('span', { className: 'media-document__text' }, alt || 'Dokument herunterladen'),
+                wp.element.createElement('span', { className: 'media-document__type' }, `.${fileExtension}`)
+            )
+        );
+    }
+
+    // === BILD (Standard) ===
+    const imgWidth = selectedSize?.width || mediaData?.width;
+    const imgHeight = selectedSize?.height || mediaData?.height;
+
+    const imageElement = wp.element.createElement('img', {
+        src: mediaUrl,
+        alt: alt,
+        className: `media-image ${name} ${className}`.trim(),
+        loading: 'lazy',
+        ...(imgWidth && { width: imgWidth }),
+        ...(imgHeight && { height: imgHeight })
+    });
+
+    if (fancybox) {
+        return wp.element.createElement(
+            'figure',
+            { className: "media-wrap media-wrap--image fancybox-enabled" },
+            wp.element.createElement('a', {
+                href: mediaData?.sizes?.full?.url || mediaUrl,
+                'data-fancybox': fancyboxGroup,
+                'data-caption': alt,
+                className: 'fancybox'
+            }, imageElement)
+        );
+    }
+
+    return wp.element.createElement('figure', { className: "media-wrap media-wrap--image" }, imageElement);
 }
 
 /**
@@ -854,7 +952,7 @@ function link_input(props, name) {
     const blockType = wp.blocks.getBlockType(props.name);
     const attributeConfig = blockType?.attributes?.[name];
     const title = "🔗 " + (attributeConfig?.title || 'Link');
-    
+
     const currentValue = safeGet(props.attributes, name, '');
 
     const regularInput = wp.element.createElement(
@@ -868,10 +966,10 @@ function link_input(props, name) {
             onChange: (url) => setAttributes({ [name]: url })
         })
     );
-    
+
     return wp.element.createElement(
         'div',
-        { 
+        {
             className: 'field-group pbw-link-input',
             style: {
                 backgroundColor: '#fff',
@@ -884,9 +982,9 @@ function link_input(props, name) {
         },
         wp.element.createElement(
             'h4',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
                     color: '#2c3e50',
                     fontSize: '14px',
                     fontWeight: '600'
@@ -896,10 +994,10 @@ function link_input(props, name) {
         ),
         attributeConfig?.description && wp.element.createElement(
             'p',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
-                    color: '#666', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
+                    color: '#666',
                     fontSize: '12px'
                 }
             },
@@ -924,7 +1022,7 @@ function link_input(props, name) {
 }
 
 function link_output(props, name, content = null) {
-    return props.attributes[name] && wp.element.createElement('a', { 
+    return props.attributes[name] && wp.element.createElement('a', {
         href: props.attributes[name],
         className: name,
     }, content)
@@ -941,20 +1039,20 @@ function select_input(props, name, options) {
     const blockType = wp.blocks.getBlockType(props.name);
     const attributeConfig = blockType?.attributes?.[name];
     const title = "📝 " + (attributeConfig?.title || 'Auswahl');
-    
+
     const currentValue = safeGet(props.attributes, name, '');
 
-    const options_array = typeof options === 'function' 
-        ? options(props) 
+    const options_array = typeof options === 'function'
+        ? options(props)
         : (options || attributeConfig?.options || [
             { label: 'Option 1', value: 'option1' },
             { label: 'Option 2', value: 'option2' },
             { label: 'Option 3', value: 'option3' }
         ]);
-    
+
     return wp.element.createElement(
         'div',
-        { 
+        {
             className: 'field-group pbw-select-input',
             style: {
                 backgroundColor: '#fff',
@@ -967,9 +1065,9 @@ function select_input(props, name, options) {
         },
         wp.element.createElement(
             'h4',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
                     color: '#2c3e50',
                     fontSize: '14px',
                     fontWeight: '600'
@@ -979,10 +1077,10 @@ function select_input(props, name, options) {
         ),
         attributeConfig?.description && wp.element.createElement(
             'p',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
-                    color: '#666', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
+                    color: '#666',
                     fontSize: '12px'
                 }
             },
@@ -1011,20 +1109,18 @@ function select_output(props, name) {
 
 function array_addblock(props, name, items) {
     const { setAttributes } = props;
-    
-    // Erstelle enhanced setAttributes
     const enhancedSetAttributes = createEnhancedSetAttributes(setAttributes, props.name, props.attributes);
-    
+
     const addBlock = () => {
         try {
             const newItem = [];
             const template = items[0];
-            
+
             if (!template) {
                 console.warn('[PBW Framework] No template found for array items');
                 return;
             }
-            
+
             Object.keys(template).forEach(key => {
                 const config = template[key];
                 const newField = {
@@ -1032,19 +1128,21 @@ function array_addblock(props, name, items) {
                     type: config.type,
                     label: config.label || key
                 };
-                
+
                 if (config.type === 'img') {
                     newField[key] = null;
                     newField[key + 'Alt'] = '';
+                    newField[key + 'Data'] = ''; // FIX: Data als String
+                    newField[key + 'Id'] = null;  // FIX: Id hinzufügen
                 } else if (config.type === 'nested_array') {
                     newField[key] = [];
                 } else {
                     newField[key] = config.default || '';
                 }
-                
+
                 newItem.push(newField);
             });
-            
+
             const currentArray = props.attributes[name] || [];
             enhancedSetAttributes({
                 [name]: [...currentArray, newItem]
@@ -1053,11 +1151,11 @@ function array_addblock(props, name, items) {
             console.error('[PBW Framework] Error adding array block:', error);
         }
     };
-    
+
     return wp.element.createElement(
         wp.components.Button,
-        { 
-            isPrimary: true, 
+        {
+            isPrimary: true,
             onClick: addBlock,
             className: 'pbw-add-block-btn'
         },
@@ -1067,10 +1165,10 @@ function array_addblock(props, name, items) {
 
 function array_removeblock(props, name, index) {
     const { setAttributes } = props;
-    
+
     // Erstelle enhanced setAttributes
     const enhancedSetAttributes = createEnhancedSetAttributes(setAttributes, props.name, props.attributes);
-    
+
     const removeBlock = () => {
         try {
             const newBlocks = [...(props.attributes[name] || [])];
@@ -1080,7 +1178,7 @@ function array_removeblock(props, name, index) {
             console.error('[PBW Framework] Error removing array block:', error);
         }
     };
-    
+
     return wp.element.createElement(wp.components.Button, {
         isDestructive: true,
         isSmall: true,
@@ -1090,208 +1188,178 @@ function array_removeblock(props, name, index) {
 }
 
 /**
- * ARRAY INPUT FUNCTION - ENHANCED MIT AUTO-MIGRATION
- * =====================================================
+ * Array input funciton
+ * ===================================================================
  */
 
-function array_input(props, field) {
+function array_input(props, field, params = {}) {
     const { name, attributes, setAttributes } = props;
-    
+
+    // Extrahiere Parameter mit Defaults
+    const {
+        minimum = 0,
+        maximum = null, // null = unbegrenzt
+        showCounter = true,
+        addButtonText = 'Element hinzufügen',
+        removeConfirm = false,
+        sortable = true,
+        emptyMessage = 'Noch keine Elemente vorhanden'
+    } = params;
+
     // Erstelle enhanced setAttributes einmalig
     const enhancedSetAttributes = createEnhancedSetAttributes(setAttributes, name, attributes);
-    
+
     const blockType = wp.blocks.getBlockType(name);
     const attributeConfig = blockType?.attributes?.[field];
     const defaultItems = attributeConfig?.default || [];
-    
+
     const arrayTitle = "📚 " + (attributeConfig?.title || 'Elemente');
     const arrayDescription = attributeConfig?.description;
-    
+
     const currentItems = attributes[field] || [];
 
+    // Validierung: Minimum Items beim Init prüfen
+    React.useEffect(() => {
+        if (minimum > 0 && currentItems.length < minimum) {
+            const itemsToAdd = minimum - currentItems.length;
+            const newItems = [...currentItems];
+
+            for (let i = 0; i < itemsToAdd; i++) {
+                newItems.push(deepClone(defaultItems[0] || {}));
+            }
+
+            enhancedSetAttributes({ [field]: newItems });
+        }
+    }, [minimum]);
+
     const setItemsCallback = (newItems) => {
+        // Validierung vor dem Setzen
+        if (minimum > 0 && newItems.length < minimum) {
+            console.warn(`[PBW Framework] Minimum ${minimum} Items erforderlich`);
+            return;
+        }
+
+        if (maximum !== null && newItems.length > maximum) {
+            console.warn(`[PBW Framework] Maximum ${maximum} Items erlaubt`);
+            return;
+        }
+
         enhancedSetAttributes({ [field]: newItems });
     };
 
     /**
      * ENHANCED EDITITEM MIT AUTO-MIGRATION
      */
-    const editItem = (index, fieldName, newValues) => {
-        try {
-            const updatedItems = deepClone(currentItems);
-            
-            if (index >= updatedItems.length || updatedItems[index] === undefined) {
-                return;
-            }
-            
-            let currentItem = updatedItems[index];
-            
-            if (Array.isArray(currentItem)) {
-                // Standard Array-Format (Index 1+)
-                let fieldIndex = currentItem.findIndex(item => item && item.name === fieldName);
-                
-                // Auto-Migration für fehlende Felder
-                if (fieldIndex === -1 && defaultItems.length > 0) {
-                    const template = defaultItems[0];
-                    const fieldConfig = template[fieldName];
-                    
-                    if (fieldConfig) {
-                        const newField = {
-                            name: fieldName,
-                            type: fieldConfig.type,
-                            label: fieldConfig.label || fieldName
-                        };
-                        
-                        if (fieldConfig.type === 'img') {
-                            newField[fieldName] = null;
-                            newField[fieldName + 'Alt'] = '';
-                        } else if (fieldConfig.type === 'nested_array') {
-                            newField[fieldName] = [];
-                        } else {
-                            newField[fieldName] = fieldConfig.default || '';
-                        }
-                        
-                        currentItem.push(newField);
-                        fieldIndex = currentItem.length - 1;
-                    }
-                }
-                
-                if (fieldIndex !== -1) {
-                    Object.keys(newValues).forEach(key => {
-                        currentItem[fieldIndex][key] = newValues[key];
-                    });
-                }
-            } else if (typeof currentItem === 'object') {
-                // Objekt-Format (Index 0) - CONVERSION TO ARRAY FORMAT
-                
-                // Konvertiere Objekt zu Array-Format
-                const newArrayItem = [];
-                
-                // Durchlaufe alle Template-Felder um die richtige Reihenfolge zu gewährleisten
-                if (defaultItems.length > 0) {
-                    const template = defaultItems[0];
-                    Object.keys(template).forEach(templateFieldName => {
-                        const fieldConfig = template[templateFieldName];
-                        const existingData = currentItem[templateFieldName] || {};
-                        
-                        const newField = {
-                            name: templateFieldName,
-                            type: fieldConfig.type,
-                            label: fieldConfig.label || templateFieldName
-                        };
-                        
-                        // Übertrage bestehende Daten
-                        if (fieldConfig.type === 'img') {
-                            newField[templateFieldName] = existingData[templateFieldName] || null;
-                            newField[templateFieldName + 'Alt'] = existingData[templateFieldName + 'Alt'] || '';
-                        } else if (fieldConfig.type === 'nested_array') {
-                            newField[templateFieldName] = existingData[templateFieldName] || [];
-                        } else {
-                            newField[templateFieldName] = existingData[templateFieldName] || fieldConfig.default || '';
-                        }
-                        
-                        newArrayItem.push(newField);
-                    });
-                }
-                
-                // Setze das konvertierte Array
-                currentItem = newArrayItem;
-                updatedItems[index] = newArrayItem;
-                
-                // Jetzt führe das Update durch
-                const fieldIndex = newArrayItem.findIndex(item => item && item.name === fieldName);
-                if (fieldIndex !== -1) {
-                    Object.keys(newValues).forEach(key => {
-                        newArrayItem[fieldIndex][key] = newValues[key];
-                    });
-                }
-            }
-            
-            updatedItems[index] = currentItem;
-            setItemsCallback(updatedItems);
-        } catch (error) {
-            console.error('[PBW Framework] Error editing array item:', error);
-        }
-    };
+    const editItem = createEditItem(currentItems, setItemsCallback, defaultItems);
 
-    /**
-     * ENHANCED CREATETEMPPROPS MIT DEFENSIVE PROGRAMMIERUNG
-     */
-    const createTempProps = (index, fieldName, type, fieldConfig) => {
-        const currentItem = currentItems[index];
-        let fieldData = {};
-        
-        if (Array.isArray(currentItem)) {
-            const foundField = currentItem.find(item => item && item.name === fieldName);
-            fieldData = foundField || {};
-        } else if (typeof currentItem === 'object' && currentItem[fieldName]) {
-            // Objekt-Format (Index 0 Kompatibilität)
-            fieldData = currentItem[fieldName];
-        }
-        
-        const tempKey = `temp_${index}_${fieldName}`;
-        const tempAltKey = `temp_${index}_${fieldName}Alt`;
-        
-        const tempProps = {
-            name: props.name,
-            attributes: {},
-            setAttributes: (newAttrs) => {
-                const updateData = {};
-                
-                if (tempKey in newAttrs) {
-                    updateData[fieldName] = newAttrs[tempKey];
-                }
-                
-                if (tempAltKey in newAttrs) {
-                    updateData[`${fieldName}Alt`] = newAttrs[tempAltKey];
-                }
-                
-                if (Object.keys(updateData).length > 0) {
-                    editItem(index, fieldName, updateData);
-                }
-            }
-        };
-        
-        // Mock Block-Type Attribute für title/description Support
-        const originalBlockType = wp.blocks.getBlockType(props.name);
-        if (originalBlockType && !originalBlockType.attributes[tempKey]) {
-            originalBlockType.attributes[tempKey] = {
-                title: fieldConfig?.title,
-                description: fieldConfig?.description,
-                placeholder: fieldConfig?.placeholder,
-                allowedFormats: fieldConfig?.allowedFormats,
-                options: fieldConfig?.options
-            };
-        }
-        
-        if (type === 'img') {
-            tempProps.attributes[tempKey] = fieldData[fieldName] || '';
-            tempProps.attributes[tempAltKey] = fieldData[`${fieldName}Alt`] || '';
-            tempProps.attributes[`${tempKey}Id`] = fieldData[`${fieldName}Id`] || null;
-        } else {
-            tempProps.attributes[tempKey] = fieldData[fieldName] || '';
-        }
 
-        return tempProps;
-    };
 
     const moveItemUp = (index) => {
-        if (index === 0) return;
+        if (index === 0 || !sortable) return;
         const updatedItems = [...currentItems];
         [updatedItems[index], updatedItems[index - 1]] = [updatedItems[index - 1], updatedItems[index]];
         setItemsCallback(updatedItems);
     };
 
     const moveItemDown = (index) => {
-        if (index === currentItems.length - 1) return;
+        if (index === currentItems.length - 1 || !sortable) return;
         const updatedItems = [...currentItems];
         [updatedItems[index], updatedItems[index + 1]] = [updatedItems[index + 1], updatedItems[index]];
         setItemsCallback(updatedItems);
     };
 
+    const canRemoveItem = () => {
+        return currentItems.length > minimum;
+    };
+
+    const canAddItem = () => {
+        return maximum === null || currentItems.length < maximum;
+    };
+
+    const handleRemoveItem = (index) => {
+        if (!canRemoveItem()) {
+            return;
+        }
+
+        const performRemove = () => {
+            const updatedItems = currentItems.filter((_, i) => i !== index);
+            setItemsCallback(updatedItems);
+        };
+
+        if (removeConfirm) {
+            if (window.confirm('Möchten Sie dieses Element wirklich entfernen?')) {
+                performRemove();
+            }
+        } else {
+            performRemove();
+        }
+    };
+
+    // Erweiterte Add-Button Logik
+    const renderAddButton = () => {
+        if (!canAddItem()) {
+            return wp.element.createElement(
+                'div',
+                {
+                    style: {
+                        textAlign: 'center',
+                        padding: '8px',
+                        color: '#999',
+                        fontStyle: 'italic'
+                    }
+                },
+                maximum !== null ? `Maximum erreicht (${maximum} Elemente)` : ''
+            );
+        }
+
+        return wp.element.createElement(
+            Button,
+            {
+                isPrimary: true,
+                isSmall: true,
+                icon: 'plus-alt',
+                onClick: () => {
+                    if (canAddItem()) {
+                        const newItem = deepClone(defaultItems[0] || {});
+                        const updatedItems = [...currentItems, newItem];
+                        setItemsCallback(updatedItems);
+                    }
+                }
+            },
+            addButtonText
+        );
+    };
+
+    // Erweiterte Remove-Button Logik
+    const renderRemoveButton = (index) => {
+        if (!canRemoveItem()) {
+            return wp.element.createElement(
+                Button,
+                {
+                    isSmall: true,
+                    isDestructive: true,
+                    icon: 'trash',
+                    disabled: true,
+                    title: `Minimum ${minimum} Elemente erforderlich`
+                }
+            );
+        }
+
+        return wp.element.createElement(
+            Button,
+            {
+                isSmall: true,
+                isDestructive: true,
+                icon: 'trash',
+                onClick: () => handleRemoveItem(index),
+                label: 'Entfernen'
+            }
+        );
+    };
+
     return wp.element.createElement(
         'div',
-        { 
+        {
             className: 'field-group pbw-array-input',
             style: {
                 backgroundColor: '#fff',
@@ -1303,9 +1371,9 @@ function array_input(props, field) {
         },
         wp.element.createElement(
             'h4',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
                     color: '#2c3e50',
                     fontSize: '14px',
                     fontWeight: '600',
@@ -1314,7 +1382,7 @@ function array_input(props, field) {
                 }
             },
             `${arrayTitle} `,
-            wp.element.createElement(
+            showCounter && wp.element.createElement(
                 'span',
                 {
                     style: {
@@ -1327,21 +1395,36 @@ function array_input(props, field) {
                         fontWeight: 'normal'
                     }
                 },
-                currentItems.length
+                `${currentItems.length}${maximum !== null ? `/${maximum}` : ''}`
+            ),
+            // Min/Max Indicator
+            (minimum > 0 || maximum !== null) && wp.element.createElement(
+                'span',
+                {
+                    style: {
+                        marginLeft: '8px',
+                        padding: '2px 6px',
+                        backgroundColor: '#f0f0f0',
+                        color: '#666',
+                        borderRadius: '4px',
+                        fontSize: '11px'
+                    }
+                },
+                `${minimum > 0 ? `Min: ${minimum}` : ''}${minimum > 0 && maximum !== null ? ' | ' : ''}${maximum !== null ? `Max: ${maximum}` : ''}`
             )
         ),
         arrayDescription && wp.element.createElement(
             'p',
-            { 
-                style: { 
-                    margin: '0 0 12px 0', 
-                    color: '#666', 
+            {
+                style: {
+                    margin: '0 0 12px 0',
+                    color: '#666',
                     fontSize: '12px'
                 }
             },
             arrayDescription
         ),
-        currentItems.length === 0 ? 
+        currentItems.length === 0 ?
             wp.element.createElement(
                 'div',
                 {
@@ -1356,15 +1439,15 @@ function array_input(props, field) {
                 wp.element.createElement(
                     'p',
                     { style: { margin: '0 0 10px 0', color: '#666' } },
-                    'Noch keine Elemente vorhanden'
+                    emptyMessage
                 ),
-                pbw.array.addblock(props, field, defaultItems)
+                renderAddButton()
             ) :
             currentItems.map((item, index) => {
                 return wp.element.createElement(
                     'div',
-                    { 
-                        className: 'pbw-array-item', 
+                    {
+                        className: 'pbw-array-item',
                         key: index,
                         style: {
                             backgroundColor: '#f9f9f9',
@@ -1377,7 +1460,7 @@ function array_input(props, field) {
                     },
                     wp.element.createElement(
                         'div',
-                        { 
+                        {
                             className: 'item-header',
                             style: {
                                 display: 'flex',
@@ -1388,19 +1471,20 @@ function array_input(props, field) {
                                 borderBottom: '1px solid #e0e0e0'
                             }
                         },
-                        wp.element.createElement('span', { 
+                        wp.element.createElement('span', {
                             className: 'item-title',
-                            style: { 
+                            style: {
                                 fontWeight: '600',
                                 color: '#2c3e50'
                             }
                         }, `Element #${index + 1}`),
                         wp.element.createElement(
                             'div',
-                            { 
+                            {
                                 className: 'item-controls',
+                                style: { display: 'flex', gap: '4px' }
                             },
-                            index > 0 && wp.element.createElement(
+                            sortable && index > 0 && wp.element.createElement(
                                 Button,
                                 {
                                     isSmall: true,
@@ -1410,7 +1494,7 @@ function array_input(props, field) {
                                     label: 'Nach oben'
                                 }
                             ),
-                            index < currentItems.length - 1 && wp.element.createElement(
+                            sortable && index < currentItems.length - 1 && wp.element.createElement(
                                 Button,
                                 {
                                     isSmall: true,
@@ -1420,7 +1504,7 @@ function array_input(props, field) {
                                     label: 'Nach unten'
                                 }
                             ),
-                            pbw.array.removeblock(props, field, index)
+                            renderRemoveButton(index)
                         )
                     ),
                     wp.element.createElement(
@@ -1428,13 +1512,16 @@ function array_input(props, field) {
                         { className: 'pbw-array-item-content' },
                         Object.keys(defaultItems[0] || {}).map((fieldName, fieldIndex) => {
                             const fieldConfig = defaultItems[0][fieldName];
-                            const tempProps = createTempProps(index, fieldName, fieldConfig.type, fieldConfig);
+                            /**
+                             * ENHANCED CREATETEMPPROPS MIT DEFENSIVE PROGRAMMIERUNG
+                             */
+                            const tempProps = createTempProps(index, fieldName, fieldConfig.type, fieldConfig, currentItems, editItem, props);
                             const tempKey = `temp_${index}_${fieldName}`;
 
                             return wp.element.createElement(
                                 'div',
-                                { 
-                                    className: `pbw-array-field pbw-field-${fieldConfig.type}`, 
+                                {
+                                    className: `pbw-array-field pbw-field-${fieldConfig.type}`,
                                     key: fieldIndex,
                                 },
                                 fieldConfig.type === 'text' && text_input(tempProps, 'p', tempKey),
@@ -1450,9 +1537,175 @@ function array_input(props, field) {
         currentItems.length > 0 && wp.element.createElement(
             'div',
             { className: 'array-add-button', style: { marginTop: '10px', textAlign: 'center' } },
-            pbw.array.addblock(props, field, defaultItems)
+            renderAddButton()
         )
     );
+}
+
+function createTempProps(index, fieldName, type, fieldConfig, currentItems, editItem, props) {
+    const currentItem = currentItems[index];
+    let fieldData = {};
+
+    if (Array.isArray(currentItem)) {
+        const foundField = currentItem.find(item => item && item.name === fieldName);
+        fieldData = foundField || {};
+    } else if (typeof currentItem === 'object' && currentItem[fieldName]) {
+        fieldData = currentItem[fieldName];
+    }
+
+    const tempKey = `temp_${index}_${fieldName}`;
+    const tempAltKey = `temp_${index}_${fieldName}Alt`;
+    const tempIdKey = `temp_${index}_${fieldName}Id`;
+    const tempDataKey = `temp_${index}_${fieldName}Data`;
+
+    const tempProps = {
+        name: props.name,
+        attributes: {},
+        setAttributes: (newAttrs) => {
+            const updateData = {};
+
+            // FIX: Alle Media-Attribute übertragen
+            if (tempKey in newAttrs) {
+                updateData[fieldName] = newAttrs[tempKey];
+            }
+            if (tempAltKey in newAttrs) {
+                updateData[`${fieldName}Alt`] = newAttrs[tempAltKey];
+            }
+            if (tempIdKey in newAttrs) {
+                updateData[`${fieldName}Id`] = newAttrs[tempIdKey];
+            }
+            if (tempDataKey in newAttrs) {
+                updateData[`${fieldName}Data`] = newAttrs[tempDataKey];
+            }
+
+            if (Object.keys(updateData).length > 0) {
+                editItem(index, fieldName, updateData);
+            }
+        }
+    };
+
+    // Mock Block-Type Attribute
+    const originalBlockType = wp.blocks.getBlockType(props.name);
+    if (originalBlockType && !originalBlockType.attributes[tempKey]) {
+        originalBlockType.attributes[tempKey] = {
+            title: fieldConfig?.title,
+            description: fieldConfig?.description,
+            placeholder: fieldConfig?.placeholder,
+            allowedFormats: fieldConfig?.allowedFormats,
+            options: fieldConfig?.options,
+            allowedTypes: fieldConfig?.allowedTypes // FIX: allowedTypes für media_input
+        };
+    }
+
+    if (type === 'img') {
+        // FIX: Alle Media-Attribute setzen
+        tempProps.attributes[tempKey] = fieldData[fieldName] || '';
+        tempProps.attributes[tempAltKey] = fieldData[`${fieldName}Alt`] || '';
+        tempProps.attributes[tempIdKey] = fieldData[`${fieldName}Id`] || null;
+        tempProps.attributes[tempDataKey] = fieldData[`${fieldName}Data`] || '';
+    } else {
+        tempProps.attributes[tempKey] = fieldData[fieldName] || '';
+    }
+
+    return tempProps;
+}
+
+function createEditItem(currentItems, setItemsCallback, defaultItems) {
+    return (index, fieldName, newValues) => {
+        try {
+            const updatedItems = deepClone(currentItems);
+
+            if (index >= updatedItems.length || updatedItems[index] === undefined) {
+                return;
+            }
+
+            let currentItem = updatedItems[index];
+
+            if (Array.isArray(currentItem)) {
+                let fieldIndex = currentItem.findIndex(item => item && item.name === fieldName);
+
+                // Auto-Migration für fehlende Felder
+                if (fieldIndex === -1 && defaultItems.length > 0) {
+                    const template = defaultItems[0];
+                    const fieldConfig = template[fieldName];
+
+                    if (fieldConfig) {
+                        const newField = {
+                            name: fieldName,
+                            type: fieldConfig.type,
+                            label: fieldConfig.label || fieldName
+                        };
+
+                        if (fieldConfig.type === 'img') {
+                            newField[fieldName] = null;
+                            newField[fieldName + 'Alt'] = '';
+                            newField[fieldName + 'Data'] = '';
+                            newField[fieldName + 'Id'] = null; // FIX
+                        } else if (fieldConfig.type === 'nested_array') {
+                            newField[fieldName] = [];
+                        } else {
+                            newField[fieldName] = fieldConfig.default || '';
+                        }
+
+                        currentItem.push(newField);
+                        fieldIndex = currentItem.length - 1;
+                    }
+                }
+
+                if (fieldIndex !== -1) {
+                    Object.keys(newValues).forEach(key => {
+                        currentItem[fieldIndex][key] = newValues[key];
+                    });
+                }
+            } else if (typeof currentItem === 'object') {
+                // Objekt zu Array konvertieren mit vollständiger Media-Unterstützung
+                const newArrayItem = [];
+
+                if (defaultItems.length > 0) {
+                    const template = defaultItems[0];
+                    Object.keys(template).forEach(templateFieldName => {
+                        const fieldConfig = template[templateFieldName];
+                        const existingData = currentItem[templateFieldName] || {};
+
+                        const newField = {
+                            name: templateFieldName,
+                            type: fieldConfig.type,
+                            label: fieldConfig.label || templateFieldName
+                        };
+
+                        if (fieldConfig.type === 'img') {
+                            newField[templateFieldName] = existingData[templateFieldName] || null;
+                            newField[templateFieldName + 'Alt'] = existingData[templateFieldName + 'Alt'] || '';
+                            newField[templateFieldName + 'Data'] = existingData[templateFieldName + 'Data'] || '';
+                            newField[templateFieldName + 'Id'] = existingData[templateFieldName + 'Id'] || null; // FIX
+                        } else if (fieldConfig.type === 'nested_array') {
+                            newField[templateFieldName] = existingData[templateFieldName] || [];
+                        } else {
+                            newField[templateFieldName] = existingData[templateFieldName] || fieldConfig.default || '';
+                        }
+
+                        newArrayItem.push(newField);
+                    });
+                }
+
+                currentItem = newArrayItem;
+                updatedItems[index] = newArrayItem;
+
+                // Update durchführen
+                const fieldIndex = newArrayItem.findIndex(item => item && item.name === fieldName);
+                if (fieldIndex !== -1) {
+                    Object.keys(newValues).forEach(key => {
+                        newArrayItem[fieldIndex][key] = newValues[key];
+                    });
+                }
+            }
+
+            updatedItems[index] = currentItem;
+            setItemsCallback(updatedItems);
+        } catch (error) {
+            console.error('[PBW Framework] Error editing array item:', error);
+        }
+    };
 }
 
 /**
@@ -1463,23 +1716,24 @@ function array_input(props, field) {
 function array_output(props, array, map_function) {
     const { attributes } = props;
     const items = attributes[array];
-    
+
     if (!items || items.length === 0) return null;
-    
+
     return items.map((itemArray, index) => {
         if (!itemArray) return null;
-        
+
         const transformedItems = {};
-        
+
         if (Array.isArray(itemArray)) {
             itemArray.forEach(item => {
                 if (item && item.name) {
                     const keyName = item.name;
                     const typeName = item.type;
-                    
+
                     if (typeName === 'img') {
                         transformedItems[keyName] = item[keyName] || null;
                         transformedItems[keyName + 'Alt'] = item[keyName + 'Alt'] || null;
+                        transformedItems[keyName + 'Data'] = item[keyName + 'Data'] || null;
                     } else if (typeName === 'nested_array') {
                         const nestedArray = item[keyName] || [];
                         transformedItems[keyName] = nestedArray.map(nestedItem => {
@@ -1490,6 +1744,7 @@ function array_output(props, array, map_function) {
                                         if (field.type === 'img') {
                                             nestedObj[field.name] = field[field.name] || null;
                                             nestedObj[field.name + 'Alt'] = field[field.name + 'Alt'] || null;
+                                            nestedObj[field.name + 'Data'] = field[field.name + 'Data'] || null;
                                         } else {
                                             nestedObj[field.name] = field[field.name] || null;
                                         }
@@ -1512,6 +1767,7 @@ function array_output(props, array, map_function) {
                     if (config.type === 'img') {
                         transformedItems[key] = config[key] || null;
                         transformedItems[key + 'Alt'] = config[key + 'Alt'] || null;
+                        transformedItems[key + 'Data'] = config[key + 'Data'] || null;
                     } else if (config.type === 'nested_array') {
                         const nestedArray = config[key] || [];
                         transformedItems[key] = nestedArray.map(nestedItem => {
@@ -1522,6 +1778,7 @@ function array_output(props, array, map_function) {
                                         if (field.type === 'img') {
                                             nestedObj[field.name] = field[field.name] || null;
                                             nestedObj[field.name + 'Alt'] = field[field.name + 'Alt'] || null;
+                                            nestedObj[field.name + 'Data'] = field[field.name + 'Data'] || null;
                                         } else {
                                             nestedObj[field.name] = field[field.name] || null;
                                         }
@@ -1537,11 +1794,11 @@ function array_output(props, array, map_function) {
                 }
             });
         }
-        
+
         // Legacy compatibility - behalte alte Feld-Namen
         transformedItems["key"] = index;
         transformedItems["length"] = Array.isArray(itemArray) ? itemArray.length : Object.keys(itemArray).length;
-        
+
         return map_function(transformedItems, index);
     }).filter(item => item !== null);
 }
@@ -1554,23 +1811,84 @@ function array_output(props, array, map_function) {
 function nested_array_addblock(props, parentIndex, parentFieldName, fieldName, nestedConfig) {
     const { setAttributes } = props;
     const enhancedSetAttributes = createEnhancedSetAttributes(setAttributes, props.name, props.attributes);
-    
+
     const addNestedBlock = () => {
         try {
             const currentItems = [...(props.attributes[parentFieldName] || [])];
-            
-            if (!currentItems[parentIndex] || !Array.isArray(currentItems[parentIndex])) {
+
+            if (!currentItems[parentIndex]) {
+                console.warn('[PBW] Parent item not found');
                 return;
             }
-            
-            const currentParent = [...currentItems[parentIndex]];
+
+            let currentParent = currentItems[parentIndex];
+
+            // OBJEKT-FORMAT zu ARRAY-FORMAT konvertieren wenn nötig (COPY VON nested_array_input)
+            if (!Array.isArray(currentParent)) {
+                const blockType = wp.blocks.getBlockType(props.name);
+                const parentAttrConfig = blockType?.attributes?.[parentFieldName];
+                const template = parentAttrConfig?.default?.[0];
+
+                if (template) {
+                    const newArrayItem = [];
+
+                    // WICHTIG: Durchlaufe ALLE Template-Felder (nicht nur existierende)
+                    Object.keys(template).forEach(key => {
+                        const fieldConfig = template[key];
+                        const existingData = currentParent[key] || {}; // Falls Feld fehlt: leeres Object
+
+                        const newField = {
+                            name: key,
+                            type: fieldConfig.type,
+                            label: fieldConfig.label || key
+                        };
+
+                        if (fieldConfig.type === 'img') {
+                            newField[key] = existingData[key] || null;
+                            newField[key + 'Alt'] = existingData[key + 'Alt'] || '';
+                            newField[key + 'Data'] = existingData[key + 'Data'] || '';
+                        } else if (fieldConfig.type === 'nested_array') {
+                            // Verwende existierende Daten ODER leeres Array (nicht das Template)
+                            newField[key] = existingData[key] || [];
+                            // WICHTIG: Speichere auch default für spätere Referenz
+                            newField.default = fieldConfig.default;
+                        } else if (fieldConfig.type === 'choose') {
+                            newField[key] = existingData[key] || fieldConfig.default || '';
+                        } else {
+                            newField[key] = existingData[key] || fieldConfig.default || '';
+                        }
+
+                        newArrayItem.push(newField);
+                    });
+
+                    currentParent = newArrayItem;
+                    currentItems[parentIndex] = newArrayItem;
+                }
+            }
+
+            if (!Array.isArray(currentParent)) {
+                console.warn('[PBW] Could not convert parent to array format');
+                return;
+            }
+
+            currentParent = [...currentParent];
             const fieldIndex = currentParent.findIndex(item => item && item.name === fieldName);
-            
-            if (fieldIndex === -1) return;
-            
+
+            if (fieldIndex === -1) {
+                console.warn('[PBW] Field not found:', fieldName);
+                console.log('Available fields:', currentParent.map(f => f.name));
+                console.log('Current parent data:', currentItems);
+                return;
+            }
+
+            if (!nestedConfig?.default?.[0]) {
+                console.error('[PBW] Invalid nested config');
+                return;
+            }
+
             const template = nestedConfig.default[0];
             const newNestedItem = [];
-            
+
             Object.keys(template).forEach(key => {
                 const config = template[key];
                 const newField = {
@@ -1578,31 +1896,32 @@ function nested_array_addblock(props, parentIndex, parentFieldName, fieldName, n
                     type: config.type,
                     label: config.label || key
                 };
-                
+
                 if (config.type === 'img') {
                     newField[key] = null;
                     newField[key + 'Alt'] = '';
+                    newField[key + 'Data'] = '';
                 } else {
                     newField[key] = config.default || '';
                 }
-                
+
                 newNestedItem.push(newField);
             });
-            
+
             const currentNestedArray = currentParent[fieldIndex][fieldName] || [];
             currentParent[fieldIndex][fieldName] = [...currentNestedArray, newNestedItem];
             currentItems[parentIndex] = currentParent;
-            
+
             enhancedSetAttributes({ [parentFieldName]: currentItems });
         } catch (error) {
             console.error('[PBW Framework] Error adding nested block:', error);
         }
     };
-    
+
     return wp.element.createElement(
         wp.components.Button,
-        { 
-            isSecondary: true, 
+        {
+            isSecondary: true,
             isSmall: true,
             onClick: addNestedBlock,
             className: 'pbw-add-nested-btn'
@@ -1614,33 +1933,33 @@ function nested_array_addblock(props, parentIndex, parentFieldName, fieldName, n
 function nested_array_removeblock(props, parentIndex, parentFieldName, fieldName, nestedIndex) {
     const { setAttributes } = props;
     const enhancedSetAttributes = createEnhancedSetAttributes(setAttributes, props.name, props.attributes);
-    
+
     const removeNestedBlock = () => {
         try {
             const currentItems = [...(props.attributes[parentFieldName] || [])];
-            
+
             if (!currentItems[parentIndex] || !Array.isArray(currentItems[parentIndex])) {
                 return;
             }
-            
+
             const currentParent = [...currentItems[parentIndex]];
             const fieldIndex = currentParent.findIndex(item => item && item.name === fieldName);
-            
+
             if (fieldIndex === -1 || !currentParent[fieldIndex]) {
                 return;
             }
-            
+
             const currentNestedArray = [...(currentParent[fieldIndex][fieldName] || [])];
             currentNestedArray.splice(nestedIndex, 1);
             currentParent[fieldIndex][fieldName] = currentNestedArray;
             currentItems[parentIndex] = currentParent;
-            
+
             enhancedSetAttributes({ [parentFieldName]: currentItems });
         } catch (error) {
             console.error('[PBW Framework] Error removing nested block:', error);
         }
     };
-    
+
     return wp.element.createElement(
         wp.components.Button,
         {
@@ -1654,64 +1973,105 @@ function nested_array_removeblock(props, parentIndex, parentFieldName, fieldName
 }
 
 function nested_array_input(props, parentIndex, parentFieldName, fieldName, nestedConfig) {
+    const { setAttributes } = props;
+    const enhancedSetAttributes = createEnhancedSetAttributes(setAttributes, props.name, props.attributes);
+
     const currentItems = props.attributes[parentFieldName] || [];
     let currentParent = currentItems[parentIndex] || [];
-    
+
+    // OBJEKT zu ARRAY konvertieren SOFORT
+    if (!Array.isArray(currentParent)) {
+        const blockType = wp.blocks.getBlockType(props.name);
+        const parentAttrConfig = blockType?.attributes?.[parentFieldName];
+        const template = parentAttrConfig?.default?.[0];
+
+        if (template) {
+            const newArrayItem = [];
+
+            // WICHTIG: Durchlaufe ALLE Template-Felder (nicht nur existierende)
+            Object.keys(template).forEach(key => {
+                const fieldConfig = template[key];
+                const existingData = currentParent[key] || {}; // Falls Feld fehlt: leeres Object
+
+                const newField = {
+                    name: key,
+                    type: fieldConfig.type,
+                    label: fieldConfig.label || key
+                };
+
+                if (fieldConfig.type === 'img') {
+                    newField[key] = existingData[key] || null;
+                    newField[key + 'Alt'] = existingData[key + 'Alt'] || '';
+                    newField[key + 'Data'] = existingData[key + 'Data'] || '';
+                } else if (fieldConfig.type === 'nested_array') {
+                    newField[key] = existingData[key] || [];
+                } else if (fieldConfig.type === 'choose') {
+                    newField[key] = existingData[key] || fieldConfig.default || '';
+                } else {
+                    newField[key] = existingData[key] || fieldConfig.default || '';
+                }
+
+                newArrayItem.push(newField);
+            });
+
+            currentParent = newArrayItem;
+            currentItems[parentIndex] = newArrayItem;
+        }
+    }
+
     let nestedArray = [];
     if (Array.isArray(currentParent)) {
         const fieldItem = currentParent.find(item => item && item.name === fieldName);
         nestedArray = fieldItem ? (fieldItem[fieldName] || []) : [];
     }
-    
+
     const nestedTitle = "📂 " + (nestedConfig?.title || fieldName);
     const nestedDescription = nestedConfig?.description;
-    
+
     const updateNestedItem = (nestedIndex, nestedFieldName, newValues) => {
-        const enhancedSetAttributes = createEnhancedSetAttributes(props.setAttributes, props.name, props.attributes);
-        
         try {
             const updatedParents = deepClone(currentItems);
             const parent = updatedParents[parentIndex];
             const fieldIndex = parent.findIndex(item => item && item.name === fieldName);
-            
+
             if (fieldIndex !== -1) {
                 const currentNested = [...(parent[fieldIndex][fieldName] || [])];
                 const nestedItem = currentNested[nestedIndex];
-                
+
                 if (Array.isArray(nestedItem)) {
                     let nestedFieldIndex = nestedItem.findIndex(item => item && item.name === nestedFieldName);
-                    
-                    // Auto-Migration für verschachtelte Felder
+
                     if (nestedFieldIndex === -1 && nestedConfig.default && nestedConfig.default[0]) {
                         const template = nestedConfig.default[0];
                         const fieldConfig = template[nestedFieldName];
-                        
+
                         if (fieldConfig) {
                             const newField = {
                                 name: nestedFieldName,
                                 type: fieldConfig.type,
                                 label: fieldConfig.label || nestedFieldName
                             };
-                            
+
                             if (fieldConfig.type === 'img') {
                                 newField[nestedFieldName] = null;
                                 newField[nestedFieldName + 'Alt'] = '';
+                                newField[nestedFieldName + 'Data'] = '';
                             } else {
                                 newField[nestedFieldName] = '';
                             }
-                            
+
                             nestedItem.push(newField);
                             nestedFieldIndex = nestedItem.length - 1;
                         }
                     }
-                    
+
                     if (nestedFieldIndex !== -1) {
                         Object.keys(newValues).forEach(key => {
                             nestedItem[nestedFieldIndex][key] = newValues[key];
                         });
                     }
                 }
-                
+
                 parent[fieldIndex][fieldName] = currentNested;
                 enhancedSetAttributes({ [parentFieldName]: updatedParents });
             }
@@ -1719,10 +2079,10 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
             console.error('[PBW Framework] Error updating nested item:', error);
         }
     };
-    
+
     return wp.element.createElement(
         'div',
-        { 
+        {
             className: 'pbw-nested-array-input',
             style: {
                 marginLeft: '20px',
@@ -1732,8 +2092,8 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
                 backgroundColor: '#f5f5f5'
             }
         },
-        wp.element.createElement('h5', { 
-            style: { 
+        wp.element.createElement('h5', {
+            style: {
                 margin: '0 0 10px 0',
                 fontSize: '13px',
                 fontWeight: '600',
@@ -1745,7 +2105,7 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
             { style: { fontSize: '11px', color: '#666', margin: '0 0 10px 0' } },
             nestedDescription
         ),
-        
+
         nestedArray.length === 0 ?
             wp.element.createElement(
                 'div',
@@ -1768,7 +2128,7 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
             nestedArray.map((nestedItem, nestedIndex) => {
                 return wp.element.createElement(
                     'div',
-                    { 
+                    {
                         key: nestedIndex,
                         className: 'pbw-nested-item',
                         style: {
@@ -1781,30 +2141,32 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
                     },
                     wp.element.createElement(
                         'div',
-                        { style: { 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            marginBottom: '10px',
-                            paddingBottom: '8px',
-                            borderBottom: '1px solid #eee'
-                        }},
+                        {
+                            style: {
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                marginBottom: '10px',
+                                paddingBottom: '8px',
+                                borderBottom: '1px solid #eee'
+                            }
+                        },
                         wp.element.createElement('strong', {
                             style: { fontSize: '12px' }
                         }, `#${nestedIndex + 1}`),
                         pbw.nested_array.removeblock(props, parentIndex, parentFieldName, fieldName, nestedIndex)
                     ),
-                    
+
                     Object.keys(nestedConfig.default[0] || {}).map((nestedFieldName) => {
                         const fieldConfig = nestedConfig.default[0][nestedFieldName];
-                        
+
                         const tempKey = `nested_${parentIndex}_${nestedIndex}_${nestedFieldName}`;
                         let fieldValue = '';
-                        
+
                         if (Array.isArray(nestedItem)) {
                             const field = nestedItem.find(item => item && item.name === nestedFieldName);
                             fieldValue = field ? (field[nestedFieldName] || '') : '';
                         }
-                        
+
                         const tempProps = {
                             name: props.name,
                             attributes: { [tempKey]: fieldValue },
@@ -1816,7 +2178,7 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
                                 }
                             }
                         };
-                        
+
                         const originalBlockType = wp.blocks.getBlockType(props.name);
                         if (originalBlockType && !originalBlockType.attributes[tempKey]) {
                             originalBlockType.attributes[tempKey] = {
@@ -1824,7 +2186,7 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
                                 description: fieldConfig?.description
                             };
                         }
-                        
+
                         return wp.element.createElement(
                             'div',
                             { key: nestedFieldName, style: { marginBottom: '8px' } },
@@ -1835,12 +2197,153 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
                     })
                 );
             }),
-        
+
         nestedArray.length > 0 && wp.element.createElement(
             'div',
             { style: { marginTop: '10px', textAlign: 'center' } },
             pbw.nested_array.addblock(props, parentIndex, parentFieldName, fieldName, nestedConfig)
         )
+    );
+}
+
+function createUpdateNestedItem(currentItems, parentIndex, fieldName, enhancedSetAttributes, parentFieldName, nestedConfig) {
+    return (nestedIndex, nestedFieldName, newValues) => {
+        try {
+            const updatedParents = deepClone(currentItems);
+            const parent = updatedParents[parentIndex];
+            const fieldIndex = parent.findIndex(item => item && item.name === fieldName);
+
+            if (fieldIndex !== -1) {
+                const currentNested = [...(parent[fieldIndex][fieldName] || [])];
+                const nestedItem = currentNested[nestedIndex];
+
+                if (Array.isArray(nestedItem)) {
+                    let nestedFieldIndex = nestedItem.findIndex(item => item && item.name === nestedFieldName);
+
+                    if (nestedFieldIndex === -1 && nestedConfig.default && nestedConfig.default[0]) {
+                        const template = nestedConfig.default[0];
+                        const fieldConfig = template[nestedFieldName];
+
+                        if (fieldConfig) {
+                            const newField = {
+                                name: nestedFieldName,
+                                type: fieldConfig.type,
+                                label: fieldConfig.label || nestedFieldName
+                            };
+
+                            if (fieldConfig.type === 'img') {
+                                newField[nestedFieldName] = null;
+                                newField[nestedFieldName + 'Alt'] = '';
+                                newField[nestedFieldName + 'Data'] = '';
+                                newField[nestedFieldName + 'Id'] = null; // FIX
+                            } else {
+                                newField[nestedFieldName] = '';
+                            }
+
+                            nestedItem.push(newField);
+                            nestedFieldIndex = nestedItem.length - 1;
+                        }
+                    }
+
+                    if (nestedFieldIndex !== -1) {
+                        Object.keys(newValues).forEach(key => {
+                            nestedItem[nestedFieldIndex][key] = newValues[key];
+                        });
+                    }
+                }
+
+                parent[fieldIndex][fieldName] = currentNested;
+                enhancedSetAttributes({ [parentFieldName]: updatedParents });
+            }
+        } catch (error) {
+            console.error('[PBW Framework] Error updating nested item:', error);
+        }
+    };
+}
+
+function rich_input(props, name) {
+    const { attributes, setAttributes } = props;
+    const blockType = wp.blocks.getBlockType(props.name);
+    const attributeConfig = blockType?.attributes?.[name];
+
+    const title = "📝 " + (attributeConfig?.title || 'Rich Content');
+
+    const ALLOWED_BLOCKS = attributeConfig?.allowedBlocks || [
+        'core/paragraph',
+        'core/heading',
+        'core/list',
+        'core/quote'
+    ];
+
+    const TEMPLATE = attributeConfig?.template || [
+        ['core/paragraph', { placeholder: 'Text eingeben...' }]
+    ];
+
+    return wp.element.createElement(
+        'div',
+        {
+            className: 'field-group pbw-rich-content',
+            style: {
+                padding: '16px',
+                borderRadius: '6px',
+                marginBottom: '16px',
+                border: '1px solid #e0e0e0'
+            }
+        },
+        wp.element.createElement('h4', {
+            style: {
+                margin: '0 0 12px 0',
+                color: '#2c3e50',
+                fontSize: '14px',
+                fontWeight: '600'
+            }
+        }, title),
+
+        attributeConfig?.description && wp.element.createElement('p', {
+            style: {
+                margin: '0 0 12px 0',
+                color: '#666',
+                fontSize: '12px'
+            }
+        }, attributeConfig.description),
+
+        wp.element.createElement('div', {
+            style: {
+                padding: '12px',
+                borderRadius: '4px',
+                minHeight: '100px'
+            }
+        },
+            wp.element.createElement(wp.blockEditor.InnerBlocks, {
+                allowedBlocks: ALLOWED_BLOCKS,
+                template: TEMPLATE,
+                templateLock: false,
+                // WICHTIG: Eindeutiger identifier pro InnerBlocks-Instanz
+                __experimentalCaptureToolbars: true,
+                // Speichere in Attribut
+                value: attributes[name] || [],
+                onInput: (blocks) => setAttributes({ [name]: blocks }),
+                onChange: (blocks) => setAttributes({ [name]: blocks }),
+                renderAppender: wp.blockEditor.InnerBlocks.ButtonBlockAppender
+            })
+        )
+    );
+}
+
+function rich_output(props, name) {
+    const blocks = props.attributes[name];
+
+    if (!blocks || blocks.length === 0) {
+        return null;
+    }
+
+    const { serialize } = wp.blocks;
+    const serializedContent = blocks.map(block => serialize(block)).join('');
+
+    return wp.element.createElement(
+        wp.element.RawHTML,
+        { className: `rich-content-${name}` },
+        serializedContent
     );
 }
 
@@ -1872,21 +2375,21 @@ function pbw_attributes(params = {}) {
 const pbw = {
     // Version Info
     version: '2.0.0',
-    
+
     // UI Components
     choose: {
         attr: (customParams = {}) => pbw_attributes({
-            ...{selector: 'select'}, 
+            ...{ selector: 'select' },
             ...customParams
         }),
         example: "option1",
         input: select_input,
         output: select_output
     },
-    
+
     h1: {
         attr: (customParams = {}) => pbw_attributes({
-            ...{selector: 'h1'}, 
+            ...{ selector: 'h1' },
             ...customParams
         }),
         example: "Dies ist eine Überschrift",
@@ -1896,17 +2399,17 @@ const pbw = {
 
     h2: {
         attr: (customParams = {}) => pbw_attributes({
-            ...{selector: 'h2'}, 
+            ...{ selector: 'h2' },
             ...customParams
         }),
         example: "Dies ist eine Unterüberschrift",
         input: (props, selector, name) => text_input(props, selector, name),
         output: (props, selector, name) => text_output(props, selector, name)
     },
-    
+
     p: {
         attr: (customParams = {}) => pbw_attributes({
-            ...{selector: 'p'}, 
+            ...{ selector: 'p' },
             ...customParams
         }),
         example: "Dies ist ein Test-Textfeld. Es soll ein Paragraph-Element sein und ist dazu da um mehr als nur eine Zeile an Text darzustellen",
@@ -1916,25 +2419,40 @@ const pbw = {
 
     text: {
         attr: (customParams = {}) => pbw_attributes({
-            ...{selector: 'p'}, 
+            ...{ selector: 'p' },
             ...customParams
         }),
         example: "Dies ist ein Test-Textfeld",
         input: (props, selector, name) => text_input(props, selector, name),
         output: (props, selector, name) => text_output(props, selector, name)
     },
-    
+
+    rich: {
+        attr: (customParams = {}) => pbw_attributes({
+            type: 'array', // WICHTIG: array statt string
+            default: [],
+            ...customParams
+        }),
+        example: [],
+        input: (props, name) => rich_input(props, name),
+        output: (props, name) => rich_output(props, name)
+    },
+
     img: {
         attr: (name = 'img', customParams = {}) => {
             const baseAttr = pbw_attributes({
-                ...{selector: 'img'}, 
+                ...{ selector: 'img' },
                 ...customParams
             });
-            
+
             return {
                 [name]: baseAttr,
                 [name + 'Alt']: {
-                    type: 'string', 
+                    type: 'string',
+                    default: ''
+                },
+                [name + 'Data']: {
+                    type: 'string',
                     default: ''
                 },
                 [name + 'Id']: {
@@ -1947,20 +2465,20 @@ const pbw = {
         input: media_input,
         output: media_output
     },
-    
+
     link: {
         attr: (customParams = {}) => pbw_attributes({
-            ...{source: 'attribute', attribute: 'href', selector: 'a.link'}, 
+            ...{ source: 'attribute', attribute: 'href', selector: 'a.link' },
             ...customParams
         }),
         example: "https://example.com/",
         input: link_input,
         output: link_output
     },
-    
+
     array: {
         attr: (customParams = {}) => pbw_attributes({
-            ...{type: 'array', default: []}, 
+            ...{ type: 'array', default: [] },
             ...customParams
         }),
         example: [],
@@ -1969,17 +2487,17 @@ const pbw = {
         addblock: array_addblock,
         removeblock: array_removeblock
     },
-    
+
     nested_array: {
         attr: (customParams = {}) => pbw_attributes({
-            ...{type: 'array', default: []}, 
+            ...{ type: 'array', default: [] },
             ...customParams
         }),
         input: nested_array_input,
         addblock: nested_array_addblock,
         removeblock: nested_array_removeblock
     },
-    
+
     // Block Utilities
     block: {
         /**
@@ -1988,17 +2506,17 @@ const pbw = {
         title: (props) => {
             const { name } = props;
             const blockType = wp.blocks.getBlockType(name);
-            
+
             if (!blockType) {
                 console.warn('[PBW Framework] Block type not found:', name);
                 return null;
             }
-            
+
             const { title, description, icon } = blockType;
-            
+
             return wp.element.createElement(
                 'div',
-                { 
+                {
                     className: 'pbw-block-title',
                     style: {
                         marginBottom: '20px',
@@ -2046,7 +2564,7 @@ const pbw = {
             );
         }
     },
-    
+
     // Utility Functions (exposed for external use)
     utils: {
         safeGet,

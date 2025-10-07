@@ -356,11 +356,15 @@ img.parent_img.hdImage {
         z-index: 2;
         .badgeInfo{
             display: grid;
-            grid-template-columns: auto 1fr;
         }
         a.badge{
             display: none;
         }
+    }
+    .badgeInfo{
+        grid-template-columns: auto 1fr;
+        z-index: 1;
+        position: relative;
     }
     .string{
         min-height: 15px;
@@ -710,4 +714,11 @@ body.wp-overlay-open {
 
 .wp-overlay-body::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+.checkpoint-marker.markerLabel {
+    .badgeInfo {
+        // Nur transition hinzufügen für smooth movement
+        will-change: transform;
+    }
 }

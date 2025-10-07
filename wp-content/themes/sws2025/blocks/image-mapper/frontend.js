@@ -156,6 +156,126 @@ class WordPressImageMapper {
             switchMode: (mode) => window.wpScrollExtension.setMode(mode)
         };
     }
+    /**
+ * Badge Viewport-Positioning System
+ * Pre-calculates positions, applies on hover
+ */
+
+    initBadgePositioning() {
+        this.badgePositions = new Map(); // Cache für berechnete Positionen
+
+        const markers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel');
+
+        // Initial calculation
+        this.calculateAllBadgePositions();
+
+        // Hover: apply pre-calculated position
+        markers.forEach(marker => {
+            marker.addEventListener('mouseenter', () => {
+                this.applyBadgeTransform(marker);
+            });
+
+            marker.addEventListener('mouseleave', () => {
+                const badgeInfo = marker.querySelector('.badgeInfo');
+                if (badgeInfo) {
+                    badgeInfo.style.transform = '';
+                }
+            });
+        });
+
+        // Update on scroll/zoom
+        let scrollTimeout;
+        const handleScroll = () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                this.calculateAllBadgePositions();
+                // Update aktuell gehoverte badges
+                const hoveredMarkers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel:hover');
+                hoveredMarkers.forEach(marker => this.applyBadgeTransform(marker));
+            }, 50); // Debounce
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', handleScroll, { passive: true });
+
+        // During zoom
+        gsap.ticker.add(() => {
+            if (this.state.zooming) {
+                this.calculateAllBadgePositions();
+                const hoveredMarkers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel:hover');
+                hoveredMarkers.forEach(marker => this.applyBadgeTransform(marker));
+            }
+        });
+    }
+
+    /**
+     * Calculate positions for all badges (background)
+     */
+    calculateAllBadgePositions() {
+        const markers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel');
+
+        markers.forEach(marker => {
+            const badgeInfo = marker.querySelector('.badgeInfo');
+            if (!badgeInfo) return;
+
+            // Temp show für measurement
+            const wasHidden = window.getComputedStyle(badgeInfo).display === 'none';
+            if (wasHidden) {
+                badgeInfo.style.display = 'grid';
+                badgeInfo.style.visibility = 'hidden';
+            }
+
+            const rect = badgeInfo.getBoundingClientRect();
+            const viewport = {
+                width: window.innerWidth,
+                height: window.innerHeight,
+                padding: 20
+            };
+
+            let adjustX = 0;
+            let adjustY = 0;
+
+            // Calculate offset needed
+            if (rect.left < viewport.padding) {
+                adjustX = viewport.padding - rect.left;
+            } else if (rect.right > viewport.width - viewport.padding) {
+                adjustX = (viewport.width - viewport.padding) - rect.right;
+            }
+
+            if (rect.top < viewport.padding) {
+                adjustY = viewport.padding - rect.top;
+            } else if (rect.bottom > viewport.height - viewport.padding) {
+                adjustY = (viewport.height - viewport.padding) - rect.bottom;
+            }
+
+            // Store in cache
+            this.badgePositions.set(marker, { x: adjustX, y: adjustY });
+
+            // Reset temp changes
+            if (wasHidden) {
+                badgeInfo.style.display = '';
+                badgeInfo.style.visibility = '';
+            }
+        });
+    }
+
+    /**
+     * Apply pre-calculated transform
+     */
+    applyBadgeTransform(marker) {
+        const badgeInfo = marker.querySelector('.badgeInfo');
+        if (!badgeInfo) return;
+
+        const position = this.badgePositions.get(marker);
+        if (!position) return;
+
+        if (position.x !== 0 || position.y !== 0) {
+            badgeInfo.style.transition = 'transform 0.3s ease';
+            badgeInfo.style.transform = `translate(${position.x}px, ${position.y}px)`;
+        } else {
+            badgeInfo.style.transform = '';
+        }
+    }
 
     /**
      * Initialize a single container
@@ -218,6 +338,8 @@ class WordPressImageMapper {
         this.initMarkers();
 
         this.initAllSVGPaths();
+        
+        this.initBadgePositioning();
 
         this.debug(`Container initialized with ${markers.length} markers, ${Object.keys(this.state.globalElements || {}).length} global element types`);
     }
@@ -1300,77 +1422,77 @@ class WordPressImageMapper {
         const containerRect = container.getBoundingClientRect();
         const markerRect = marker.getBoundingClientRect();
         const parentRect = this.parent.getBoundingClientRect();
-    
+
         const currentTransform = {
             scale: gsap.getProperty(container, "scale") || 1,
             x: gsap.getProperty(container, "x") || 0,
             y: gsap.getProperty(container, "y") || 0
         };
-    
+
         // Container-Center VOR Transformation (im Parent-Koordinatensystem)
         const containerOriginalCenter = {
             x: (container.offsetLeft + container.offsetWidth / 2),
             y: (container.offsetTop + container.offsetHeight / 2)
         };
-    
+
         // Aktuelles Container-Center (transformiert)
         const containerCurrentCenter = {
             x: containerRect.left + containerRect.width / 2 - parentRect.left,
             y: containerRect.top + containerRect.height / 2 - parentRect.top
         };
-    
+
         // Marker-Center im aktuellen (transformierten) Zustand
         const markerCurrentCenter = {
             x: markerRect.left + markerRect.width / 2 - parentRect.left,
             y: markerRect.top + markerRect.height / 2 - parentRect.top
         };
-    
+
         // Rückrechnung der Original-Position des Markers
         // Distanz vom transformierten Container-Center zum Marker
         const deltaX = markerCurrentCenter.x - containerCurrentCenter.x;
         const deltaY = markerCurrentCenter.y - containerCurrentCenter.y;
-    
+
         // Diese Distanz durch Scale teilen für Original-Distanz
         const originalDeltaX = deltaX / currentTransform.scale;
         const originalDeltaY = deltaY / currentTransform.scale;
-    
+
         // Original Marker-Center
         const markerOriginalCenter = {
             x: containerOriginalCenter.x + originalDeltaX,
             y: containerOriginalCenter.y + originalDeltaY
         };
-    
+
         // Jetzt calculateZoomTransform-Logik mit den korrekten Werten anwenden
         const viewportCenter = {
             x: window.innerWidth / 2,
             y: window.innerHeight / 2
         };
-    
+
         const targetHeight = window.innerHeight * this.config.zoom.targetViewportHeight;
         const targetWidth = window.innerWidth * this.config.zoom.targetViewportWidth;
-    
+
         let scale = Math.min(
             targetHeight / (markerRect.height / currentTransform.scale),
             targetWidth / (markerRect.width / currentTransform.scale)
         );
-    
+
         // Translation berechnen (Parent-Koordinaten zu Viewport)
         const scaledMarkerOffset = {
             x: (markerOriginalCenter.x - containerOriginalCenter.x) * scale,
             y: (markerOriginalCenter.y - containerOriginalCenter.y) * scale
         };
-    
+
         let translateX = viewportCenter.x - (parentRect.left + containerOriginalCenter.x) - scaledMarkerOffset.x;
         let translateY = viewportCenter.y - (parentRect.top + containerOriginalCenter.y) - scaledMarkerOffset.y;
-    
+
         const bounds = this.calculateBoundaryConstraints(
             parentRect, containerRect, scale, translateX, translateY
         );
-    
-        return { 
-            scale: bounds.scale, 
-            translateX: bounds.x, 
-            translateY: bounds.y 
+
+        return {
+            scale: bounds.scale,
+            translateX: bounds.x,
+            translateY: bounds.y
         };
     }
 

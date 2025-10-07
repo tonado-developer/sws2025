@@ -810,7 +810,6 @@ registerBlockType('sws2025/image-mapper', {
                                             },
                                             pbw.p.output({attributes:checkpoint},"h3","previewLabel"),
                                             pbw.p.output({attributes:checkpoint},"p","previewText"),
-                                            console.log({attributes:checkpoint}),
                                             wp.element.createElement(
                                                 'a',
                                                 {
