@@ -179,6 +179,7 @@ img.parent_img.hdImage {
     pointer-events: none;
     svg{
         height: 100%;
+        width: auto;
     }
 }
 
@@ -557,6 +558,7 @@ img.parent_img.hdImage {
     border-radius: 10px 10px 10px 0px;
     color: var(--wp--preset--color--base);
     text-decoration: none;
+    font-size: var(--wp--preset--font-size--large);
 }
 
 /**

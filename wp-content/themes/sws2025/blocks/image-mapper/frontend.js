@@ -792,7 +792,7 @@ class WordPressImageMapper {
 
     illustrationAnimationTypes() {
         return {
-            "wings": {
+            "fluegel.svg": {
                 "init": (el) => {
                     const wings = el.querySelectorAll("path");
                     if (wings.length != 2) {
@@ -815,7 +815,7 @@ class WordPressImageMapper {
                     return el;
                 },
 
-                "fadeIn": (el,onComplete) => {
+                "fadeIn": (el, onComplete) => {
                     const wings = el.querySelectorAll("path");
                     if (wings.length != 2) return;
 
@@ -862,13 +862,192 @@ class WordPressImageMapper {
                         ease: "power2.in",
                         onComplete: () => {
                             el.style.display = 'none';
+                            gsap.set(el, { opacity: 0 });
+                        }
+                    });
+                }
+            },
+            "illu_feuer.svg": {
+                "init": (el) => {
+                    const flames = el.querySelectorAll("path");
+                    if (flames.length < 1) {
+                        console.warn("Expected at least 1 flame path, found:", flames.length);
+                        return;
+                    }
+
+                    gsap.set(el, { opacity: 1 });
+                    el.style.display = 'block';
+
+                    flames.forEach((flame) => {
+                        gsap.set(flame, {
+                            scale: 0.8,
+                            opacity: 0,
+                            transformOrigin: "center bottom",
+                            x: 0,
+                            y: 0,
+                            rotation: 0
+                        });
+                    });
+
+                    return el;
+                },
+
+                "fadeIn": (el, onComplete) => {
+                    const flames = el.querySelectorAll("path");
+                    if (flames.length < 1) return;
+
+                    flames.forEach((flame, index) => {
+                        const delay = index * 0.3; // etwas längere Verzögerung
+
+                        gsap.to(flame, {
+                            scale: 1,
+                            opacity: 1,
+                            duration: 1.5, // sanftere Einblendung
+                            ease: "power2.out",
+                            delay: delay,
+                            onComplete: () => {
+                                // Sanftes, langsames Flackern + Pulsieren
+                                const flickerTl = gsap.timeline({ repeat: -1 });
+                                flickerTl.to(flame, {
+                                    scale: 0.96 + Math.random() * 0.08,
+                                    opacity: 0.88 + Math.random() * 0.12,
+                                    rotation: -1 + Math.random() * 2,
+                                    x: -0.5 + Math.random(),
+                                    y: -0.5 + Math.random(),
+                                    duration: 0.8 + Math.random() * 0.4, // langsamere Pulsation
+                                    ease: "sine.inOut",
+                                }).to(flame, {
+                                    scale: 0.97 + Math.random() * 0.06,
+                                    opacity: 0.9 + Math.random() * 0.1,
+                                    rotation: -0.5 + Math.random(),
+                                    x: -0.3 + Math.random() * 0.6,
+                                    y: -0.3 + Math.random() * 0.6,
+                                    duration: 0.9 + Math.random() * 0.4,
+                                    ease: "sine.inOut",
+                                });
+
+                                // Langsame, sanfte Aufwärtsbewegung
+                                gsap.to(flame, {
+                                    y: -6 + index * 2,
+                                    rotation: -2 + Math.random() * 4,
+                                    duration: 3 + Math.random() * 1, // länger und sanft
+                                    ease: "sine.inOut",
+                                    repeat: -1,
+                                    yoyo: true
+                                });
+
+                                if (index === flames.length - 1) {
+                                    onComplete && onComplete();
+                                }
+                            }
+                        });
+                    });
+
+                    return el;
+                },
+
+                "fadeOut": (el) => {
+                    const flames = el.querySelectorAll("path");
+                    gsap.to(flames, {
+                        scale: 0.7,
+                        opacity: 0,
+                        rotation: 0,
+                        x: 0,
+                        y: 0,
+                        duration: 0.8, // sanftes Ausblenden
+                        ease: "power2.in",
+                        stagger: 0.2,
+                        onComplete: () => {
+                            el.style.display = 'none';
+                            gsap.set(el, { opacity: 0 });
+                        }
+                    });
+                }
+            },
+            "illu_helm.svg": {
+                "init": (el) => {
+                    const paths = el.querySelectorAll("path");
+                    if (paths.length !== 2) {
+                        console.warn("Expected 2 paths for helmet animation, found:", paths.length);
+                        return;
+                    }
+
+                    const helm = paths[0]; // Helm
+                    const rope = paths[1]; // Seil
+
+                    gsap.set(el, { opacity: 1 });
+                    el.style.display = 'block';
+
+                    // Helm anfänglich außerhalb des Sichtfelds
+                    gsap.set(helm, {
+                        y: -200,
+                        rotation: -15,
+                        opacity: 1,
+                        transformOrigin: "center top"
+                    });
+
+                    // Seil anfänglich unsichtbar
+                    gsap.set(rope, {
+                        scaleY: 0,
+                        opacity: 0,
+                        transformOrigin: "top center"
+                    });
+
+                    return el;
+                },
+
+                "fadeIn": (el, onComplete) => {
+                    const paths = el.querySelectorAll("path");
+                    if (paths.length !== 2) return;
+
+                    const helm = paths[0];
+                    const rope = paths[1];
+
+                    // Helm fällt herunter
+                    gsap.to(helm, {
+                        y: 0,
+                        rotation: 0,
+                        duration: 1.2,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            // Seil baut sich danach sanft auf
+                            gsap.to(rope, {
+                                scaleY: 1,
+                                opacity: 1,
+                                duration: 1.5,
+                                ease: "power2.out",
+                                onComplete: () => {
+                                    onComplete && onComplete();
+                                }
+                            });
+                        }
+                    });
+
+                    return el;
+                },
+
+                "fadeOut": (el) => {
+                    const paths = el.querySelectorAll("path");
+                    if (paths.length !== 2) return;
+
+                    const helm = paths[0];
+                    const rope = paths[1];
+
+                    gsap.to([helm, rope], {
+                        y: -50,
+                        scale: 0.8,
+                        opacity: 0,
+                        duration: 0.8,
+                        ease: "power2.in",
+                        onComplete: () => {
+                            el.style.display = 'none';
+                            gsap.set(el, { opacity: 0 });
                         }
                     });
                 }
             }
-        };
+        }
     }
-
 
 
     /**
@@ -879,29 +1058,30 @@ class WordPressImageMapper {
         if (!elements || elements.length == 0) return;
 
         const illustrationAnimationTypes = this.illustrationAnimationTypes();
-        const type = "wings";
         const initializedElements = [];
-        if (type && illustrationAnimationTypes[type]) {
-            
-            const currentType = illustrationAnimationTypes[type];
-            elements.forEach(el => {
+
+        elements.forEach(el => {
+            // DYNAMISCH: Type aus data-attribute lesen
+            let url = el.dataset.originalFile;
+            const type = url.split('/').pop() || 'fluegel.svg'; // fallback
+
+            if (type && illustrationAnimationTypes[type]) {
+                const currentType = illustrationAnimationTypes[type];
                 let initElement = currentType.init(el);
-                if (initElement){
-                    initializedElements.push(initElement)
+                if (initElement) {
+                    initializedElements.push({ element: initElement, type });
                     el.classList.add(this.config.classes.IllustrationInitialized);
                 }
-            });
-            initializedElements.forEach(el => {
-                el.classList.add(this.config.classes.IllustrationAnimating);
-                currentType.fadeIn(el, () => {
-                    el.classList.remove(this.config.classes.IllustrationAnimating);
-                    el.classList.add(this.config.classes.IllustrationAnimated);
-                });
-            });
+            }
+        });
 
-            // Optional: fade out after some time
-            // setTimeout(() => initializedElements.forEach(el => currentType.fadeOut(el)), 2000);
-        }
+        initializedElements.forEach(({ element: el, type }) => {
+            el.classList.add(this.config.classes.IllustrationAnimating);
+            illustrationAnimationTypes[type].fadeIn(el, () => {
+                el.classList.remove(this.config.classes.IllustrationAnimating);
+                el.classList.add(this.config.classes.IllustrationAnimated);
+            });
+        });
     }
 
     /**
@@ -912,13 +1092,17 @@ class WordPressImageMapper {
         if (!root) return;
         const elements = root.querySelectorAll(`.${this.config.classes.IllustrationInitialized}`);
         if (!elements || elements.length == 0) return;
-        console.log('Resetting illustration animations',this.state.rootContainer);
+        // console.log('Resetting illustration animations', this.state.rootContainer);
 
         const illustrationAnimationTypes = this.illustrationAnimationTypes();
 
-        const type = "wings";
-        const currentType = illustrationAnimationTypes[type];
-        elements.forEach(el => {currentType.init(el)});
+        elements.forEach(el => {
+            let url = el.dataset.originalFile;
+            const type = url.split('/').pop() || 'fluegel.svg'; // fallback
+            const currentType = illustrationAnimationTypes[type];
+
+            currentType.fadeOut(el)
+        });
     }
 
     /**
@@ -2177,11 +2361,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.wpImageMapper = new WordPressImageMapper({
         zoom: {
             targetViewportHeight: 1,
-            targetViewportWidth: 0.8,
-            pushRight: 5,
+            targetViewportWidth: 0.9,
+            pushRight: 3,
             maxScaleBoost: 0.8,
-            viewportPadding: 0.2,
-            topPadding: 250
+            viewportPadding: 0.3,
+            topPadding: 150
         },
         animation: {
             zoomDuration: 1.5,

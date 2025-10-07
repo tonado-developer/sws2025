@@ -681,6 +681,7 @@ registerBlockType('sws2025/image-mapper', {
             ),
             wp.element.createElement('div', {
                 className: 'illustration-image open',
+                'data-original-file': attributes.illustrationImage,
                 dangerouslySetInnerHTML: { __html: attributes.illustrationImagesvgCode },
                 style: {
                     transform: 'translate(-20%,100%) scale(.7)',
@@ -846,6 +847,7 @@ registerBlockType('sws2025/image-mapper', {
                         {
                             className: 'illustration-image',
                             'data-hotspot-id': index,
+                            'data-original-file': hotspot.illustrationImage,
                             dangerouslySetInnerHTML: { __html: hotspot.illustrationImageSvgCode },
                             style: {
                                 transform: 'translate(-20%,100%) scale(.7)',
