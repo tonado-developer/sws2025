@@ -9,26 +9,26 @@ registerBlockType('sws2025/image-mapper', {
         attributes: {
             heading: pbw.h1.example,
             text: pbw.p.example
-        }, 
+        },
     },
     attributes: {
-        ...pbw.img.attr('backgroundImage',{
+        ...pbw.img.attr('backgroundImage', {
             title: "Hintergrundbild",
             description: "Großflächiges Hintergrundbild für den gesamten Block"
         }),
-        ...pbw.img.attr('baseImage',{
+        ...pbw.img.attr('baseImage', {
             title: "Basis-Bild (Hotspot-Grundlage)",
             description: "Hauptbild auf dem die Hotspots platziert werden. Optimal: 800-1200px Breite"
         }),
-        ...pbw.img.attr('baseImageHd',{
+        ...pbw.img.attr('baseImageHd', {
             title: "Basis-Bild HD (Optional)",
             description: "Hochauflösende Version für Retina-Displays und Zoom-Funktionen"
         }),
-        ...pbw.img.attr('personImage',{
+        ...pbw.img.attr('personImage', {
             title: "Personen-Bild",
             description: "Bild einer Person oder Testimonial-Foto"
         }),
-        ...pbw.img.attr('illustrationImage',{
+        ...pbw.img.attr('illustrationImage', {
             title: "Illustration/Grafik",
             description: "Zusätzliche Illustration oder dekorative Grafik"
         }),
@@ -44,36 +44,36 @@ registerBlockType('sws2025/image-mapper', {
             title: "Hotspot-Konfiguration",
             description: "Hier kannst du die Inhalte für jeden Hotspot definieren. Nutze aussagekräftige Titel und Beschreibungen",
             default: [{
-                catName: { 
-                    type: 'text', 
+                catName: {
+                    type: 'text',
                     title: 'Hotspot-Name',
                     description: "Der Name der auf der Orangenen-Fahne erscheint"
                 },
 
                 // Basic Hotspot Settings
-                overlay: { 
-                    type: 'img', 
+                overlay: {
+                    type: 'img',
                     title: 'Hover Overlay (100% Vollton)',
                     description: "Das Einfarbige OVerlay auf das man später klicken können soll"
                 },
-                xPosition: { 
-                    type: 'text', 
-                    title: 'X Position (%)' 
+                xPosition: {
+                    type: 'text',
+                    title: 'X Position (%)'
                 },
                 yPosition: { type: 'text', title: 'Y Position (%)' },
                 width: { type: 'text', title: 'Breite (%)' },
-                
+
                 // Zoom Content
                 zoomImage: { type: 'img', title: 'Freigestellter Berg (WebP)' },
                 personImage: { type: 'img', title: 'Person Bild' },
                 illustrationImage: { type: 'img', title: 'Orange Illustration' },
                 sideText: { type: 'text', title: 'Seitentext' },
                 sideLink: { type: 'link', title: 'Seitenlink' },
-                
+
                 // SVG Path System
                 pathSvg: { type: 'img', title: 'SVG Pfad' },
-                checkpoints: { 
-                    type: 'nested_array', 
+                checkpoints: {
+                    type: 'nested_array',
                     title: 'Checkpoints',
                     default: [{
                         pathPosition: { type: 'text', title: 'Position auf Pfad (0-100%)' },
@@ -87,7 +87,7 @@ registerBlockType('sws2025/image-mapper', {
         })
     },
 
-    edit: function(props) {
+    edit: function (props) {
         const { attributes, setAttributes } = props;
         const { useState, useRef, useEffect } = wp.element;
 
@@ -99,11 +99,11 @@ registerBlockType('sws2025/image-mapper', {
         // Handle Click auf Preview für Hotspot Positioning
         const handlePreviewClick = (e, hotspotIndex) => {
             if (!previewRef.current || isDragging) return;
-            
+
             const rect = previewRef.current.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
-            
+
             updateHotspotPosition(hotspotIndex, x, y);
         };
 
@@ -111,14 +111,14 @@ registerBlockType('sws2025/image-mapper', {
         const updateHotspotPosition = (hotspotIndex, x, y) => {
             const updatedHotspots = [...attributes.hotspots];
             const hotspot = [...updatedHotspots[hotspotIndex]];
-            
+
             // Find and update x/y position fields
             const xIndex = hotspot.findIndex(item => item.name === 'xPosition');
             const yIndex = hotspot.findIndex(item => item.name === 'yPosition');
-            
+
             if (xIndex !== -1) hotspot[xIndex].xPosition = x.toFixed(2);
             if (yIndex !== -1) hotspot[yIndex].yPosition = y.toFixed(2);
-            
+
             updatedHotspots[hotspotIndex] = hotspot;
             setAttributes({ hotspots: updatedHotspots });
         };
@@ -126,10 +126,10 @@ registerBlockType('sws2025/image-mapper', {
         // Render Hotspot Markers on Preview
         const renderHotspotMarkers = () => {
             if (!attributes.hotspots || attributes.hotspots.length === 0) return null;
-            
+
             return attributes.hotspots.map((hotspot, index) => {
                 const hotspotData = {};
-                
+
                 // Transform array structure to object
                 if (Array.isArray(hotspot)) {
                     hotspot.forEach(item => {
@@ -138,12 +138,12 @@ registerBlockType('sws2025/image-mapper', {
                         }
                     });
                 }
-                
+
                 const x = parseFloat(hotspotData.xPosition) || 50;
                 const y = parseFloat(hotspotData.yPosition) || 50;
                 const width = parseFloat(hotspotData.width) || 10;
                 const overlayImage = hotspotData.overlay;
-                
+
                 return wp.element.createElement(
                     'div',
                     {
@@ -167,9 +167,9 @@ registerBlockType('sws2025/image-mapper', {
                             setDraggedHotspot(index);
                         }
                     },
-                    
+
                     // Actual Overlay Image OR Fallback
-                    overlayImage ? 
+                    overlayImage ?
                         wp.element.createElement('img', {
                             src: overlayImage,
                             alt: `Overlay ${index + 1}`,
@@ -194,7 +194,7 @@ registerBlockType('sws2025/image-mapper', {
                                 fontWeight: 'bold'
                             }
                         }, `H${index + 1}`),
-                    
+
                     // Label
                     wp.element.createElement('span', {
                         style: {
@@ -224,7 +224,7 @@ registerBlockType('sws2025/image-mapper', {
                     }
                     return false;
                 });
-                
+
                 if (needsMigration) {
                     const migrated = attributes.hotspots.map(hotspot => {
                         if (Array.isArray(hotspot)) {
@@ -243,15 +243,50 @@ registerBlockType('sws2025/image-mapper', {
             }
         }, []);
 
-        return wp.element.createElement('div',null,
-            
+        useEffect(() => {
+            console.log("useeffect for svg loading triggered");
+            if (props.attributes.hotspots && Array.isArray(props.attributes.hotspots)) {
+                props.attributes.hotspots.forEach((hotspotArray, index) => {
+                    const pathSvgObj = hotspotArray.find(item => item.name === 'pathSvg');
+
+                    if (pathSvgObj && pathSvgObj.pathSvg && pathSvgObj.pathSvg !== "") {
+                        fetch(pathSvgObj.pathSvg)
+                            .then(response => response.text())
+                            .then(svgCode => {
+                                const updatedHotspots = [...props.attributes.hotspots];
+                                const updatedHotspotArray = [...updatedHotspots[index]];
+
+                                // Neues Objekt ans Array anhängen
+                                updatedHotspotArray.push({
+                                    name: "svgPathCode",
+                                    type: "html",
+                                    svgPathCode: svgCode
+                                });
+
+                                updatedHotspots[index] = updatedHotspotArray;
+                                props.setAttributes({ hotspots: updatedHotspots });
+                                console.log("updated props after SVG load:", updatedHotspotArray);
+                            })
+                            .catch(error => {
+                                console.error("Fehler beim Laden des SVG:", error);
+                            });
+                    }
+                });
+            }
+        }, [props.attributes.hotspots?.map(ha => {
+            const pathObj = ha.find(item => item.name === 'pathSvg');
+            return pathObj?.pathSvg || '';
+        }).join(',')]);
+
+        return wp.element.createElement('div', null,
+
             // Block Title
             pbw.block.title(props),
-        
+
             // === BILDER SEKTION ===
             wp.element.createElement(
                 'div',
-                { 
+                {
                     className: 'editor-section images-section',
                     style: {
                         backgroundColor: '#f8f9fa',
@@ -264,9 +299,9 @@ registerBlockType('sws2025/image-mapper', {
                 },
                 wp.element.createElement(
                     'h3',
-                    { 
-                        style: { 
-                            margin: '0 0 16px 0', 
+                    {
+                        style: {
+                            margin: '0 0 16px 0',
                             color: '#1e1e1e',
                             fontSize: '16px',
                             fontWeight: '600',
@@ -280,37 +315,37 @@ registerBlockType('sws2025/image-mapper', {
                 ),
                 wp.element.createElement(
                     'p',
-                    { 
-                        style: { 
-                            margin: '0 0 20px 0', 
-                            color: '#757575', 
+                    {
+                        style: {
+                            margin: '0 0 20px 0',
+                            color: '#757575',
                             fontSize: '14px',
                             fontStyle: 'italic'
                         }
                     },
                     'Lade hier alle benötigten Bilder für den Block hoch. Verwende hochauflösende Bilder für beste Qualität.'
                 ),
-        
+
                 // Background Image
                 pbw.img.input(props, "backgroundImage"),
-        
+
                 // Base Image
                 pbw.img.input(props, "baseImage"),
-        
+
                 // Base Image HD
                 pbw.img.input(props, "baseImageHd"),
-        
+
                 // Person Image
                 pbw.img.input(props, "personImage"),
-        
+
                 // Illustration Image
                 pbw.img.input(props, "illustrationImage")
             ),
-        
+
             // === TEXT SEKTION ===
             wp.element.createElement(
                 'div',
-                { 
+                {
                     className: 'editor-section text-section',
                     style: {
                         backgroundColor: '#f1f8ff',
@@ -323,9 +358,9 @@ registerBlockType('sws2025/image-mapper', {
                 },
                 wp.element.createElement(
                     'h3',
-                    { 
-                        style: { 
-                            margin: '0 0 16px 0', 
+                    {
+                        style: {
+                            margin: '0 0 16px 0',
                             color: '#1e1e1e',
                             fontSize: '16px',
                             fontWeight: '600',
@@ -339,28 +374,28 @@ registerBlockType('sws2025/image-mapper', {
                 ),
                 wp.element.createElement(
                     'p',
-                    { 
-                        style: { 
-                            margin: '0 0 20px 0', 
-                            color: '#757575', 
+                    {
+                        style: {
+                            margin: '0 0 20px 0',
+                            color: '#757575',
                             fontSize: '14px',
                             fontStyle: 'italic'
                         }
                     },
                     'Bearbeite hier die Texte, die neben dem Hotspot-Bild angezeigt werden.'
                 ),
-        
+
                 // Side Headline
                 pbw.h1.input(props, "h1", "sideHeadline"),
-        
+
                 // Side Text
                 pbw.p.input(props, "p", "sideText")
             ),
-        
+
             // === HOTSPOT SEKTION ===
             wp.element.createElement(
                 'div',
-                { 
+                {
                     className: 'editor-section hotspot-section',
                     style: {
                         backgroundColor: '#fff8e1',
@@ -373,9 +408,9 @@ registerBlockType('sws2025/image-mapper', {
                 },
                 wp.element.createElement(
                     'h3',
-                    { 
-                        style: { 
-                            margin: '0 0 16px 0', 
+                    {
+                        style: {
+                            margin: '0 0 16px 0',
                             color: '#1e1e1e',
                             fontSize: '16px',
                             fontWeight: '600',
@@ -389,8 +424,8 @@ registerBlockType('sws2025/image-mapper', {
                 ),
                 wp.element.createElement(
                     'div',
-                    { 
-                        style: { 
+                    {
+                        style: {
                             backgroundColor: '#fff3cd',
                             border: '1px solid #ffeaa7',
                             borderRadius: '6px',
@@ -400,9 +435,9 @@ registerBlockType('sws2025/image-mapper', {
                     },
                     wp.element.createElement(
                         'h4',
-                        { 
-                            style: { 
-                                margin: '0 0 8px 0', 
+                        {
+                            style: {
+                                margin: '0 0 8px 0',
                                 color: '#856404',
                                 fontSize: '14px',
                                 fontWeight: '500'
@@ -412,10 +447,10 @@ registerBlockType('sws2025/image-mapper', {
                     ),
                     wp.element.createElement(
                         'ul',
-                        { 
-                            style: { 
-                                margin: '0', 
-                                color: '#856404', 
+                        {
+                            style: {
+                                margin: '0',
+                                color: '#856404',
                                 fontSize: '13px',
                                 paddingLeft: '20px'
                             }
@@ -426,16 +461,16 @@ registerBlockType('sws2025/image-mapper', {
                         wp.element.createElement('li', null, '🗑️ Entferne unbenötigte Hotspots mit dem "Entfernen"-Button')
                     )
                 ),
-                
+
                 // Main Editor Interface
                 wp.element.createElement(
                     'div',
                     { className: 'image-mapper-editor' },
-                    
+
                     // Preview Area
                     wp.element.createElement(
                         'div',
-                        { 
+                        {
                             className: 'image-mapper-preview',
                             style: {
                                 position: 'relative',
@@ -448,7 +483,7 @@ registerBlockType('sws2025/image-mapper', {
                                 transition: 'all 0.3s ease'
                             }
                         },
-                        
+
                         // Base Image Debug
                         attributes.baseImage && wp.element.createElement(
                             'img',
@@ -470,10 +505,10 @@ registerBlockType('sws2025/image-mapper', {
                                 }
                             }
                         ),
-                        
+
                         // Hotspot Markers
                         renderHotspotMarkers(),
-                        
+
                         // Instructions Overlay
                         !attributes.baseImage && wp.element.createElement(
                             'div',
@@ -497,18 +532,18 @@ registerBlockType('sws2025/image-mapper', {
                                 '🖼️'
                             ),
                             wp.element.createElement(
-                                'p', 
-                                { style: { margin: '0 0 8px 0', fontSize: '16px', fontWeight: '500' } }, 
+                                'p',
+                                { style: { margin: '0 0 8px 0', fontSize: '16px', fontWeight: '500' } },
                                 'Basis-Bild auswählen'
                             ),
                             wp.element.createElement(
-                                'p', 
-                                { style: { margin: '0', fontSize: '12px', color: '#666' } }, 
+                                'p',
+                                { style: { margin: '0', fontSize: '12px', color: '#666' } },
                                 'Danach auf das Bild klicken um Hotspots zu positionieren'
                             )
                         )
                     ),
-                    
+
                     // Hotspots Configuration
                     pbw.array.input(props, 'hotspots')
                 )
@@ -516,9 +551,9 @@ registerBlockType('sws2025/image-mapper', {
         );
     },
 
-    save: function(props) {
+    save: function (props) {
         const { attributes } = props;
-        
+
         return wp.element.createElement(
             'div',
             { className: 'image-mapper-container' },
@@ -540,7 +575,7 @@ registerBlockType('sws2025/image-mapper', {
                 },
                 attributes.sideHeadline && wp.element.createElement(
                     'h2',
-                    { 
+                    {
                         className: 'side-name has-gold-night-font-family'
                     },
                     attributes.sideHeadline
@@ -550,7 +585,7 @@ registerBlockType('sws2025/image-mapper', {
                     { className: 'side-text' },
                     attributes.sideText
                 ),
-                wp.element.createElement('div',{ className: 'fakeCorner' })
+                wp.element.createElement('div', { className: 'fakeCorner' })
             ),
             attributes.personImage && wp.element.createElement(
                 'img',
@@ -577,11 +612,11 @@ registerBlockType('sws2025/image-mapper', {
             // Base Preview Structure
             wp.element.createElement(
                 'div',
-                { 
+                {
                     className: 'position-preview'
                 },
                 wp.element.createElement('div', { className: 'parent_overlay' }),
-                
+
                 // Base Image
                 attributes.baseImage && wp.element.createElement(
                     'img',
@@ -600,19 +635,19 @@ registerBlockType('sws2025/image-mapper', {
                         alt: attributes.baseImageHdAlt || 'Interactive Image',
                     }
                 ),
-                
+
                 // Hotspot Markers
                 pbw.array.output(props, 'hotspots', (hotspot, index) => {
                     const x = parseFloat(hotspot.xPosition) || 50;
                     const y = parseFloat(hotspot.yPosition) || 50;
                     const width = parseFloat(hotspot.width) || 10;
-                    
+
                     const styles = [
                         `left: ${x}%`,
                         `top: ${y}%`,
                         `width: ${width}%`
                     ];
-                    
+
                     return wp.element.createElement(
                         'div',
                         {
@@ -621,9 +656,9 @@ registerBlockType('sws2025/image-mapper', {
                             'data-src': attributes.baseImage || '', // Original parent image
                             style: styles.join('; '),
                             'data-style': styles.join('; '),
-                            'data-hotspot-id': index 
+                            'data-hotspot-id': index
                         },
-                        
+
                         // Overlay Image
                         hotspot.overlay && wp.element.createElement(
                             'img',
@@ -654,13 +689,13 @@ registerBlockType('sws2025/image-mapper', {
                                 }
                             ),
                         ),
-                        
+
                         // Nested Zoom Content (rendered as nested position-preview)
                         (hotspot.zoomImage || hotspot.pathSvg) && wp.element.createElement(
                             'div',
                             { className: 'position-preview' },
                             wp.element.createElement('div', { className: 'parent_overlay' }),
-                            
+
                             // Zoom Image
                             hotspot.zoomImage && wp.element.createElement(
                                 'img',
@@ -689,7 +724,7 @@ registerBlockType('sws2025/image-mapper', {
                             },
                             hotspot.catName && wp.element.createElement(
                                 'h2',
-                                { 
+                                {
                                     className: 'side-name has-gold-night-font-family'
                                 },
                                 hotspot.catName
@@ -707,7 +742,7 @@ registerBlockType('sws2025/image-mapper', {
                                 },
                                 'ZUR ÜBERSICHT'
                             ),
-                            wp.element.createElement('div',{ className: 'fakeCorner' })
+                            wp.element.createElement('div', { className: 'fakeCorner' })
                         )
                     );
                 }
@@ -726,7 +761,7 @@ registerBlockType('sws2025/image-mapper', {
                         }
                     ));
                 }
-                
+
                 // Illustration
                 if (hotspot.illustrationImage) {
                     elements.push(wp.element.createElement(
@@ -745,34 +780,43 @@ registerBlockType('sws2025/image-mapper', {
 
                 // SVG Path with Checkpoints
                 if (hotspot.pathSvg) {
+                    // console.log("Rendering SVG Path for hotspot", index, hotspot);
                     elements.push(wp.element.createElement(
                         'div',
-                        { 
+                        {
                             className: 'svg-path-container',
-                            'data-hotspot-id': index 
+                            'data-hotspot-id': index
                         },
-                        wp.element.createElement(
-                            'img',
-                            {
-                                className: 'svg-path',
-                                src: hotspot.pathSvg,
-                                alt: 'Path',
-                            }
-                        ),
-                        
+                        hotspot.svgPathCode ?
+                            wp.element.createElement(
+                                'div',
+                                {
+                                    className: 'svg-path',
+                                    dangerouslySetInnerHTML: { __html: hotspot.svgPathCode }
+                                }
+                            )
+                            : hotspot.pathSvg && wp.element.createElement(
+                                'img',
+                                {
+                                    className: 'svg-path',
+                                    src: hotspot.pathSvg,
+                                    alt: 'Path',
+                                }
+                            ),
+
                         // Checkpoints
-                        hotspot.checkpoints && Array.isArray(hotspot.checkpoints) && hotspot.checkpoints.length > 0 && 
+                        hotspot.checkpoints && Array.isArray(hotspot.checkpoints) && hotspot.checkpoints.length > 0 &&
                         wp.element.createElement(
                             'div',
-                            { 
+                            {
                                 className: 'checkpointsWrapper'
                             },
                             hotspot.checkpoints.map((checkpoint, checkIndex) => {
                                 // Sicherstellen dass checkpoint ein Objekt ist
                                 if (!checkpoint || typeof checkpoint !== 'object') return null;
-                                
+
                                 const pathPos = parseFloat(checkpoint.pathPosition) || 0;
-                                
+
                                 return wp.element.createElement(
                                     'div',
                                     {
@@ -801,15 +845,15 @@ registerBlockType('sws2025/image-mapper', {
                                             key: checkIndex,
                                             class: "badgeInfo has_border is_rounded opening-right",
                                         },
-                                        pbw.img.output({attributes:checkpoint},"previewImage"),
+                                        pbw.img.output({ attributes: checkpoint }, "previewImage"),
                                         wp.element.createElement(
                                             'div',
                                             {
                                                 key: checkIndex,
                                                 class: "textwrap",
                                             },
-                                            pbw.p.output({attributes:checkpoint},"h3","previewLabel"),
-                                            pbw.p.output({attributes:checkpoint},"p","previewText"),
+                                            pbw.p.output({ attributes: checkpoint }, "h3", "previewLabel"),
+                                            pbw.p.output({ attributes: checkpoint }, "p", "previewText"),
                                             wp.element.createElement(
                                                 'a',
                                                 {
@@ -828,13 +872,13 @@ registerBlockType('sws2025/image-mapper', {
                                             className: 'string',
                                         }
                                     ),
-                                    
+
                                 );
                             }).filter(Boolean)
                         )
                     ));
                 }
-        
+
                 return elements;
             })
         );
