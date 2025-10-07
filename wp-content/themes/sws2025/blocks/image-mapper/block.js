@@ -244,6 +244,7 @@ registerBlockType('sws2025/image-mapper', {
         }, []);
 
         // SVG laden für globale Illustration und Hotspot-Illustrationen
+        // SVG laden für globale Illustration und Hotspot-Illustrationen
         useEffect(() => {
             // Globale Illustration laden
             if (props.attributes.illustrationImage && props.attributes.illustrationImage !== "") {
@@ -260,69 +261,96 @@ registerBlockType('sws2025/image-mapper', {
                 props.setAttributes({ illustrationImagesvgCode: "" });
             }
 
-            // Hotspot-Illustrationen laden
-            if (props.attributes.hotspots && props.attributes.hotspots.length > 0) {
-                const updatedHotspots = [...props.attributes.hotspots];
-                let hasChanges = false;
+            // Hotspot-Illustrationen laden - mit defensiver Programmierung
+            if (props.attributes.hotspots && Array.isArray(props.attributes.hotspots) && props.attributes.hotspots.length > 0) {
+                props.attributes.hotspots.forEach((hotspot, index) => {
+                    // Sicherheitsprüfung für hotspot
+                    if (!hotspot || !Array.isArray(hotspot)) return;
 
-                updatedHotspots.forEach((hotspot, index) => {
-                    if (Array.isArray(hotspot)) {
-                        const illustrationField = hotspot.find(item => item.name === 'illustrationImage');
+                    const illustrationField = hotspot.find(item => item && item.name === 'illustrationImage');
 
-                        if (illustrationField && illustrationField.illustrationImage) {
-                            // Prüfe ob SVG-Code bereits existiert oder sich die URL geändert hat
-                            const svgCodeField = hotspot.find(item => item.name === 'illustrationImageSvgCode');
-                            const currentSvgUrl = illustrationField.illustrationImage;
+                    if (illustrationField && illustrationField.illustrationImage && illustrationField.illustrationImage !== "") {
+                        // Prüfe ob SVG-Code bereits existiert oder sich die URL geändert hat
+                        const svgCodeField = hotspot.find(item => item && item.name === 'illustrationImageSvgCode');
+                        const currentSvgUrl = illustrationField.illustrationImage;
 
-                            // Nur laden wenn noch kein SVG-Code vorhanden oder URL geändert
-                            if (!svgCodeField || svgCodeField.illustrationImageUrl !== currentSvgUrl) {
-                                fetch(currentSvgUrl)
-                                    .then((response) => response.text())
-                                    .then((svgCode) => {
+                        // Nur laden wenn noch kein SVG-Code vorhanden oder URL geändert
+                        if (!svgCodeField || svgCodeField.illustrationImageUrl !== currentSvgUrl) {
+                            fetch(currentSvgUrl)
+                                .then((response) => {
+                                    if (!response.ok) throw new Error('Network response was not ok');
+                                    return response.text();
+                                })
+                                .then((svgCode) => {
+                                    // Doppelte Sicherheitsprüfung - hotspots könnten sich geändert haben
+                                    if (!props.attributes.hotspots || !props.attributes.hotspots[index]) return;
+
+                                    const newHotspots = [...props.attributes.hotspots];
+                                    const newHotspot = [...newHotspots[index]];
+
+                                    // Finde oder erstelle das SVG-Code Feld
+                                    let svgFieldIndex = newHotspot.findIndex(item => item && item.name === 'illustrationImageSvgCode');
+
+                                    if (svgFieldIndex === -1) {
+                                        // Feld existiert nicht, erstelle es
+                                        newHotspot.push({
+                                            name: 'illustrationImageSvgCode',
+                                            type: 'text',
+                                            illustrationImageSvgCode: svgCode || '',
+                                            illustrationImageUrl: currentSvgUrl || ''
+                                        });
+                                    } else {
+                                        // Feld existiert, aktualisiere es
+                                        newHotspot[svgFieldIndex] = {
+                                            ...newHotspot[svgFieldIndex],
+                                            illustrationImageSvgCode: svgCode || '',
+                                            illustrationImageUrl: currentSvgUrl || ''
+                                        };
+                                    }
+
+                                    newHotspots[index] = newHotspot;
+                                    props.setAttributes({ hotspots: newHotspots });
+                                })
+                                .catch((error) => {
+                                    console.error(`Fehler beim Laden des Hotspot ${index} SVG:`, error);
+                                    // Bei Fehler: Leeren SVG-Code setzen statt zu crashen
+                                    if (props.attributes.hotspots && props.attributes.hotspots[index]) {
                                         const newHotspots = [...props.attributes.hotspots];
                                         const newHotspot = [...newHotspots[index]];
+                                        let svgFieldIndex = newHotspot.findIndex(item => item && item.name === 'illustrationImageSvgCode');
 
-                                        // Finde oder erstelle das SVG-Code Feld
-                                        let svgFieldIndex = newHotspot.findIndex(item => item.name === 'illustrationImageSvgCode');
-
-                                        if (svgFieldIndex === -1) {
-                                            // Feld existiert nicht, erstelle es
-                                            newHotspot.push({
-                                                name: 'illustrationImageSvgCode',
-                                                type: 'text',
-                                                illustrationImageSvgCode: svgCode,
-                                                illustrationImageUrl: currentSvgUrl // Speichere URL zur Änderungserkennung
-                                            });
-                                        } else {
-                                            // Feld existiert, aktualisiere es
+                                        if (svgFieldIndex !== -1) {
                                             newHotspot[svgFieldIndex] = {
                                                 ...newHotspot[svgFieldIndex],
-                                                illustrationImageSvgCode: svgCode,
-                                                illustrationImageUrl: currentSvgUrl
+                                                illustrationImageSvgCode: '',
+                                                illustrationImageUrl: ''
                                             };
+                                            newHotspots[index] = newHotspot;
+                                            props.setAttributes({ hotspots: newHotspots });
                                         }
+                                    }
+                                });
+                        }
+                    } else {
+                        // Illustration wurde entfernt oder ist leer - lösche SVG-Code falls vorhanden
+                        if (!hotspot) return;
 
-                                        newHotspots[index] = newHotspot;
-                                        props.setAttributes({ hotspots: newHotspots });
-                                    })
-                                    .catch((error) => {
-                                        console.error(`Fehler beim Laden des Hotspot ${index} SVG:`, error);
-                                    });
-                            }
-                        } else if (illustrationField && !illustrationField.illustrationImage) {
-                            // Illustration wurde entfernt, lösche auch den SVG-Code
-                            const svgFieldIndex = hotspot.findIndex(item => item.name === 'illustrationImageSvgCode');
-                            if (svgFieldIndex !== -1) {
-                                const newHotspots = [...props.attributes.hotspots];
-                                const newHotspot = [...newHotspots[index]];
-                                newHotspot[svgFieldIndex] = {
-                                    ...newHotspot[svgFieldIndex],
-                                    illustrationImageSvgCode: '',
-                                    illustrationImageUrl: ''
-                                };
-                                newHotspots[index] = newHotspot;
-                                props.setAttributes({ hotspots: newHotspots });
-                            }
+                        const svgFieldIndex = hotspot.findIndex(item => item && item.name === 'illustrationImageSvgCode');
+                        if (svgFieldIndex !== -1) {
+                            // Sicherheitsprüfung vor dem Update
+                            if (!props.attributes.hotspots || !props.attributes.hotspots[index]) return;
+
+                            const newHotspots = [...props.attributes.hotspots];
+                            const newHotspot = [...newHotspots[index]];
+
+                            newHotspot[svgFieldIndex] = {
+                                ...newHotspot[svgFieldIndex],
+                                illustrationImageSvgCode: '',
+                                illustrationImageUrl: ''
+                            };
+
+                            newHotspots[index] = newHotspot;
+                            props.setAttributes({ hotspots: newHotspots });
                         }
                     }
                 });
