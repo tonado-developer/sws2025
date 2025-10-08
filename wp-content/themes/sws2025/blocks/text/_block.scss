@@ -1,8 +1,17 @@
 .wp-block-sws2025-text{
     padding: 40px 0px;
+    .headingWrap{
+        margin-bottom: 26px;
+    }
     .headingCircledTrue{
-        @include mask-border(right,70);
-        padding: 16px 0px 16px 20px;
+        &:not(:has(.wp-block-h3)){
+            @include mask-border(right,60);
+            padding: 16px 0px 16px 20px;
+        }
+        &:has(.wp-block-h3){
+            @include mask-border(right,70);
+            padding: 16px 0px 16px 20px;
+        }
         position: relative;
         text-align: left;
         &::after{
@@ -14,9 +23,10 @@
             margin: unset;
             padding: 6px;
         }
+        
     }
-    .textIndentTrue{
-        padding-left: 22px;
+    .headingCircledTrue + .textWrap{
+        padding-left: 26px;
     }
     hr{
         margin: unset;
