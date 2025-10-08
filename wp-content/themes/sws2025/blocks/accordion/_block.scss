@@ -42,34 +42,37 @@
     
     
     .figure-left{
-        grid-template-columns: minmax(0px, 0.5fr) minmax(0px, 1fr);
+        grid-template-columns: minmax(0px, 0.32fr) minmax(0px, 1fr);
         .accordionImages{
             grid-column: 1;
         }
     }
     .figure-right{
-        grid-template-columns: minmax(0px, 1fr) minmax(0px, 0.5fr);
+        grid-template-columns: minmax(0px, 1fr) minmax(0px, 0.32fr);
         .accordionImages{
             grid-column: 2;
         }
     }
-    .has_border:not(.opening-right,.opening-left,.opening-top,.opening-bottom){
-        figure{
-            @include mask-border();
+    .has_border{
+        &:not(.opening-right,.opening-left,.opening-top,.opening-bottom){
+            figure{
+                @include mask-border();
+            }
+        }
+        &.opening-right figure{
+            @include mask-border(right);
+        }
+        &.opening-bottom figure{
+            @include mask-border(bottom);
+        }
+        &.opening-left figure{
+            @include mask-border(left);
+        }
+        &.opening-top figure{
+            @include mask-border(top);
         }
     }
-    .opening-right figure{
-        @include mask-border(right);
-    }
-    .opening-bottom figure{
-        @include mask-border(bottom);
-    }
-    .opening-left figure{
-        @include mask-border(left);
-    }
-    .opening-top figure{
-        @include mask-border(top);
-    }
+    
     .is_rounded{
         figure,img,figure::after{
             border-radius: 20px;

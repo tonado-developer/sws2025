@@ -1,7 +1,7 @@
 .wp-block-sws2025-text{
     padding: 40px 0px;
     .headingCircledTrue{
-        @include mask-border(right,65);
+        @include mask-border(right,70);
         padding: 16px 0px 16px 20px;
         position: relative;
         text-align: left;
@@ -16,7 +16,7 @@
         }
     }
     .textIndentTrue{
-        padding-left: 100px;
+        padding-left: 22px;
     }
     hr{
         margin: unset;

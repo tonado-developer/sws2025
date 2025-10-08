@@ -5,7 +5,7 @@
         grid-template-columns: auto 1fr;
         align-items: center;
         position: relative;
-        padding-left: 20px;
+        padding-left: 40px;
         &:before{
             content: " ";
             background-color: lightgrey;
@@ -22,7 +22,7 @@
         padding: 20px;
         background-color: white;
         border-radius: 30px;
-
+        margin: 20px 0;
         position: relative;
         z-index: 1;
     }
@@ -59,10 +59,11 @@
         }
     }
     figure{
-        width: 300px;
+        width: 400px;
         float: right;
         margin: 20px;
         margin-right: 0px;
+        margin-left: 40px;
 
         grid-row: 1;
         aspect-ratio: 4/3;
