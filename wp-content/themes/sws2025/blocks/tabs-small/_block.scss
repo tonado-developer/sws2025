@@ -1,5 +1,4 @@
 .wp-block-sws2025-tabs-small{
-    padding: 40px 0;
     .tabNavigation{
         display: flex;
         flex-wrap: wrap;
@@ -85,5 +84,8 @@
     }
     .link{
         @include button;
+    }
+    &.bg-light{
+        padding-bottom: 40px;
     }
 }
