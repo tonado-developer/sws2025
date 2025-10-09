@@ -13,25 +13,31 @@ registerBlockType('sws2025/image-mapper', {
     },
     attributes: {
         ...pbw.img.attr('backgroundImage', {
-            title: "Hintergrundbild",
+            title: "Hintergrundbild (WebP 1920 x 1080)",
             description: "Großflächiges Hintergrundbild für den gesamten Block"
         }),
         ...pbw.img.attr('baseImage', {
-            title: "Basis-Bild (Hotspot-Grundlage)",
+            title: "Basis-Bild (Hotspot-Grundlage) (WebP 1920 x 1080)",
             description: "Hauptbild auf dem die Hotspots platziert werden. Optimal: 800-1200px Breite"
         }),
         ...pbw.img.attr('baseImageHd', {
-            title: "Basis-Bild HD (Optional)",
+            title: "Basis-Bild HD (Optional) (WebP 3840 x 2160)",
             description: "Hochauflösende Version für Retina-Displays und Zoom-Funktionen"
         }),
         ...pbw.img.attr('personImage', {
-            title: "Personen-Bild",
+            title: "Personen-Bild (WebP 1920 x 1080)",
             description: "Bild einer Person oder Testimonial-Foto"
         }),
         ...pbw.img.attr('illustrationImage', {
-            title: "Illustration/Grafik",
+            title: "Illustration/Grafik (SVG)",
             description: "Zusätzliche Illustration oder dekorative Grafik"
         }),
+        illustrationImagesvgCode: {
+            type: 'string',
+            default: '',
+            source: 'html',
+            selector: '.global-illustration-svg'
+        },
         sideHeadline: pbw.h1.attr({
             title: "Haupt-Überschrift",
             description: "Große, aufmerksamkeitsstarke Überschrift für den Block."
@@ -53,7 +59,7 @@ registerBlockType('sws2025/image-mapper', {
                 // Basic Hotspot Settings
                 overlay: {
                     type: 'img',
-                    title: 'Hover Overlay (100% Vollton)',
+                    title: 'Hover Overlay (WebP 100% Vollton, Größe = Echtes Format auf Basis-Bild)',
                     description: "Das Einfarbige OVerlay auf das man später klicken können soll"
                 },
                 xPosition: {
@@ -64,20 +70,25 @@ registerBlockType('sws2025/image-mapper', {
                 width: { type: 'text', title: 'Breite (%)' },
 
                 // Zoom Content
-                zoomImage: { type: 'img', title: 'Freigestellter Berg (WebP)' },
-                personImage: { type: 'img', title: 'Person Bild' },
-                illustrationImage: { type: 'img', title: 'Orange Illustration' },
-                sideText: { type: 'text', title: 'Seitentext' },
-                sideLink: { type: 'link', title: 'Seitenlink' },
+                zoomImage: { type: 'img', title: 'Freigestellter Berg (WebP, Größe = Echtes Format auf Basis-Bild HD)' },
+                personImage: { type: 'img', title: 'Person Bild (WebP 1920 x 1080)' },
+                illustrationImage: { type: 'img', title: 'Orange Illustration (SVG) (fluegel.svg,illu_feuer.svg,illu_helm.svg)' },
+                illustrationImageSvgCode: {
+                    type: 'string',
+                    default: ''
+                },
+                sideText: { type: 'text', title: 'Seiten-Text' },
+                sideLink: { type: 'link', title: 'Seiten-Link' },
+                sideLinkText: { type: 'text', title: 'Link-Text' },
 
                 // SVG Path System
-                pathSvg: { type: 'img', title: 'SVG Pfad' },
+                pathSvg: { type: 'img', title: 'SVG Pfad (SVG)' },
                 checkpoints: {
                     type: 'nested_array',
                     title: 'Checkpoints',
                     default: [{
                         pathPosition: { type: 'text', title: 'Position auf Pfad (0-100%)' },
-                        previewImage: { type: 'img', title: 'Vorschau Bild' },
+                        previewImage: { type: 'img', title: 'Vorschau Bild (WebP min200 x min200)' },
                         previewLabel: { type: 'text', title: 'Vorschau Überschrift' },
                         previewText: { type: 'text', title: 'Vorschau Text' },
                         targetLink: { type: 'link', title: 'Zielseite' }
@@ -89,12 +100,42 @@ registerBlockType('sws2025/image-mapper', {
 
     edit: function (props) {
         const { attributes, setAttributes } = props;
-        const { useState, useRef, useEffect } = wp.element;
+        const { useState, useRef, useEffect, useMemo } = wp.element;
 
         // Drag & Drop State für Hotspot Positioning
         const [isDragging, setIsDragging] = useState(false);
         const [draggedHotspot, setDraggedHotspot] = useState(null);
         const previewRef = useRef(null);
+
+        const loadedSvgUrls = useRef(new Set());
+
+        // Extrahiere alle SVG-URLs als dependency
+        const svgUrls = useMemo(() => {
+            const urls = [];
+
+            // Globale Illustration
+            if (props.attributes.illustrationImage) {
+                urls.push(`global:${props.attributes.illustrationImage}`);
+            }
+
+            // Hotspot-Illustrationen
+            if (props.attributes.hotspots?.length) {
+                props.attributes.hotspots.forEach((hotspot, index) => {
+                    if (Array.isArray(hotspot)) {
+                        const field = hotspot.find(item => item?.name === 'illustrationImage');
+                        if (field?.illustrationImage) {
+                            urls.push(`hotspot-${index}:${field.illustrationImage}`);
+                        }
+                    }
+                });
+            }
+
+            return urls;
+        }, [props.attributes.illustrationImage, props.attributes.hotspots]);
+
+        const utf8ToBase64 = (str) => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+            (_, p1) => String.fromCharCode('0x' + p1)));
+
 
         // Handle Click auf Preview für Hotspot Positioning
         const handlePreviewClick = (e, hotspotIndex) => {
@@ -243,119 +284,104 @@ registerBlockType('sws2025/image-mapper', {
             }
         }, []);
 
-        // SVG laden für globale Illustration und Hotspot-Illustrationen
-        // SVG laden für globale Illustration und Hotspot-Illustrationen
+        // SVG-Loader
         useEffect(() => {
-            // Globale Illustration laden
-            if (props.attributes.illustrationImage && props.attributes.illustrationImage !== "") {
-                fetch(props.attributes.illustrationImage)
-                    .then((response) => response.text())
-                    .then((illustrationImagesvgCode) => {
-                        props.setAttributes({ illustrationImagesvgCode: illustrationImagesvgCode });
+            // Globale Illustration
+            const globalUrl = props.attributes.illustrationImage;
+            const globalKey = `global:${globalUrl}`;
+
+            if (globalUrl && !loadedSvgUrls.current.has(globalKey)) {
+                loadedSvgUrls.current.add(globalKey);
+
+                fetch(globalUrl)
+                    .then(r => r.text())
+                    .then(svg => {
+                        const base64Svg = utf8ToBase64(svg.trim());
+                        // console.log("before Base64",svg)
+                        // console.log("after Base64",base64Svg)
+
+                        props.setAttributes({ illustrationImagesvgCode: base64Svg })
                     })
-                    .catch((error) => {
-                        console.error("Fehler beim Laden des globalen SVG:", error);
+                    .catch(err => {
+                        console.error("Global SVG error:", err);
                         props.setAttributes({ illustrationImagesvgCode: "" });
+                        loadedSvgUrls.current.delete(globalKey);
                     });
-            } else {
+            } else if (!globalUrl && props.attributes.illustrationImagesvgCode) {
                 props.setAttributes({ illustrationImagesvgCode: "" });
+                loadedSvgUrls.current.delete(globalKey);
             }
 
-            // Hotspot-Illustrationen laden - mit defensiver Programmierung
-            if (props.attributes.hotspots && Array.isArray(props.attributes.hotspots) && props.attributes.hotspots.length > 0) {
+            // Hotspot-Illustrationen
+            if (props.attributes.hotspots?.length) {
                 props.attributes.hotspots.forEach((hotspot, index) => {
-                    // Sicherheitsprüfung für hotspot
-                    if (!hotspot || !Array.isArray(hotspot)) return;
+                    if (!Array.isArray(hotspot)) return;
 
-                    const illustrationField = hotspot.find(item => item && item.name === 'illustrationImage');
+                    const illustrationField = hotspot.find(item => item?.name === 'illustrationImage');
+                    const svgUrl = illustrationField?.illustrationImage;
+                    const hotspotKey = `hotspot-${index}:${svgUrl}`;
 
-                    if (illustrationField && illustrationField.illustrationImage && illustrationField.illustrationImage !== "") {
-                        // Prüfe ob SVG-Code bereits existiert oder sich die URL geändert hat
-                        const svgCodeField = hotspot.find(item => item && item.name === 'illustrationImageSvgCode');
-                        const currentSvgUrl = illustrationField.illustrationImage;
+                    if (svgUrl && !loadedSvgUrls.current.has(hotspotKey)) {
+                        loadedSvgUrls.current.add(hotspotKey);
+                        // console.log("hotspot",hotspot)
+                        fetch(svgUrl)
+                            .then(r => r.text())
+                            .then(svg => {
+                                const base64Svg = utf8ToBase64(svg.trim());
 
-                        // Nur laden wenn noch kein SVG-Code vorhanden oder URL geändert
-                        if (!svgCodeField || svgCodeField.illustrationImageUrl !== currentSvgUrl) {
-                            fetch(currentSvgUrl)
-                                .then((response) => {
-                                    if (!response.ok) throw new Error('Network response was not ok');
-                                    return response.text();
-                                })
-                                .then((svgCode) => {
-                                    // Doppelte Sicherheitsprüfung - hotspots könnten sich geändert haben
-                                    if (!props.attributes.hotspots || !props.attributes.hotspots[index]) return;
+                                const newHotspots = [...props.attributes.hotspots];
+                                const newHotspot = [...newHotspots[index]];
 
-                                    const newHotspots = [...props.attributes.hotspots];
-                                    const newHotspot = [...newHotspots[index]];
-
-                                    // Finde oder erstelle das SVG-Code Feld
-                                    let svgFieldIndex = newHotspot.findIndex(item => item && item.name === 'illustrationImageSvgCode');
-
-                                    if (svgFieldIndex === -1) {
-                                        // Feld existiert nicht, erstelle es
-                                        newHotspot.push({
-                                            name: 'illustrationImageSvgCode',
-                                            type: 'text',
-                                            illustrationImageSvgCode: svgCode || '',
-                                            illustrationImageUrl: currentSvgUrl || ''
-                                        });
-                                    } else {
-                                        // Feld existiert, aktualisiere es
-                                        newHotspot[svgFieldIndex] = {
-                                            ...newHotspot[svgFieldIndex],
-                                            illustrationImageSvgCode: svgCode || '',
-                                            illustrationImageUrl: currentSvgUrl || ''
-                                        };
-                                    }
-
-                                    newHotspots[index] = newHotspot;
-                                    props.setAttributes({ hotspots: newHotspots });
-                                })
-                                .catch((error) => {
-                                    console.error(`Fehler beim Laden des Hotspot ${index} SVG:`, error);
-                                    // Bei Fehler: Leeren SVG-Code setzen statt zu crashen
-                                    if (props.attributes.hotspots && props.attributes.hotspots[index]) {
-                                        const newHotspots = [...props.attributes.hotspots];
-                                        const newHotspot = [...newHotspots[index]];
-                                        let svgFieldIndex = newHotspot.findIndex(item => item && item.name === 'illustrationImageSvgCode');
-
-                                        if (svgFieldIndex !== -1) {
-                                            newHotspot[svgFieldIndex] = {
-                                                ...newHotspot[svgFieldIndex],
-                                                illustrationImageSvgCode: '',
-                                                illustrationImageUrl: ''
-                                            };
-                                            newHotspots[index] = newHotspot;
-                                            props.setAttributes({ hotspots: newHotspots });
-                                        }
-                                    }
-                                });
-                        }
-                    } else {
-                        // Illustration wurde entfernt oder ist leer - lösche SVG-Code falls vorhanden
-                        if (!hotspot) return;
-
-                        const svgFieldIndex = hotspot.findIndex(item => item && item.name === 'illustrationImageSvgCode');
-                        if (svgFieldIndex !== -1) {
-                            // Sicherheitsprüfung vor dem Update
-                            if (!props.attributes.hotspots || !props.attributes.hotspots[index]) return;
-
+                                let svgFieldIndex = newHotspot.findIndex(item => item?.name === 'illustrationImageSvgCode');
+                                // console.log("before Base64",newHotspot[svgFieldIndex])
+                                if (svgFieldIndex === -1) {
+                                    newHotspot.push({
+                                        name: 'illustrationImageSvgCode',
+                                        type: 'text',
+                                        illustrationImageSvgCode: base64Svg,
+                                        illustrationImageUrl: svgUrl
+                                    });
+                                } else {
+                                    newHotspot[svgFieldIndex] = {
+                                        ...newHotspot[svgFieldIndex],
+                                        illustrationImageSvgCode: base64Svg,
+                                        illustrationImageUrl: svgUrl
+                                    };
+                                }
+                                // console.log("after Base64",newHotspot[svgFieldIndex])
+                                newHotspots[index] = newHotspot;
+                                props.setAttributes({ hotspots: newHotspots });
+                            })
+                            .catch(err => {
+                                console.error(`Hotspot ${index} SVG error:`, err);
+                                loadedSvgUrls.current.delete(hotspotKey);
+                            });
+                    } else if (!svgUrl) {
+                        const svgFieldIndex = hotspot.findIndex(item => item?.name === 'illustrationImageSvgCode');
+                        if (svgFieldIndex !== -1 && hotspot[svgFieldIndex].illustrationImageSvgCode) {
                             const newHotspots = [...props.attributes.hotspots];
                             const newHotspot = [...newHotspots[index]];
-
                             newHotspot[svgFieldIndex] = {
                                 ...newHotspot[svgFieldIndex],
                                 illustrationImageSvgCode: '',
                                 illustrationImageUrl: ''
                             };
-
                             newHotspots[index] = newHotspot;
                             props.setAttributes({ hotspots: newHotspots });
                         }
+                        loadedSvgUrls.current.delete(hotspotKey);
                     }
                 });
             }
-        }, [props.attributes.illustrationImage, props.attributes.hotspots]);
+
+            // Cleanup: Entferne URLs die nicht mehr existieren
+            loadedSvgUrls.current.forEach(key => {
+                if (!svgUrls.includes(key)) {
+                    loadedSvgUrls.current.delete(key);
+                }
+            });
+
+        }, [svgUrls]);
 
 
 
@@ -364,108 +390,27 @@ registerBlockType('sws2025/image-mapper', {
             // Block Title
             pbw.block.title(props),
 
-            // === BILDER SEKTION ===
-            wp.element.createElement(
-                'div',
-                {
-                    className: 'editor-section images-section',
-                    style: {
-                        backgroundColor: '#f8f9fa',
-                        border: '1px solid #e1e5e9',
-                        borderRadius: '8px',
-                        padding: '20px',
-                        marginBottom: '24px',
-                        borderLeft: '4px solid #007cba'
-                    }
-                },
-                wp.element.createElement(
-                    'h3',
-                    {
-                        style: {
-                            margin: '0 0 16px 0',
-                            color: '#1e1e1e',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }
-                    },
-                    wp.element.createElement('span', { className: 'dashicons dashicons-format-image', style: { fontSize: '18px' } }),
-                    '🖼️ Bild-Einstellungen'
-                ),
-                wp.element.createElement(
-                    'p',
-                    {
-                        style: {
-                            margin: '0 0 20px 0',
-                            color: '#757575',
-                            fontSize: '14px',
-                            fontStyle: 'italic'
-                        }
-                    },
-                    'Lade hier alle benötigten Bilder für den Block hoch. Verwende hochauflösende Bilder für beste Qualität.'
+            group("🖼️ Startbilder", { open: false },
+                wp.element.createElement('div', { style: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px" } },
+                    // Background Image
+                    pbw.img.input(props, "backgroundImage"),
+
+                    // Base Image
+                    pbw.img.input(props, "baseImage"),
+
+                    // Base Image HD
+                    pbw.img.input(props, "baseImageHd"),
+
+                    // Person Image
+                    pbw.img.input(props, "personImage"),
+
+                    // Illustration Image
+                    pbw.img.input(props, "illustrationImage")
                 ),
 
-                // Background Image
-                pbw.img.input(props, "backgroundImage"),
-
-                // Base Image
-                pbw.img.input(props, "baseImage"),
-
-                // Base Image HD
-                pbw.img.input(props, "baseImageHd"),
-
-                // Person Image
-                pbw.img.input(props, "personImage"),
-
-                // Illustration Image
-                pbw.img.input(props, "illustrationImage")
             ),
 
-            // === TEXT SEKTION ===
-            wp.element.createElement(
-                'div',
-                {
-                    className: 'editor-section text-section',
-                    style: {
-                        backgroundColor: '#f1f8ff',
-                        border: '1px solid #c8e1ff',
-                        borderRadius: '8px',
-                        padding: '20px',
-                        marginBottom: '24px',
-                        borderLeft: '4px solid #0073aa'
-                    }
-                },
-                wp.element.createElement(
-                    'h3',
-                    {
-                        style: {
-                            margin: '0 0 16px 0',
-                            color: '#1e1e1e',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }
-                    },
-                    wp.element.createElement('span', { className: 'dashicons dashicons-edit', style: { fontSize: '18px' } }),
-                    '✍️ Text-Inhalte'
-                ),
-                wp.element.createElement(
-                    'p',
-                    {
-                        style: {
-                            margin: '0 0 20px 0',
-                            color: '#757575',
-                            fontSize: '14px',
-                            fontStyle: 'italic'
-                        }
-                    },
-                    'Bearbeite hier die Texte, die neben dem Hotspot-Bild angezeigt werden.'
-                ),
-
+            group("✍️ Starttexte", { open: false },
                 // Side Headline
                 pbw.h1.input(props, "h1", "sideHeadline"),
 
@@ -473,168 +418,175 @@ registerBlockType('sws2025/image-mapper', {
                 pbw.p.input(props, "p", "sideText")
             ),
 
-            // === HOTSPOT SEKTION ===
-            wp.element.createElement(
-                'div',
-                {
-                    className: 'editor-section hotspot-section',
-                    style: {
-                        backgroundColor: '#fff8e1',
-                        border: '1px solid #ffecb3',
-                        borderRadius: '8px',
-                        padding: '20px',
-                        marginBottom: '0',
-                        borderLeft: '4px solid #ff9800'
-                    }
-                },
-                wp.element.createElement(
-                    'h3',
-                    {
-                        style: {
-                            margin: '0 0 16px 0',
-                            color: '#1e1e1e',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                        }
-                    },
-                    wp.element.createElement('span', { className: 'dashicons dashicons-location', style: { fontSize: '18px' } }),
-                    '🎯 Interaktive Hotspots'
-                ),
+            // Spacer
+            wp.element.createElement('div', { style: { height: "40px" } }),
+
+            // Hotspot Group
+            group("Hotspot platzierung", { open: false },
                 wp.element.createElement(
                     'div',
                     {
+                        className: 'editor-section hotspot-section',
                         style: {
-                            backgroundColor: '#fff3cd',
-                            border: '1px solid #ffeaa7',
-                            borderRadius: '6px',
-                            padding: '12px',
-                            marginBottom: '20px'
+                            backgroundColor: '#fff8e1',
+                            border: '1px solid #ffecb3',
+                            borderRadius: '8px',
+                            padding: '20px',
+                            marginBottom: '0',
+                            borderLeft: '4px solid #ff9800'
                         }
                     },
                     wp.element.createElement(
-                        'h4',
+                        'h3',
                         {
                             style: {
-                                margin: '0 0 8px 0',
-                                color: '#856404',
-                                fontSize: '14px',
-                                fontWeight: '500'
+                                margin: '0 0 16px 0',
+                                color: '#1e1e1e',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
                             }
                         },
-                        '💡 Bedienungshinweise:'
+                        wp.element.createElement('span', { className: 'dashicons dashicons-location', style: { fontSize: '18px' } }),
+                        '🎯 Interaktive Hotspots'
                     ),
-                    wp.element.createElement(
-                        'ul',
-                        {
-                            style: {
-                                margin: '0',
-                                color: '#856404',
-                                fontSize: '13px',
-                                paddingLeft: '20px'
-                            }
-                        },
-                        wp.element.createElement('li', null, '🖱️ Klicke auf das Basis-Bild um Hotspots zu positionieren'),
-                        wp.element.createElement('li', null, '✋ Verschiebe Hotspots per Drag & Drop'),
-                        wp.element.createElement('li', null, '⚙️ Konfiguriere Hotspot-Inhalte in den Feldern unten'),
-                        wp.element.createElement('li', null, '🗑️ Entferne unbenötigte Hotspots mit dem "Entfernen"-Button')
-                    )
-                ),
-
-                // Main Editor Interface
-                wp.element.createElement(
-                    'div',
-                    { className: 'image-mapper-editor' },
-
-                    // Preview Area
                     wp.element.createElement(
                         'div',
                         {
-                            className: 'image-mapper-preview',
                             style: {
-                                position: 'relative',
-                                width: '100%',
-                                margin: '0 auto 20px',
-                                border: '2px dashed #ddd',
-                                borderRadius: '8px',
-                                overflow: 'hidden',
-                                backgroundColor: '#fafafa',
-                                transition: 'all 0.3s ease'
+                                backgroundColor: '#fff3cd',
+                                border: '1px solid #ffeaa7',
+                                borderRadius: '6px',
+                                padding: '12px',
+                                marginBottom: '20px'
                             }
                         },
-
-                        // Base Image Debug
-                        attributes.baseImage && wp.element.createElement(
-                            'img',
-                            {
-                                ref: previewRef,
-                                src: attributes.baseImage,
-                                alt: 'Base Image',
-                                style: {
-                                    width: '100%',
-                                    height: 'auto',
-                                    display: 'block',
-                                    cursor: 'crosshair'
-                                },
-                                onClick: (e) => {
-                                    console.log('Base Image clicked, baseImage src:', attributes.baseImage);
-                                    if (!isDragging && attributes.hotspots && attributes.hotspots.length > 0) {
-                                        handlePreviewClick(e, 0);
-                                    }
-                                }
-                            }
-                        ),
-
-                        // Hotspot Markers
-                        renderHotspotMarkers(),
-
-                        // Instructions Overlay
-                        !attributes.baseImage && wp.element.createElement(
-                            'div',
+                        wp.element.createElement(
+                            'h4',
                             {
                                 style: {
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    textAlign: 'center',
-                                    color: '#999',
-                                    padding: '40px',
-                                    backgroundColor: 'rgba(255,255,255,0.9)',
-                                    borderRadius: '8px',
-                                    border: '2px dashed #ccc'
+                                    margin: '0 0 8px 0',
+                                    color: '#856404',
+                                    fontSize: '14px',
+                                    fontWeight: '500'
                                 }
                             },
-                            wp.element.createElement(
-                                'div',
-                                { style: { fontSize: '48px', marginBottom: '16px' } },
-                                '🖼️'
-                            ),
-                            wp.element.createElement(
-                                'p',
-                                { style: { margin: '0 0 8px 0', fontSize: '16px', fontWeight: '500' } },
-                                'Basis-Bild auswählen'
-                            ),
-                            wp.element.createElement(
-                                'p',
-                                { style: { margin: '0', fontSize: '12px', color: '#666' } },
-                                'Danach auf das Bild klicken um Hotspots zu positionieren'
-                            )
+                            '💡 Bedienungshinweise:'
+                        ),
+                        wp.element.createElement(
+                            'ul',
+                            {
+                                style: {
+                                    margin: '0',
+                                    color: '#856404',
+                                    fontSize: '13px',
+                                    paddingLeft: '20px'
+                                }
+                            },
+                            wp.element.createElement('li', null, '🖱️ Klicke auf das Basis-Bild um Hotspots zu positionieren'),
+                            wp.element.createElement('li', null, '✋ Verschiebe Hotspots per Drag & Drop'),
+                            wp.element.createElement('li', null, '⚙️ Konfiguriere Hotspot-Inhalte in den Feldern unten'),
+                            wp.element.createElement('li', null, '🗑️ Entferne unbenötigte Hotspots mit dem "Entfernen"-Button')
                         )
                     ),
 
-                    // Hotspots Configuration
-                    pbw.array.input(props, 'hotspots')
+                    // Main Editor Interface
+                    wp.element.createElement(
+                        'div',
+                        { className: 'image-mapper-editor' },
+
+                        // Preview Area
+                        wp.element.createElement(
+                            'div',
+                            {
+                                className: 'image-mapper-preview',
+                                style: {
+                                    position: 'relative',
+                                    width: '100%',
+                                    margin: '0 auto 20px',
+                                    border: '2px dashed #ddd',
+                                    borderRadius: '8px',
+                                    overflow: 'hidden',
+                                    backgroundColor: '#fafafa',
+                                    transition: 'all 0.3s ease'
+                                }
+                            },
+
+                            // Base Image Debug
+                            attributes.baseImage && wp.element.createElement(
+                                'img',
+                                {
+                                    ref: previewRef,
+                                    src: attributes.baseImage,
+                                    alt: 'Base Image',
+                                    style: {
+                                        width: '100%',
+                                        height: 'auto',
+                                        display: 'block',
+                                        cursor: 'crosshair'
+                                    },
+                                    onClick: (e) => {
+                                        // console.log('Base Image clicked, baseImage src:', attributes.baseImage);
+                                        if (!isDragging && attributes.hotspots && attributes.hotspots.length > 0) {
+                                            handlePreviewClick(e, 0);
+                                        }
+                                    }
+                                }
+                            ),
+
+                            // Hotspot Markers
+                            renderHotspotMarkers(),
+
+                            // Instructions Overlay
+                            !attributes.baseImage && wp.element.createElement(
+                                'div',
+                                {
+                                    style: {
+                                        position: 'absolute',
+                                        top: '50%',
+                                        left: '50%',
+                                        transform: 'translate(-50%, -50%)',
+                                        textAlign: 'center',
+                                        color: '#999',
+                                        padding: '40px',
+                                        backgroundColor: 'rgba(255,255,255,0.9)',
+                                        borderRadius: '8px',
+                                        border: '2px dashed #ccc'
+                                    }
+                                },
+                                wp.element.createElement(
+                                    'div',
+                                    { style: { fontSize: '48px', marginBottom: '16px' } },
+                                    '🖼️'
+                                ),
+                                wp.element.createElement(
+                                    'p',
+                                    { style: { margin: '0 0 8px 0', fontSize: '16px', fontWeight: '500' } },
+                                    'Basis-Bild auswählen'
+                                ),
+                                wp.element.createElement(
+                                    'p',
+                                    { style: { margin: '0', fontSize: '12px', color: '#666' } },
+                                    'Danach auf das Bild klicken um Hotspots zu positionieren'
+                                )
+                            )
+                        ),
+                    )
                 )
+            ),
+            // Hotspots Configuration
+            group("Hotspot Konfiguration", { open: false },
+                pbw.array.input(props, 'hotspots', { open: false })
             )
         );
     },
 
     save: function (props) {
         const { attributes } = props;
-
+        const base64ToUtf8 = (str) => decodeURIComponent(Array.prototype.map.call(atob(str),
+            c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
         return wp.element.createElement(
             'div',
             { className: 'image-mapper-container' },
@@ -682,7 +634,20 @@ registerBlockType('sws2025/image-mapper', {
             wp.element.createElement('div', {
                 className: 'illustration-image open',
                 'data-original-file': attributes.illustrationImage,
-                dangerouslySetInnerHTML: { __html: attributes.illustrationImagesvgCode },
+                // In der save-Funktion, beide Stellen wo atob() verwendet wird:
+                dangerouslySetInnerHTML: {
+                    __html: (() => {
+                        try {
+                            // console.log("SVG success", attributes.catName)
+                            return attributes.illustrationImagesvgCode
+                                ? base64ToUtf8(attributes.illustrationImagesvgCode)
+                                : '';
+                        } catch (e) {
+                            console.error('SVG decode error:', e);
+                            return '';
+                        }
+                    })()
+                },
                 style: {
                     transform: 'translate(-20%,100%) scale(.7)',
                 },
@@ -848,7 +813,19 @@ registerBlockType('sws2025/image-mapper', {
                             className: 'illustration-image',
                             'data-hotspot-id': index,
                             'data-original-file': hotspot.illustrationImage,
-                            dangerouslySetInnerHTML: { __html: hotspot.illustrationImageSvgCode },
+                            dangerouslySetInnerHTML: {
+                                __html: (() => {
+                                    try {
+                                        // console.log("SVG success", hotspot.catName)
+                                        return hotspot.illustrationImageSvgCode
+                                            ? base64ToUtf8(hotspot.illustrationImageSvgCode)
+                                            : '';
+                                    } catch (e) {
+                                        console.error('Hotspot SVG decode error:', e);
+                                        return '';
+                                    }
+                                })()
+                            },
                             style: {
                                 transform: 'translate(-20%,100%) scale(.7)',
                             },

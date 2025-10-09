@@ -4,14 +4,14 @@ wp.blocks.registerBlockType('sws2025/hero', {
     icon: wp.element.createElement('img', {
         src: php_vars.template_directory_uri + '/assets/img/Logo SWS 2 zeilig_min.svg',
     }),
-    style: [ "file:./editor.css" ],
+    style: ["file:./editor.css"],
     category: 'custom-blocks',
     attributes: {
         heading: pbw.h1.attr({
             title: "Überschrift",
             description: "Falls das Bild keine Überschrift haben soll einfach frei lassen"
         }),
-        ...pbw.img.attr('image',{
+        ...pbw.img.attr('image', {
             title: "Haupt-Bild",
             description: "Das Bild das letztendlich den Bildschirm füllen soll"
         }),
@@ -30,36 +30,22 @@ wp.blocks.registerBlockType('sws2025/hero', {
         attributes: {
             heading: pbw.h1.example,
             img: pbw.img.example
-        }, 
+        },
     },
     edit: function (props) {
-        return wp.element.createElement(wp.element.Fragment,null,
+        return wp.element.createElement(wp.element.Fragment, null,
             // Block Info
             pbw.block.title(props),
 
             // Haupt Inputs
-            wp.element.createElement(
-                'details',
-                { 
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ff6920', padding: '10px' },
-                    open: true
-                },
-                wp.element.createElement(
-                    'summary', 
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Inhalt'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Heading Input
-                    pbw.h1.input(props, "h1", "heading"),
-                    // Image Input
-                    pbw.img.input(props, "image"),
-                )
+            group("Inhalt", { open: false },
+                // Heading Input
+                pbw.h1.input(props, "h1", "heading"),
+                // Image Input
+                pbw.img.input(props, "image"),
+
             ),
-            
+
             // Sidebar Panels
             wp.element.createElement(
                 InspectorControls,
@@ -86,44 +72,31 @@ wp.blocks.registerBlockType('sws2025/hero', {
             ),
 
             // Konfigurations Inputs
-            wp.element.createElement(
-                'details',
-                { 
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid rgb(255, 203, 32)', padding: '10px' },
-                },
-                wp.element.createElement(
-                    'summary', 
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Konfiguration'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
- 
-                    // Radius Input
-                    pbw.choose.input(props, 'borderRadius', [
-                        { label: 'abgerundet', value: 'borderRadiusTrue' },
-                        { label: 'nicht abgerundet', value: 'borderRadiusFalse' }
-                    ]),
-                    // Height Input
-                    pbw.choose.input(props, 'height', [
-                        { label: 'Klein', value: 'heightSmall' },
-                        { label: 'Mittel', value: 'heightMedium' },
-                        { label: 'Groß', value: 'heightBig' }
-                    ])
-                )
+            group("Konfiguration", { open: false, color: "#ffcb20" },
+
+                // Radius Input
+                pbw.choose.input(props, 'borderRadius', [
+                    { label: 'abgerundet', value: 'borderRadiusTrue' },
+                    { label: 'nicht abgerundet', value: 'borderRadiusFalse' }
+                ]),
+                // Height Input
+                pbw.choose.input(props, 'height', [
+                    { label: 'Klein', value: 'heightSmall' },
+                    { label: 'Mittel', value: 'heightMedium' },
+                    { label: 'Groß', value: 'heightBig' }
+                ])
+
             ),
-            
+
         );
     },
     save: function (props) {
         return wp.element.createElement(
             'section',
-            { className: pbw.choose.output(props,"borderRadius") + " " + pbw.choose.output(props,"height") },
-            pbw.img.output(props,"image"),
-            pbw.h1.output(props,"h1","heading"),
+            { className: pbw.choose.output(props, "borderRadius") + " " + pbw.choose.output(props, "height") },
+            pbw.img.output(props, "image"),
+            pbw.h1.output(props, "h1", "heading"),
         );
-        
+
     },
 });

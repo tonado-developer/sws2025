@@ -124,63 +124,36 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
 
 
             // Haupt Inputs
-            wp.element.createElement(
-                'details',
-                {
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ff6920', padding: '10px' },
-                    open: true
-                },
-                wp.element.createElement(
-                    'summary',
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Inhalt'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Einzelne Inputs
-                    pbw.array.input(props, "items")
-                )
+            group("Inhalt", { open: false },
+                // Einzelne Inputs
+                pbw.array.input(props, "items")
+
             ),
 
 
             // Konfigurations Inputs
-            wp.element.createElement(
-                'details',
-                {
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ffcb20', padding: '10px' }
-                },
-                wp.element.createElement(
-                    'summary',
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Konfiguration'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Anzahl der Spalten
-                    pbw.choose.input(props, 'columns', [
-                        { label: '2', value: 2 },
-                        { label: '3', value: 3 },
-                        { label: '4', value: 4 }
-                    ]),
-                    // Sektion Hintergrund
-                    pbw.choose.input(props, 'sectionBackground', [
-                        { label: 'Keine Hintergrundfarbe', value: 'none' },
-                        { label: 'Hell', value: 'light' },
-                        { label: 'Dunkel', value: 'dark' },
-                        { label: 'Farbig', value: 'color' }
-                    ]),
-                    // Karte
-                    pbw.choose.input(props, 'cardBackground', [
-                        { label: 'Nein bitte nicht', value: 'none' },
-                        { label: 'Ja, Hell', value: 'light' },
-                        { label: 'Ja, Dunkel', value: 'dark' },
-                        { label: 'Ja, Farbig', value: 'color' }
-                    ])
-                )
+            group("Konfiguration", { open: false, color: "#ffcb20" },
+                // Anzahl der Spalten
+                pbw.choose.input(props, 'columns', [
+                    { label: '2', value: 2 },
+                    { label: '3', value: 3 },
+                    { label: '4', value: 4 }
+                ]),
+                // Sektion Hintergrund
+                pbw.choose.input(props, 'sectionBackground', [
+                    { label: 'Keine Hintergrundfarbe', value: 'none' },
+                    { label: 'Hell', value: 'light' },
+                    { label: 'Dunkel', value: 'dark' },
+                    { label: 'Farbig', value: 'color' }
+                ]),
+                // Karte
+                pbw.choose.input(props, 'cardBackground', [
+                    { label: 'Nein bitte nicht', value: 'none' },
+                    { label: 'Ja, Hell', value: 'light' },
+                    { label: 'Ja, Dunkel', value: 'dark' },
+                    { label: 'Ja, Farbig', value: 'color' }
+                ])
+
             )
         );
     },

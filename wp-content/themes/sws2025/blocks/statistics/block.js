@@ -16,12 +16,12 @@ wp.blocks.registerBlockType('sws2025/statistics', {
             title: "Verzögerung zwischen Animationen",
             description: "Wie viel Verzögerung soll zwischen dem Start der Zahlen liegen?"
         }),
-        sectionBackground: pbw.choose.attr({ 
+        sectionBackground: pbw.choose.attr({
             default: "none",
             title: 'Sektion Hintergrund',
             description: 'Wie soll die Fläche allgemein hinter dem Block gefärbt sein?',
         }),
-        cardBackground: pbw.choose.attr({ 
+        cardBackground: pbw.choose.attr({
             default: "none",
             title: 'Karte',
             description: 'Soll der Block in eine Karte verpackt werden? Wenn ja welcher Farbmodus?',
@@ -31,16 +31,16 @@ wp.blocks.registerBlockType('sws2025/statistics', {
             title: 'Zahlen-Elemente',
             default: [
                 {
-                    number: { 
-                        type: 'text', 
+                    number: {
+                        type: 'text',
                         title: 'Zahl',
                         description: 'Die Zahl zu der gezählt werden soll'
-                    }, 
-                    text: { 
-                        type: 'text', 
+                    },
+                    text: {
+                        type: 'text',
                         title: 'Text',
                         description: 'Der Beschreibungstext'
-                    }, 
+                    },
                 }
             ]
         }
@@ -49,10 +49,10 @@ wp.blocks.registerBlockType('sws2025/statistics', {
         attributes: {
             heading: pbw.h1.example,
             text: pbw.p.example
-        }, 
+        },
     },
     edit: function (props) {
-        return wp.element.createElement(wp.element.Fragment,null,
+        return wp.element.createElement(wp.element.Fragment, null,
             // Block Info
             pbw.block.title(props),
 
@@ -100,85 +100,58 @@ wp.blocks.registerBlockType('sws2025/statistics', {
 
 
             // Haupt Inputs
-            wp.element.createElement(
-                'details',
-                { 
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ff6920', padding: '10px' },
-                    open: true
-                },
-                wp.element.createElement(
-                    'summary', 
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Inhalt'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Einzelne Inputs
-                    pbw.array.input(props, "items")
-                )
+            group("Inhalt", { open: false },
+                // Einzelne Inputs
+                pbw.array.input(props, "items")
+
             ),
 
-            
+
             // Konfigurations Inputs
-            wp.element.createElement(
-                'details',
-                { 
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ffcb20', padding: '10px' }
-                },
-                wp.element.createElement(
-                    'summary', 
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Konfiguration'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Animation-Geschwindigkeit
-                    pbw.choose.input(props, 'duration', [
-                        { label: '1 Sekunde', value: 1 },
-                        { label: '2 Sekunden', value: 2 },
-                        { label: '3 Sekunden', value: 3 },
-                        { label: '4 Sekunden', value: 4 }
-                    ]),
-                    // Verzögerung zwischen Animationen
-                    pbw.choose.input(props, 'delay', [
-                        { label: '300 Millisekunden', value: 300 },
-                        { label: '500 Millisekunden', value: 500 },
-                        { label: '700 Millisekunden', value: 700 },
-                        { label: '1000 Millisekunden', value: 1000 }
-                    ]),
-                    // Sektion Hintergrund
-                    pbw.choose.input(props, 'sectionBackground', [
-                        { label: 'Keine Hintergrundfarbe', value: 'none' },
-                        { label: 'Hell', value: 'light' },
-                        { label: 'Dunkel', value: 'dark' },
-                        { label: 'Farbig', value: 'color' }
-                    ]),
-                    // Karte
-                    pbw.choose.input(props, 'cardBackground', [
-                        { label: 'Nein bitte nicht', value: 'none' },
-                        { label: 'Ja, Hell', value: 'light' },
-                        { label: 'Ja, Dunkel', value: 'dark' },
-                        { label: 'Ja, Farbig', value: 'color' }
-                    ])
-                )
+            group("Konfiguration", { open: false, color: "#ffcb20" },
+                // Animation-Geschwindigkeit
+                pbw.choose.input(props, 'duration', [
+                    { label: '1 Sekunde', value: 1 },
+                    { label: '2 Sekunden', value: 2 },
+                    { label: '3 Sekunden', value: 3 },
+                    { label: '4 Sekunden', value: 4 }
+                ]),
+                // Verzögerung zwischen Animationen
+                pbw.choose.input(props, 'delay', [
+                    { label: '300 Millisekunden', value: 300 },
+                    { label: '500 Millisekunden', value: 500 },
+                    { label: '700 Millisekunden', value: 700 },
+                    { label: '1000 Millisekunden', value: 1000 }
+                ]),
+                // Sektion Hintergrund
+                pbw.choose.input(props, 'sectionBackground', [
+                    { label: 'Keine Hintergrundfarbe', value: 'none' },
+                    { label: 'Hell', value: 'light' },
+                    { label: 'Dunkel', value: 'dark' },
+                    { label: 'Farbig', value: 'color' }
+                ]),
+                // Karte
+                pbw.choose.input(props, 'cardBackground', [
+                    { label: 'Nein bitte nicht', value: 'none' },
+                    { label: 'Ja, Hell', value: 'light' },
+                    { label: 'Ja, Dunkel', value: 'dark' },
+                    { label: 'Ja, Farbig', value: 'color' }
+                ])
+
             )
         );
     },
     save: function (props) {
         const { attributes } = props;
-        return wp.element.createElement('section',{ 
+        return wp.element.createElement('section', {
             className: "bg-" + pbw.choose.output(props, "sectionBackground") + " card-" + pbw.choose.output(props, "cardBackground"),
         },
             wp.element.createElement(
                 'container',
-                { 
+                {
                     className: "flex"
                 },
-                pbw.array.output(props, "items", function(item) {
+                pbw.array.output(props, "items", function (item) {
                     const Component = "div";
                     const componentProps = {
                         className: 'numberWrap appear',
@@ -186,16 +159,16 @@ wp.blocks.registerBlockType('sws2025/statistics', {
                         'data-duration': attributes.duration,
                         'data-delay': item.key * attributes.delay
                     };
-                
+
                     return wp.element.createElement(
-                        Component, 
+                        Component,
                         componentProps,
                         wp.element.createElement(
                             'h3',
-                            { 
-                                className: `number`, 
+                            {
+                                className: `number`,
                                 'data-number': item.number,
-                                key: item.key 
+                                key: item.key
                             },
                             0
                         ),

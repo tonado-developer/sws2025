@@ -341,3 +341,9 @@ add_filter('render_block_core/social-link', function ($block_content, $block) {
 
     return $block_content;
 }, 10, 2);
+
+// functions.php
+add_action('admin_init', function () {
+    $editor = get_role('editor');
+    $editor->add_cap('edit_theme_options');
+});

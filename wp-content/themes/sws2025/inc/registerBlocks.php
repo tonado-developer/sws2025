@@ -80,7 +80,9 @@ function enqueue_block_scripts($blocks)
 {
     foreach ($blocks as $block) {
         $script_path = get_template_directory() . "/blocks/$block/frontend.js";
+
         if (file_exists($script_path)) {
+
             wp_enqueue_script(
                 "$block-frontend-script",
                 get_template_directory_uri() . "/blocks/$block/frontend.js",
@@ -91,17 +93,16 @@ function enqueue_block_scripts($blocks)
         }
     }
 }
-
-/**
- * Standard frontend script loading
- */
 function enqueue_block_frontend_script()
 {
     $blocks = getBlocks();
     foreach ($blocks as $block) {
-        if (has_block(CUSTOM_BLOCK_CATEGORY . "/$block")) {
-            enqueue_block_scripts([$block]);
-        }
+        add_action('render_block', function ($block_content, $block_data) use ($block) {
+            if ($block_data['blockName'] === CUSTOM_BLOCK_CATEGORY . "/$block") {
+                enqueue_block_scripts([$block]);
+            }
+            return $block_content;
+        }, 10, 2);
     }
 }
-add_action('wp_enqueue_scripts', 'enqueue_block_frontend_script');
+add_action('init', 'enqueue_block_frontend_script');

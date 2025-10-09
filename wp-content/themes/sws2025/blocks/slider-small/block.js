@@ -126,74 +126,46 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                     ])
                 )
             ),
-            // Haupt Inputs
-            wp.element.createElement(
-                'details',
-                {
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ff6920', padding: '10px' },
-                    open: true
-                },
-                wp.element.createElement(
-                    'summary',
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Inhalt'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Einzelne Inputs
-                    pbw.array.input(props, "items")
-                )
+
+            group("Inhalt", { open: false },
+                // Haupt Inputs
+                pbw.array.input(props, "items")
             ),
+
             // Konfigurations Inputs
-            wp.element.createElement(
-                'details',
-                {
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ffcb20', padding: '10px' }
-                },
-                wp.element.createElement(
-                    'summary',
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Konfiguration'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Sektion Hintergrund
-                    pbw.choose.input(props, 'sectionBackground', [
-                        { label: 'Keine Hintergrundfarbe', value: 'none' },
-                        { label: 'Hell', value: 'light' },
-                        { label: 'Dunkel', value: 'dark' },
-                        { label: 'Farbig', value: 'color' }
-                    ]),
-                    // Karte
-                    pbw.choose.input(props, 'cardBackground', [
-                        { label: 'Nein bitte nicht', value: 'none' },
-                        { label: 'Ja, Hell', value: 'light' },
-                        { label: 'Ja, Dunkel', value: 'dark' },
-                        { label: 'Ja, Farbig', value: 'color' }
-                    ]),
-                    // Übergangs-Geschwindigkeit
-                    pbw.choose.input(props, 'duration', [
-                        { label: 'Keine Animationen hier ok? Bitte, danke !', value: 'none' },
-                        { label: '100ms', value: '100' },
-                        { label: '200ms', value: '200' },
-                        { label: '300ms', value: '300' },
-                        { label: '400ms', value: '400' },
-                        { label: '500ms', value: '500' }
-                    ]),
-                    // Wartezeit
-                    pbw.choose.input(props, 'timeout', [
-                        { label: 'Hier soll nix automatisch wechseln', value: 'none' },
-                        { label: '1s', value: '1000' },
-                        { label: '2s', value: '2000' },
-                        { label: '3s', value: '3000' },
-                        { label: '5s', value: '5000' },
-                        { label: '7s', value: '7000' }
-                    ])
-                )
+            group("Konfiguration", { open: false, color: "#ffcb20" },
+                // Sektion Hintergrund
+                pbw.choose.input(props, 'sectionBackground', [
+                    { label: 'Keine Hintergrundfarbe', value: 'none' },
+                    { label: 'Hell', value: 'light' },
+                    { label: 'Dunkel', value: 'dark' },
+                    { label: 'Farbig', value: 'color' }
+                ]),
+                // Karte
+                pbw.choose.input(props, 'cardBackground', [
+                    { label: 'Nein bitte nicht', value: 'none' },
+                    { label: 'Ja, Hell', value: 'light' },
+                    { label: 'Ja, Dunkel', value: 'dark' },
+                    { label: 'Ja, Farbig', value: 'color' }
+                ]),
+                // Übergangs-Geschwindigkeit
+                pbw.choose.input(props, 'duration', [
+                    { label: 'Keine Animationen hier ok? Bitte, danke !', value: 'none' },
+                    { label: '100ms', value: '100' },
+                    { label: '200ms', value: '200' },
+                    { label: '300ms', value: '300' },
+                    { label: '400ms', value: '400' },
+                    { label: '500ms', value: '500' }
+                ]),
+                // Wartezeit
+                pbw.choose.input(props, 'timeout', [
+                    { label: 'Hier soll nix automatisch wechseln', value: 'none' },
+                    { label: '1s', value: '1000' },
+                    { label: '2s', value: '2000' },
+                    { label: '3s', value: '3000' },
+                    { label: '5s', value: '5000' },
+                    { label: '7s', value: '7000' }
+                ])
             )
         );
     },

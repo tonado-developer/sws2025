@@ -1203,7 +1203,8 @@ function array_input(props, field, params = {}) {
         addButtonText = 'Element hinzufügen',
         removeConfirm = false,
         sortable = true,
-        emptyMessage = 'Noch keine Elemente vorhanden'
+        emptyMessage = 'Noch keine Elemente vorhanden',
+        open = true
     } = params;
 
     // Erstelle enhanced setAttributes einmalig
@@ -1471,7 +1472,7 @@ function array_input(props, field, params = {}) {
                                 borderBottom: '1px solid #e0e0e0'
                             }
                         },
-                        wp.element.createElement('span', {
+                        open ?? wp.element.createElement('span', {
                             className: 'item-title',
                             style: {
                                 fontWeight: '600',
@@ -1507,9 +1508,32 @@ function array_input(props, field, params = {}) {
                             renderRemoveButton(index)
                         )
                     ),
-                    wp.element.createElement(
+                    open ? wp.element.createElement(
                         'div',
                         { className: 'pbw-array-item-content' },
+                        Object.keys(defaultItems[0] || {}).map((fieldName, fieldIndex) => {
+                            const fieldConfig = defaultItems[0][fieldName];
+                            /**
+                             * ENHANCED CREATETEMPPROPS MIT DEFENSIVE PROGRAMMIERUNG
+                             */
+                            const tempProps = createTempProps(index, fieldName, fieldConfig.type, fieldConfig, currentItems, editItem, props);
+                            const tempKey = `temp_${index}_${fieldName}`;
+
+                            return wp.element.createElement(
+                                'div',
+                                {
+                                    className: `pbw-array-field pbw-field-${fieldConfig.type}`,
+                                    key: fieldIndex,
+                                },
+                                fieldConfig.type === 'text' && text_input(tempProps, 'p', tempKey),
+                                fieldConfig.type === 'link' && link_input(tempProps, tempKey),
+                                fieldConfig.type === 'img' && media_input(tempProps, tempKey),
+                                fieldConfig.type === 'choose' && select_input(tempProps, tempKey, fieldConfig.options),
+                                fieldConfig.type === 'nested_array' && nested_array_input(props, index, field, fieldName, fieldConfig)
+                            );
+                        })
+                    ) : group(`Element #${index + 1}`, { open: false },
+                        // Side Headline
                         Object.keys(defaultItems[0] || {}).map((fieldName, fieldIndex) => {
                             const fieldConfig = defaultItems[0][fieldName];
                             /**
@@ -1584,21 +1608,7 @@ function createTempProps(index, fieldName, type, fieldConfig, currentItems, edit
         }
     };
 
-    // Mock Block-Type Attribute
-    const originalBlockType = wp.blocks.getBlockType(props.name);
-    if (originalBlockType && !originalBlockType.attributes[tempKey]) {
-        originalBlockType.attributes[tempKey] = {
-            title: fieldConfig?.title,
-            description: fieldConfig?.description,
-            placeholder: fieldConfig?.placeholder,
-            allowedFormats: fieldConfig?.allowedFormats,
-            options: fieldConfig?.options,
-            allowedTypes: fieldConfig?.allowedTypes // FIX: allowedTypes für media_input
-        };
-    }
-
     if (type === 'img') {
-        // FIX: Alle Media-Attribute setzen
         tempProps.attributes[tempKey] = fieldData[fieldName] || '';
         tempProps.attributes[tempAltKey] = fieldData[`${fieldName}Alt`] || '';
         tempProps.attributes[tempIdKey] = fieldData[`${fieldName}Id`] || null;
@@ -2575,6 +2585,41 @@ const pbw = {
         createEnhancedSetAttributes
     }
 }
+
+// Method for grouping elements in Detail-Sections
+const group = (name, settings = {}, ...children) => {
+    const {
+        open = true,
+        color = "#ff6920"
+    } = settings;
+    return wp.element.createElement(
+        'details',
+        {
+            className: 'wp-block-config',
+            style: { borderLeft: `4px solid ${color}`, padding: '10px' },
+            open: open
+        },
+        wp.element.createElement(
+            'summary',
+            { style: { cursor: 'pointer', fontWeight: 'bold' } },
+            wp.element.createElement(
+                'p',
+                {
+                    style: { display: 'inline', fontWeight: "bold"},
+                },
+                name
+            )
+        ),
+        wp.element.createElement(
+            'div',
+            { style: { marginTop: '10px' } },
+
+            // Hier Content
+            ...children
+        )
+    );
+}
+window.group = group
 
 // Global export für Kompatibilität
 window.pbw = pbw;

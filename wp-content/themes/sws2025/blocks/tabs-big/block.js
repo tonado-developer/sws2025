@@ -10,7 +10,7 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
             title: "Überschrift",
             description: "Falls nur Tabs erwünscht sind einfach frei lassen"
         }),
-        sectionBackground: pbw.choose.attr({ 
+        sectionBackground: pbw.choose.attr({
             default: "none",
             title: 'Sektion Hintergrund',
             description: 'Wie soll die Fläche allgemein hinter dem Block gefärbt sein?',
@@ -20,37 +20,37 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
             title: 'Tabs',
             default: [
                 {
-                    label: { 
-                        type: 'text', 
+                    label: {
+                        type: 'text',
                         title: 'Name',
                         description: 'Der Text für die Navigation'
                     },
-                    image: { 
-                        type: 'img', 
+                    image: {
+                        type: 'img',
                         title: 'Bild',
                         description: "Das Bild neben dem Text"
                     },
-                    headline: { 
-                        type: 'text', 
+                    headline: {
+                        type: 'text',
                         title: 'Überschrift',
                         description: 'Die Überschrift für den Text'
-                    }, 
-                    text: { 
-                        type: 'text', 
+                    },
+                    text: {
+                        type: 'text',
                         title: 'Text',
                         description: 'Der Beschreibungstext'
-                    }, 
-                    link: { 
-                        type: 'link', 
+                    },
+                    link: {
+                        type: 'link',
                         title: 'Button Verlinkung',
-                    }, 
-                    button_text: { 
-                        type: 'text', 
+                    },
+                    button_text: {
+                        type: 'text',
                         title: 'Button Text',
                         description: 'Dieser Text steht später auf dem Button'
-                    }, 
-                    opening: { 
-                        type: 'choose', 
+                    },
+                    opening: {
+                        type: 'choose',
                         title: 'Randöffnung',
                         description: 'An welcher Seite soll sich eine Öffnung im Rand befinden?',
                         options: [
@@ -69,10 +69,10 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
         attributes: {
             heading: pbw.h1.example,
             text: pbw.p.example
-        }, 
+        },
     },
     edit: function (props) {
-        return wp.element.createElement(wp.element.Fragment,null,
+        return wp.element.createElement(wp.element.Fragment, null,
             // Block Info
             pbw.block.title(props),
 
@@ -98,80 +98,54 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
             ),
 
             // Haupt Inputs
-            wp.element.createElement(
-                'details',
-                { 
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ff6920', padding: '10px' },
-                    open: true
-                },
-                wp.element.createElement(
-                    'summary', 
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Inhalt'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Überschrift Input
-                    pbw.h1.input(props, "h1", "heading"),
-                    // Einzelne Inputs
-                    pbw.array.input(props, "items")
-                )
+            group("Inhalt", { open: false },
+                // Überschrift Input
+                pbw.h1.input(props, "h1", "heading"),
+                // Einzelne Inputs
+                pbw.array.input(props, "items")
+
             ),
 
             // Konfigurations Inputs
-            wp.element.createElement(
-                'details',
-                { 
-                    className: 'wp-block-config',
-                    style: { borderLeft: '4px solid #ffcb20', padding: '10px' }
-                },
-                wp.element.createElement(
-                    'summary', 
-                    { style: { cursor: 'pointer', fontWeight: 'bold' } },
-                    'Konfiguration'
-                ),
-                wp.element.createElement(
-                    'div',
-                    { style: { marginTop: '10px' } },
-                    // Sektion Hintergrund
-                    pbw.choose.input(props, 'sectionBackground', [
-                        { label: 'Keine Hintergrundfarbe', value: 'none' },
-                        { label: 'Hell', value: 'light' },
-                        { label: 'Dunkel', value: 'dark' },
-                        { label: 'Farbig', value: 'color' }
-                    ])
-                )
+            group("Konfiguration", { open: false, color: "#ffcb20" },
+
+                // Sektion Hintergrund
+                pbw.choose.input(props, 'sectionBackground', [
+                    { label: 'Keine Hintergrundfarbe', value: 'none' },
+                    { label: 'Hell', value: 'light' },
+                    { label: 'Dunkel', value: 'dark' },
+                    { label: 'Farbig', value: 'color' }
+                ])
             )
+
         );
     },
     save: function (props) {
         const { attributes } = props;
-        return wp.element.createElement('section',{ 
+        return wp.element.createElement('section', {
             className: "bg-" + pbw.choose.output(props, "sectionBackground"),
         },
             wp.element.createElement(
                 'container',
                 null,
-                pbw.h1.output(props,"h2","heading"),
+                pbw.h1.output(props, "h2", "heading"),
             ),
             wp.element.createElement(
                 'container',
-                { 
+                {
                     className: "tabContainer",
                     "data-duration": 1200
                 },
                 wp.element.createElement(
                     'div',
-                    { 
+                    {
                         className: "tabNavigation",
                     },
-                    pbw.array.output(props, "items", function(item) {
+                    pbw.array.output(props, "items", function (item) {
                         return wp.element.createElement(
                             'a',
-                            { 
-                                onclick: "openTab(this)", 
+                            {
+                                onclick: "openTab(this)",
                                 class: "button " + (item.key == 0 ? "current" : ""),
                                 "data-pane": item.key
                             },
@@ -181,12 +155,12 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
                 ),
                 wp.element.createElement(
                     'div',
-                    { 
+                    {
                         className: "tabWrap open",
                     },
-                    pbw.array.output(props, "items", function(item) {                    
+                    pbw.array.output(props, "items", function (item) {
                         return wp.element.createElement(
-                            "div", 
+                            "div",
                             {
                                 className: 'tabPane has_border is_rounded opening-' + item.opening + ' pane-' + item.key + " " + (item.key == 0 ? "open" : ""),
                                 key: item.key
@@ -196,8 +170,8 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
                                 { className: `wp-block-image`, key: item.key },
                                 item.image && wp.element.createElement(
                                     'img',
-                                    { 
-                                        src: item.image, 
+                                    {
+                                        src: item.image,
                                         alt: item.imageAlt || 'Bild',
                                     }
                                 ),
@@ -213,7 +187,7 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
                                     tagName: 'p',
                                     value: item.text || "", // Zugriff auf den ersten Wert
                                 }),
-                                pbw.link.output({attributes:item},"link",pbw.p.output({attributes:item},"span","button_text")),
+                                pbw.link.output({ attributes: item }, "link", pbw.p.output({ attributes: item }, "span", "button_text")),
                             )
                         );
                     })
