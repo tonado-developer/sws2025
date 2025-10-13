@@ -3,6 +3,9 @@
     .link{
         @include button;
     }
+    &.bg-color .link{
+        background-color: var(--wp--preset--color--contrast);
+    }
 
     .sliderContainer {
         position: relative;
@@ -12,10 +15,10 @@
     .slideWrap {
         grid-auto-flow: column;
         display: grid;
-        grid-auto-columns: 200px;
+        grid-auto-columns: 300px;
         transition: opacity  var(--slide-duration, 300ms) ease,
                     height var(--slide-duration, 300ms) ease;
-        gap: 60px;
+        gap: 100px;
     }
     
     .slidePane {
@@ -143,17 +146,9 @@
         gap: 4px;
         padding-top: 10px
     }
+
     
-    .button {
-        @include button;
-        padding: unset;
-        height: 20px;
-        aspect-ratio: 1;
-        &:not(.current) {
-            background-color: rgb(66, 66, 66);
-        }
-    }
-    
+
     figure {
         grid-row: 1;
         aspect-ratio: 4/3;
@@ -168,6 +163,7 @@
         overflow: hidden;
         margin: auto;
         max-height: 500px;
+        border-radius: $borderRadius;
         img {
             width: 100%;
             height: 100%;
@@ -177,7 +173,9 @@
             z-index: 1;
         }
     }
-
+    .has_border figure{
+        @include mask-border();
+    }
     &.card-light container,&.card-dark container,&.card-color container{
         padding: 40px 80px;
     }

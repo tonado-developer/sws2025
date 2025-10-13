@@ -380,15 +380,6 @@ img.parent_img.hdImage {
             display: none;
         }
     }
-    .badge {
-        padding: 6px 12px;
-        background: var(--wp--preset--color--accent-1);
-        margin: unset;
-        border-radius: 10px 10px 10px 0px;
-        color: var(--wp--preset--color--base);
-        text-decoration: none;
-        font-size: var(--wp--preset--font-size--large);
-    }
     .badgeInfo{
         grid-template-columns: auto 1fr;
         z-index: 1;
@@ -557,6 +548,15 @@ img.parent_img.hdImage {
     bottom: calc(100% - 25px);
     z-index: 1;
     opacity: 0;
+    .badge {
+        padding: 6px 12px;
+        background: var(--wp--preset--color--accent-1);
+        margin: unset;
+        border-radius: 10px 10px 10px 0px;
+        color: var(--wp--preset--color--base);
+        text-decoration: none;
+        font-size: var(--wp--preset--font-size--large);
+    }
 }
 
 .markerLabel .string::after {

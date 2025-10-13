@@ -30,6 +30,10 @@
         }
     }
 }
+section.bg-color{
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
 @mixin bg-color {
     background: #ff9720;
     background: -webkit-linear-gradient(26deg, #ff9720 0%, var(--wp--preset--color--accent-1) 100%);

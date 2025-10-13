@@ -13,7 +13,7 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                 {
                     image: {
                         type: 'img',
-                        title: 'Bild',
+                        title: 'Bild (WepB 4/3)',
                         description: "Das Bild das oben in der Karte erscheint"
                     },
                     headline: {
@@ -34,6 +34,15 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                         type: 'text',
                         title: 'Button Text',
                         description: 'Dieser Text steht später auf dem Button'
+                    },
+                    hasBorder: {
+                        type: 'choose',
+                        title: 'Umrandung',
+                        description: 'Soll das Bild eine farbige Umrandung haben?',
+                        options: [
+                            { label: 'Ja, bitte umranden.', value: 'has_border' },
+                            { label: 'Nein, bitte nicht umranden.', value: 'has_no_border' }
+                        ]
                     }
                 }
             ]
@@ -157,13 +166,13 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
             return wp.element.createElement(
                 "div",
                 {
-                    className: 'slidePane is_rounded slide-' + item.key + " " + (open ? "open" : ""),
+                    className: 'slidePane is_rounded slide-' + item.key + " " + item.hasBorder + " " + (open ? "open" : ""),
                     key: item.key
                 },
                 item.image && wp.element.createElement(
                     'figure',
                     { className: `wp-block-image`, key: item.key },
-                    pbw.img.output({ attributes: item }, "image"),
+                    pbw.img.output({ attributes: item }, "image", {size: "medium"}),
                 ),
                 (item.text || item.headline) && wp.element.createElement(
                     'div',
