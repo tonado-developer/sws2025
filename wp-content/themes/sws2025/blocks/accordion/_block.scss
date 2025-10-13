@@ -6,13 +6,13 @@
     .accordionImages{
         grid-row: 1;
         position: relative;
+        display: flex;
+        align-items: center;
         figure{
             margin: unset;
-            
-            aspect-ratio: 1;
+            display: none;
             width: 100%;
             position: relative;
-            display: flex;
             align-items: center;
             justify-content: center;
             color: var(--wp--preset--color--base);
@@ -20,7 +20,6 @@
             transition: all 300ms ease;
             overflow: hidden;
             img{
-                aspect-ratio: 1;
                 display: block;
                 object-fit: cover;
                 height: 100%;
@@ -34,20 +33,52 @@
                 transition: opacity 0ms ease;
             }
             &.open{
+                display: flex;
                 opacity: 1;
             }
         }
     }
-    
+
+    &.img-format-1-1 .accordionImages figure img{
+        aspect-ratio: 1/1;
+    }
+    &.img-format-16-9 .accordionImages figure img{
+        aspect-ratio: 16/9;
+    }
+    &.img-format-9-16 .accordionImages figure img{
+        aspect-ratio: 9/16;
+    }
+    &.img-width-25 {
+        .figure-left{
+            grid-template-columns: minmax(0px, 1fr) minmax(0px, 3fr);
+        }
+        .figure-right{
+            grid-template-columns: minmax(0px, 3fr) minmax(0px, 1fr);
+        }
+    }
+    &.img-width-33 {
+        .figure-left{
+            grid-template-columns: minmax(0px, 1fr) minmax(0px, 2fr);
+        }
+        .figure-right{
+            grid-template-columns: minmax(0px, 2fr) minmax(0px, 1fr);
+        }
+    }
+    &.img-width-50 {
+        .figure-left{
+            grid-template-columns: minmax(0px, 1fr) minmax(0px, 1fr);
+        }
+        .figure-right{
+            grid-template-columns: minmax(0px, 1fr) minmax(0px, 1fr);
+        }
+    }
     
     .figure-left{
-        grid-template-columns: minmax(0px, 0.32fr) minmax(0px, 1fr);
         .accordionImages{
             grid-column: 1;
         }
     }
     .figure-right{
-        grid-template-columns: minmax(0px, 1fr) minmax(0px, 0.32fr);
         .accordionImages{
             grid-column: 2;
         }

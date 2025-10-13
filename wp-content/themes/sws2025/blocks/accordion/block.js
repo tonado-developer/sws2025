@@ -30,6 +30,16 @@ wp.blocks.registerBlockType('sws2025/accordion', {
             title: 'Anordnung',
             description: 'Auf welcher Seite soll sich das Bild befinden?',
         }),
+        imageFormat: pbw.choose.attr({
+            default: "1-1",
+            title: 'Bild Format',
+            description: 'In welchem Format soll sich das Bild anzeigen?',
+        }),
+        imageWidth: pbw.choose.attr({
+            default: "25",
+            title: 'Bild Breite',
+            description: 'Wie breit soll das Bild angezeigt werden? (100% = Container Breite)',
+        }),
         sectionBackground: pbw.choose.attr({
             default: "none",
             title: 'Sektion Hintergrund',
@@ -132,6 +142,18 @@ wp.blocks.registerBlockType('sws2025/accordion', {
                         { label: 'Ja, Hell', value: 'light' },
                         { label: 'Ja, Dunkel', value: 'dark' },
                         { label: 'Ja, Farbig', value: 'color' }
+                    ]),
+                    // Bild Format
+                    pbw.choose.input(props, 'imageFormat', [
+                        { label: '1/1', value: '1-1' },
+                        { label: '16/9 (Querformat)', value: '16-9' },
+                        { label: '9/16 (Hochformat)', value: '9-16' }
+                    ]),
+                    // Bild Breite
+                    pbw.choose.input(props, 'imageWidth', [
+                        { label: '25%', value: '25' },
+                        { label: '33%', value: '33' },
+                        { label: '50%', value: '50' }
                     ])
                 )
             ),
@@ -185,6 +207,18 @@ wp.blocks.registerBlockType('sws2025/accordion', {
                     { label: 'Ja, Hell', value: 'light' },
                     { label: 'Ja, Dunkel', value: 'dark' },
                     { label: 'Ja, Farbig', value: 'color' }
+                ]),
+                // Bild Format
+                pbw.choose.input(props, 'imageFormat', [
+                    { label: '1/1', value: '1-1' },
+                    { label: '16/9 (Querformat)', value: '16-9' },
+                    { label: '9/16 (Hochformat)', value: '9-16' }
+                ]),
+                // Bild Breite
+                pbw.choose.input(props, 'imageWidth', [
+                    { label: '25%', value: '25' },
+                    { label: '33%', value: '33' },
+                    { label: '50%', value: '50' }
                 ])
 
             )
@@ -194,7 +228,11 @@ wp.blocks.registerBlockType('sws2025/accordion', {
         const { attributes } = props;
         return wp.element.createElement('section',
             {
-                className: "bg-" + pbw.choose.output(props, "sectionBackground") + " card-" + pbw.choose.output(props, "cardBackground"),
+                className:
+                    "bg-" + pbw.choose.output(props, "sectionBackground")
+                    + " card-" + pbw.choose.output(props, "cardBackground")
+                    + " img-format-" + pbw.choose.output(props, "imageFormat")
+                    + " img-width-" + pbw.choose.output(props, "imageWidth")
             },
             wp.element.createElement(
                 'container',
