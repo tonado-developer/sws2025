@@ -177,19 +177,13 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
             return wp.element.createElement(
                 "div",
                 {
-                    className: 'slidePane has_border is_rounded opening-' + item.opening + ' slide-' + item.key + " " + (open ? "open" : ""),
+                    className: 'slidePane is_rounded slide-' + item.key + " " + (open ? "open" : ""),
                     key: item.key
                 },
                 item.image && wp.element.createElement(
                     'figure',
                     { className: `wp-block-image`, key: item.key },
-                    wp.element.createElement(
-                        'img',
-                        {
-                            src: item.image,
-                            alt: item.imageAlt || 'Bild',
-                        }
-                    ),
+                    pbw.img.output({attributes:item}, "image"),
                 ),
                 (item.text || item.headline) && wp.element.createElement(
                     'div',
@@ -286,20 +280,20 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                                 })
                             )
                         ),
-                        // Background Circle
-                        wp.element.createElement('circle', {
-                            className: 'progressBackground',
-                            cx: '28',
-                            cy: '28',
-                            r: '26'
-                        }),
-                        // Progress Circle
-                        wp.element.createElement('circle', {
-                            className: 'progressBar',
-                            cx: '28',
-                            cy: '28',
-                            r: '26'
-                        })
+                        // // Background Circle
+                        // wp.element.createElement('circle', {
+                        //     className: 'progressBackground',
+                        //     cx: '28',
+                        //     cy: '28',
+                        //     r: '26'
+                        // }),
+                        // // Progress Circle
+                        // wp.element.createElement('circle', {
+                        //     className: 'progressBar',
+                        //     cx: '28',
+                        //     cy: '28',
+                        //     r: '26'
+                        // })
                     )
                 )
             )

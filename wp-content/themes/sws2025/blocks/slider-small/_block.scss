@@ -14,7 +14,7 @@
         grid-auto-columns: 200px;
         transition: opacity  var(--slide-duration, 300ms) ease,
                     height var(--slide-duration, 300ms) ease;
-        gap: 40px;
+        gap: 60px;
     }
     
     .slidePane {
@@ -180,28 +180,8 @@
     &.card-light container,&.card-dark container,&.card-color container{
         padding: 40px 80px;
     }
-
-    .slidePane.has_border {
-        &:not(.opening-right):not(.opening-left):not(.opening-top):not(.opening-bottom) figure{
-            @include mask-border();
-        }
-        &.opening-right figure{
-            @include mask-border(right);
-        }
-        &.opening-bottom figure{
-            @include mask-border(bottom);
-        }
-        &.opening-left figure{
-            @include mask-border(left);
-        }
-        &.opening-top figure{
-            @include mask-border(top);
-        }
-    }
     
     .is_rounded {
-        figure, img, figure::after {
-            border-radius: 20px;
-        }
+        border-radius: 20px;
     }
 }
