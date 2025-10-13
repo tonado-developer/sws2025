@@ -952,15 +952,15 @@ function link_input(props, name) {
 
     const blockType = wp.blocks.getBlockType(props.name);
     const attributeConfig = blockType?.attributes?.[name];
-    const title = "🔗 " + (attributeConfig?.title || 'Link');
+    const title = (attributeConfig?.title || "🔗 Link");
 
     const currentValue = safeGet(props.attributes, name, '');
 
     const regularInput = wp.element.createElement(
         BaseControl,
         {
-            label: "URL",
-            help: "Vollständige URL mit https://"
+            // label: "URL",
+            // help: "Vollständige URL mit https://"
         },
         wp.element.createElement(URLInputButton, {
             url: currentValue,

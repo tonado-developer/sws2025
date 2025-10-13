@@ -5,7 +5,6 @@ registerBlockType('sws2025/image-mapper2', {
         src: php_vars.template_directory_uri + '/assets/img/Logo SWS 2 zeilig_min.svg',
     }),
     category: 'custom-blocks',
-
     attributes: {
         // Basis-Bilder
         ...pbw2.img.attr('backgroundImage', {

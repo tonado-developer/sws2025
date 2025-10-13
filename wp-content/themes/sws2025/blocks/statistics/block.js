@@ -26,6 +26,11 @@ wp.blocks.registerBlockType('sws2025/statistics', {
             title: 'Karte',
             description: 'Soll der Block in eine Karte verpackt werden? Wenn ja welcher Farbmodus?',
         }),
+        numberSize: pbw.choose.attr({
+            default: "normal",
+            title: 'Zahlengröße',
+            description: 'Wie Groß sollen die Zahlen dargestellt werden?',
+        }),
         items: {
             type: 'array',
             title: 'Zahlen-Elemente',
@@ -94,6 +99,14 @@ wp.blocks.registerBlockType('sws2025/statistics', {
                         { label: 'Ja, Hell', value: 'light' },
                         { label: 'Ja, Dunkel', value: 'dark' },
                         { label: 'Ja, Farbig', value: 'color' }
+                    ]),
+                    // Zahlengröße
+                    pbw.choose.input(props, 'numberSize', [
+                        { label: 'kleiner', value: 'smaller' },
+                        { label: 'klein', value: 'small' },
+                        { label: 'normal', value: 'normal' },
+                        { label: 'groß', value: 'big' },
+                        { label: 'größer', value: 'bigger' },
                     ])
                 )
             ),
@@ -136,6 +149,14 @@ wp.blocks.registerBlockType('sws2025/statistics', {
                     { label: 'Ja, Hell', value: 'light' },
                     { label: 'Ja, Dunkel', value: 'dark' },
                     { label: 'Ja, Farbig', value: 'color' }
+                ]),
+                // Zahlengröße
+                pbw.choose.input(props, 'numberSize', [
+                    { label: 'kleiner', value: 'smaller' },
+                    { label: 'klein', value: 'small' },
+                    { label: 'normal', value: 'normal' },
+                    { label: 'groß', value: 'big' },
+                    { label: 'größer', value: 'bigger' },
                 ])
 
             )
@@ -144,7 +165,9 @@ wp.blocks.registerBlockType('sws2025/statistics', {
     save: function (props) {
         const { attributes } = props;
         return wp.element.createElement('section', {
-            className: "bg-" + pbw.choose.output(props, "sectionBackground") + " card-" + pbw.choose.output(props, "cardBackground"),
+            className: "bg-" + pbw.choose.output(props, "sectionBackground")
+                + " card-" + pbw.choose.output(props, "cardBackground")
+                + " numberSize-" + pbw.choose.output(props, "numberSize"),
         },
             wp.element.createElement(
                 'container',

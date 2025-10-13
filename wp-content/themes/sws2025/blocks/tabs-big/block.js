@@ -10,6 +10,10 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
             title: "Überschrift",
             description: "Falls nur Tabs erwünscht sind einfach frei lassen"
         }),
+        headingSize: pbw.choose.attr({
+            default: "h1",
+            title: "Headline",
+        }),
         sectionBackground: pbw.choose.attr({
             default: "none",
             title: 'Sektion Hintergrund',
@@ -99,8 +103,20 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
 
             // Haupt Inputs
             group("Inhalt", { open: false },
-                // Überschrift Input
-                pbw.h1.input(props, "h1", "heading"),
+                // Heading Input
+                wp.element.createElement('div', {
+                    style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px' }
+                },
+                    pbw.choose.input(props, 'headingSize', [
+                        { label: 'h1', value: 'h1' },
+                        { label: 'h2', value: 'h2' },
+                        { label: 'h3', value: 'h3' },
+                        { label: 'h4', value: 'h4' },
+                        { label: 'h5', value: 'h5' },
+                        { label: 'h6', value: 'h6' }
+                    ]),
+                    pbw.h1.input(props, "h1", "heading"),
+                ),
                 // Einzelne Inputs
                 pbw.array.input(props, "items")
 
@@ -125,10 +141,10 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
         return wp.element.createElement('section', {
             className: "bg-" + pbw.choose.output(props, "sectionBackground"),
         },
-            wp.element.createElement(
+            attributes.heading && wp.element.createElement(
                 'container',
                 null,
-                pbw.h1.output(props, "h2", "heading"),
+                pbw.h1.output(props, pbw.choose.output(props, 'headingSize'), "heading"),
             ),
             wp.element.createElement(
                 'container',

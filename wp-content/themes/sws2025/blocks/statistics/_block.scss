@@ -9,10 +9,27 @@
     .numberWrap{
         text-align: center;
     }
+    p{
+        margin: unset;
+    }
     .number{
         font-size: 4rem;
         font-weight: bold;
-        margin-top: 0px;
-        margin-bottom: -18px;
+        margin: 0px;
+    }
+    &.numberSize-smaller .number{
+        font-size: 2rem;
+    }
+    &.numberSize-small .number{
+        font-size: 3rem;
+    }
+    &.numberSize-normal .number{
+        font-size: 4rem;
+    }
+    &.numberSize-big .number{
+        font-size: 5rem;
+    }
+    &.numberSize-bigger .number{
+        font-size: 6rem;
     }
 }

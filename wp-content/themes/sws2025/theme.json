@@ -261,7 +261,14 @@
                 },
                 "typography": {
                     "fontFamily": "var:preset|font-family|zekton-hv",
-                    "lineHeight": "140%"
+                    "lineHeight": "140%",
+                    "fontSize": "var:preset|font-size|xx-large"
+                },
+                "spacing": {
+                    "margin": {
+                        "bottom": "0.3em",
+                        "top": "0.5em"
+                    }
                 }
             },
             "h2": {
@@ -272,6 +279,12 @@
                     "fontFamily": "var:preset|font-family|zekton-hv",
                     "lineHeight": "140%",
                     "fontSize": "var:preset|font-size|x-large"
+                },
+                "spacing": {
+                    "margin": {
+                        "bottom": "0.3em",
+                        "top": "0.5em"
+                    }
                 }
             },
             "h3": {
@@ -280,7 +293,14 @@
                 },
                 "typography": {
                     "fontFamily": "var:preset|font-family|zekton-hv",
-                    "lineHeight": "140%"
+                    "lineHeight": "140%",
+                    "fontSize": "var:preset|font-size|large"
+                },
+                "spacing": {
+                    "margin": {
+                        "bottom": "0.3em",
+                        "top": "0.5em"
+                    }
                 }
             },
             "h4": {
@@ -289,7 +309,14 @@
                 },
                 "typography": {
                     "fontFamily": "var:preset|font-family|zekton-hv",
-                    "lineHeight": "140%"
+                    "lineHeight": "140%",
+                    "fontSize": "var:preset|font-size|medium"
+                },
+                "spacing": {
+                    "margin": {
+                        "bottom": "0.3em",
+                        "top": "0.5em"
+                    }
                 }
             },
             "h5": {
@@ -298,7 +325,14 @@
                 },
                 "typography": {
                     "fontFamily": "var:preset|font-family|zekton-hv",
-                    "lineHeight": "140%"
+                    "lineHeight": "140%",
+                    "fontSize": "var:preset|font-size|small"
+                },
+                "spacing": {
+                    "margin": {
+                        "bottom": "0.3em",
+                        "top": "0.5em"
+                    }
                 }
             },
             "h6": {
@@ -307,7 +341,14 @@
                 },
                 "typography": {
                     "fontFamily": "var:preset|font-family|zekton-hv",
-                    "lineHeight": "140%"
+                    "lineHeight": "140%",
+                    "fontSize": "var:preset|font-size|small"
+                },
+                "spacing": {
+                    "margin": {
+                        "bottom": "0.3em",
+                        "top": "0.5em"
+                    }
                 }
             },
             "link": {

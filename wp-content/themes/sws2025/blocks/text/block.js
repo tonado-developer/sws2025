@@ -10,10 +10,9 @@ wp.blocks.registerBlockType('sws2025/text', {
             title: "Überschrift",
             description: "Falls nur Text erwünscht ist einfach frei lassen"
         }),
-        subheading: pbw.p.attr({
-            selector: 'p.subheading',
-            title: "Unterüberschrift",
-            description: "Falls man möchte kann man hier der Hauptüberschrift noch etwas anfügen"
+        headingSize: pbw.choose.attr({
+            default: "h1",
+            title: "Headline",
         }),
         text: pbw.p.attr({
             title: "Text",
@@ -21,11 +20,10 @@ wp.blocks.registerBlockType('sws2025/text', {
         }),
         button_text: pbw.p.attr({
             selector: 'a.button',
-            title: "Button Text",
-            description: "Dieser Text steht später auf dem Button"
+            title: "Button",
         }),
         link: pbw.link.attr({
-            title: "Button Verlinkung",
+            title: "",
         }),
         align: pbw.choose.attr({
             default: 'left',
@@ -36,11 +34,6 @@ wp.blocks.registerBlockType('sws2025/text', {
             default: 'headingCircledTrue',
             title: "Überschrift Umkreisung-Auswahl",
             description: "Sollen die ersten Buchstaben der Überschrift eingekreist werden oder nicht?"
-        }),
-        indent: pbw.choose.attr({
-            default: 'textIndentTrue',
-            title: "Text Einrücken-Auswahl",
-            description: "Soll der Fließtext eingerückt werden oder nicht?"
         }),
         line: pbw.choose.attr({
             default: 'textLineFalse',
@@ -71,15 +64,33 @@ wp.blocks.registerBlockType('sws2025/text', {
 
             // Haupt Inputs
             group("Inhalt", { open: false },
-                // Überschrift Input
-                pbw.h1.input(props, "h1", "heading"),
-                // Unterüberschrift Input
+                // Heading Input
+                wp.element.createElement('div', {
+                    style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px' }
+                },
+                    pbw.choose.input(props, 'headingSize', [
+                        { label: 'h1', value: 'h1' },
+                        { label: 'h2', value: 'h2' },
+                        { label: 'h3', value: 'h3' },
+                        { label: 'h4', value: 'h4' },
+                        { label: 'h5', value: 'h5' },
+                        { label: 'h6', value: 'h6' }
+                    ]),
+                    pbw.h1.input(props, "h1", "heading"),
+                ),
                 // Text Input
                 pbw.p.input(props, "p", "text"),
-                // Button-Text Input
-                pbw.p.input(props, "p", "button_text"),
-                // Button-Link Input
-                pbw.link.input(props, "link"),
+                // Button Input
+                wp.element.createElement(
+                    'div',
+                    {
+                        style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px' }
+                    },
+                    // Button-Text Input
+                    pbw.p.input(props, "p", "button_text"),
+                    // Button-Link Input
+                    pbw.link.input(props, "link"),
+                )
             ),
 
             group("Konfiguration", { open: false, color: "#ffcb20" },
@@ -92,11 +103,6 @@ wp.blocks.registerBlockType('sws2025/text', {
                 pbw.choose.input(props, 'circled', [
                     { label: 'Ja, bitte einkreisen', value: 'headingCircledTrue' },
                     { label: 'Nein, heute kein kreisen', value: 'headingCircledFalse' }
-                ]),
-                // Texteinrückung-Auswahl
-                pbw.choose.input(props, 'indent', [
-                    { label: 'Ja, bitte einrücken', value: 'textIndentTrue' },
-                    { label: 'Nein, heute nicht', value: 'textIndentFalse' }
                 ]),
                 // Trennstrich-Auswahl
                 pbw.choose.input(props, 'line', [
@@ -140,11 +146,6 @@ wp.blocks.registerBlockType('sws2025/text', {
                         { label: 'Ja, bitte einkreisen', value: 'headingCircledTrue' },
                         { label: 'Nein, heute kein kreisen', value: 'headingCircledFalse' }
                     ]),
-                    // Texteinrückung-Auswahl
-                    pbw.choose.input(props, 'indent', [
-                        { label: 'Ja, bitte einrücken', value: 'textIndentTrue' },
-                        { label: 'Nein, heute nicht', value: 'textIndentFalse' }
-                    ]),
                     // Trennstrich-Auswahl
                     pbw.choose.input(props, 'line', [
                         { label: 'Ja, das scheint hier nötig', value: 'textLineTrue' },
@@ -177,18 +178,17 @@ wp.blocks.registerBlockType('sws2025/text', {
                 {
                     className: pbw.choose.output(props, "align"),
                 },
-                wp.element.createElement(
+                props.attributes.heading && wp.element.createElement(
                     'div',
                     {
                         className: 'headingWrap ' + pbw.choose.output(props, "circled"),
                     },
-                    pbw.h1.output(props, "h1", "heading"),
-                    pbw.p.output(props, "h3", "subheading"),
+                    pbw.h1.output(props, pbw.choose.output(props, 'headingSize'), "heading"),
                 ),
                 wp.element.createElement(
                     'div',
                     {
-                        className: 'textWrap ' + pbw.choose.output(props, "indent"),
+                        className: 'textWrap'
                     },
                     (pbw.choose.output(props, "line") === "textLineTrue") && wp.element.createElement('hr'),
                     pbw.p.output(props, "p", "text"),

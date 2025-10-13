@@ -11,8 +11,11 @@ wp.blocks.registerBlockType('sws2025/image-text', {
             description: "Das Bild das neben dem Text stehen soll"
         }),
         heading: pbw.h1.attr({
-            title: "Überschrift",
-            description: "Falls das Bild keine Überschrift haben soll einfach frei lassen"
+            title: "Falls das Bild keine Überschrift haben soll einfach frei lassen",
+        }),
+        headingSize: pbw.choose.attr({
+            default: "h1",
+            title: "Headline",
         }),
         text: pbw.p.attr({
             title: "Fließtext",
@@ -21,11 +24,8 @@ wp.blocks.registerBlockType('sws2025/image-text', {
         button_text: pbw.p.attr({
             selector: 'a.button',
             title: "Button Text",
-            description: "Dieser Text steht später auf dem Button"
         }),
-        link: pbw.link.attr({
-            title: "Button Verlinkung",
-        }),
+        link: pbw.link.attr(),
         opening: pbw.choose.attr({
             default: 'right',
             title: 'Randöffnung',
@@ -68,13 +68,33 @@ wp.blocks.registerBlockType('sws2025/image-text', {
                 // Image Input
                 pbw.img.input(props, "image"),
                 // Heading Input
-                pbw.h1.input(props, "h1", "heading"),
+                wp.element.createElement('div', {
+                    style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px' }
+                },
+                    pbw.choose.input(props, 'headingSize', [
+                        { label: 'h1', value: 'h1' },
+                        { label: 'h2', value: 'h2' },
+                        { label: 'h3', value: 'h3' },
+                        { label: 'h4', value: 'h4' },
+                        { label: 'h5', value: 'h5' },
+                        { label: 'h6', value: 'h6' }
+                    ]),
+                    pbw.h1.input(props, "h1", "heading"),
+                ),
+
                 // Text Input
                 pbw.p.input(props, "p", "text"),
-                // Button-Text Input
-                pbw.p.input(props, "p", "button_text"),
-                // Button-Link Input
-                pbw.link.input(props, "link"),
+                // Button Input
+                wp.element.createElement(
+                    'div',
+                    {
+                        style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px' }
+                    },
+                    // Button-Text Input
+                    pbw.p.input(props, "p", "button_text"),
+                    // Button-Link Input
+                    pbw.link.input(props, "link"),
+                )
 
             ),
 
@@ -180,7 +200,7 @@ wp.blocks.registerBlockType('sws2025/image-text', {
                 wp.element.createElement(
                     'div',
                     { className: `textWrap` },
-                    pbw.h1.output(props, "h3", "heading"),
+                    pbw.h1.output(props, pbw.choose.output(props,'headingSize'), "heading"),
                     pbw.p.output(props, "p", "text"),
                     pbw.link.output(props, "link", pbw.p.output(props, "span", "button_text")),
                 )
