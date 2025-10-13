@@ -1370,51 +1370,63 @@ class WordPressImageMapper {
     }
 
     /**
-     * Container mouse move for pixel-perfect detection
+     * Find marker at mouse position with badge and pixel-perfect detection
+     * Badge hover has absolute priority, independent of z-index
      * @param {MouseEvent} e - Mouse event
+     * @returns {HTMLElement|null} Found marker or null
      */
-    handleContainerMouseMove(e) {
-        if (!this.markers || this.state.zooming) return;
+    findMarkerAtPosition(e) {
+        if (!this.markers) return null;
 
-        // Reset all hover states
-        this.markers.forEach(marker => this.setHoverState(marker, false));
+        // PHASE 1: Check ALL badges first (absolute priority, z-index irrelevant)
+        for (const { marker } of this.markerZIndices) {
+            const markerLabel = marker.querySelector('.markerLabel h3.badge');
+            if (markerLabel) {
+                const labelRect = markerLabel.getBoundingClientRect();
+                
+                if (e.clientX >= labelRect.left && e.clientX <= labelRect.right &&
+                    e.clientY >= labelRect.top && e.clientY <= labelRect.bottom) {
+                    return marker;
+                }
+            }
+        }
 
-        // Track which marker should be hovered (highest z-index with opaque pixel)
-        let hoveredMarker = null;
-
-        // Check ALL markers in z-index order
+        // PHASE 2: Only if no badge was hit, check overlays (respects z-index order)
         for (const { marker, index } of this.markerZIndices) {
             const overlay = marker.querySelector(this.config.selectors.overlay);
             if (!overlay) continue;
 
             const rect = marker.getBoundingClientRect();
 
-            // Check if mouse is within marker bounds
             if (e.clientX >= rect.left && e.clientX <= rect.right &&
                 e.clientY >= rect.top && e.clientY <= rect.bottom) {
-
-                // Check pixel opacity
                 const data = this.canvasData.get(index);
                 if (!data || !data.imageData) {
-                    // No canvas data, use this marker if no other found yet
-                    if (!hoveredMarker) hoveredMarker = marker;
+                    return marker;
                 } else {
-                    // Calculate pixel position
                     const scaleX = data.width / overlay.offsetWidth;
                     const scaleY = data.height / overlay.offsetHeight;
                     const x = Math.floor((e.clientX - rect.left) * scaleX);
                     const y = Math.floor((e.clientY - rect.top) * scaleY);
 
-                    // Check if pixel is opaque
                     if (this.isPixelOpaque(data.imageData, x, y)) {
-                        hoveredMarker = marker;
-                        break; // Found opaque pixel, this is our marker
+                        return marker;
                     }
                 }
             }
         }
 
-        // Apply hover to the found marker
+        return null;
+    }
+
+    handleContainerMouseMove(e) {
+        if (!this.markers || this.state.zooming) return;
+
+        this.markers.forEach(marker => this.setHoverState(marker, false));
+
+        // Find marker at click position
+        const hoveredMarker = this.findMarkerAtPosition(e);
+
         if (hoveredMarker) {
             this.setHoverState(hoveredMarker, true);
         }
@@ -1492,40 +1504,8 @@ class WordPressImageMapper {
             return;
         }
 
-        // Find the topmost marker with opaque pixel at click position
-        let clickedMarker = null;
-
-        for (const { marker, index } of this.markerZIndices) {
-            const overlay = marker.querySelector(this.config.selectors.overlay);
-            if (!overlay) continue;
-
-            const rect = marker.getBoundingClientRect();
-
-            // Check if click is within marker bounds
-            if (e.clientX >= rect.left && e.clientX <= rect.right &&
-                e.clientY >= rect.top && e.clientY <= rect.bottom) {
-
-                // Check pixel opacity
-                const data = this.canvasData.get(index);
-                if (!data || !data.imageData) {
-                    // No canvas data, assume opaque
-                    clickedMarker = marker;
-                    break;
-                } else {
-                    // Calculate pixel position
-                    const scaleX = data.width / overlay.offsetWidth;
-                    const scaleY = data.height / overlay.offsetHeight;
-                    const x = Math.floor((e.clientX - rect.left) * scaleX);
-                    const y = Math.floor((e.clientY - rect.top) * scaleY);
-
-                    // Check if pixel is opaque
-                    if (this.isPixelOpaque(data.imageData, x, y)) {
-                        clickedMarker = marker;
-                        break;
-                    }
-                }
-            }
-        }
+        // Find marker at click position
+        const clickedMarker = this.findMarkerAtPosition(e);
 
         if (clickedMarker) {
             e.preventDefault();

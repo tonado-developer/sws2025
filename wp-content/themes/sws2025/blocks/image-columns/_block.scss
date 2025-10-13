@@ -75,7 +75,7 @@
     }
     figure{
         width: auto;
-        border-radius: 20px;
+        border-radius: $borderRadius;
         overflow: hidden;
         display: grid;
         img{
@@ -99,7 +99,7 @@
         transition: all 300ms ease;
         width: calc(100% - 5px);
         margin-bottom: 3px;
-        border-radius: 20px;
+        border-radius: $borderRadius;
         text-align: center;
         box-sizing: border-box;
         z-index: 2;

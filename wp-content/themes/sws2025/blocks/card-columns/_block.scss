@@ -18,9 +18,9 @@
         position: relative;
         
         &.is_rounded{
-            border-radius: 30px;
+            border-radius: $borderRadius;
             img{
-                border-radius: 22px;
+                border-radius: $borderRadius;
             }
         }
         &.dark{

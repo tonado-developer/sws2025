@@ -27,7 +27,7 @@
         border-radius: unset;
     }
     &.borderRadiusTrue {
-        border-radius: 40px;
+        border-radius: $borderRadius;
     }
     h1{
         position: relative;

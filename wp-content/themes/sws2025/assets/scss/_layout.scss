@@ -92,7 +92,7 @@ container {
 
 .card{
     background-color: white;
-    border-radius: 40px;
+    border-radius: $borderRadius;
     padding: unset;
     overflow: hidden;
 }

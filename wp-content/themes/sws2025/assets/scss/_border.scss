@@ -1,8 +1,8 @@
-@mixin mask-border($opening: null, $gap-height: 45, $corner-radius: 20, $stroke-width: 3.5, $inset: 0px) {
+@mixin mask-border($opening: null, $gap-height: 45, $corner-radius: 12, $stroke-width: 3.5, $inset: 0px) {
     position: relative;
     box-sizing: border-box;
     padding: calc(#{$stroke-width + 'px'} - 1px);
-    border-radius: #{$corner-radius + 'px'};
+    border-radius: $borderRadius;
     &:after {
         content: ' ';
         position: absolute;

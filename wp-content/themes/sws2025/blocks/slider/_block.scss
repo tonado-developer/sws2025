@@ -216,7 +216,7 @@
     
     .is_rounded {
         figure, img, figure::after {
-            border-radius: 20px;
+            border-radius: $borderRadius;
         }
     }
 }

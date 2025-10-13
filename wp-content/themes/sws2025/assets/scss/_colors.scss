@@ -65,7 +65,7 @@ section.bg-color{
 @mixin card {
     width: var(--wp--style--global--content-size);
     margin: auto;
-    border-radius: 30px;
+    border-radius: $borderRadius;
     padding: 40px
 }
 
