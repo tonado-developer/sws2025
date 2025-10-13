@@ -91,7 +91,16 @@ registerBlockType('sws2025/image-mapper', {
                         previewImage: { type: 'img', title: 'Vorschau Bild (WebP min200 x min200)' },
                         previewLabel: { type: 'text', title: 'Vorschau Überschrift' },
                         previewText: { type: 'text', title: 'Vorschau Text' },
-                        targetLink: { type: 'link', title: 'Zielseite' }
+                        targetLink: { type: 'link', title: 'Zielseite' },
+                        previewOrientation: {
+                            type: 'choose',
+                            title: 'Vorschau-Ausrichtung',
+                            description: 'In welche Richtung soll sich die Vorschau öffnen?',
+                            options: [
+                                { label: 'Rechts', value: 'right' },
+                                { label: 'Links', value: 'left' },
+                            ]
+                        }
                     }]
                 }
             }]
