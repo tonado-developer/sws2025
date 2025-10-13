@@ -3,6 +3,7 @@ wp.blocks.registerBlockType('sws2025/hero', {
     description: "Hiermit ein Statement setzen",
     icon: wp.element.createElement('img', {
         src: php_vars.template_directory_uri + '/assets/img/Logo SWS 2 zeilig_min.svg',
+        style: {pointerEvents: 'none'}
     }),
     style: ["file:./editor.css"],
     category: 'custom-blocks',

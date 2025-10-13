@@ -67,6 +67,7 @@ wp.blocks.registerBlockType('sws2025/interactivemap', {
     description: 'Barrierefreie Karte mit mehreren Standorten',
     icon: wp.element.createElement('img', {
         src: php_vars.template_directory_uri + '/assets/img/Logo SWS 2 zeilig_min.svg',
+        style: {pointerEvents: 'none'}
     }),
     category: 'custom-blocks',
     supports: {

@@ -3,6 +3,7 @@ registerBlockType('sws2025/image-mapper2', {
     description: "Der Berglandschafts-Editor deines Vertrauens",
     icon: wp.element.createElement('img', {
         src: php_vars.template_directory_uri + '/assets/img/Logo SWS 2 zeilig_min.svg',
+        style: {pointerEvents: 'none'}
     }),
     category: 'custom-blocks',
     attributes: {
