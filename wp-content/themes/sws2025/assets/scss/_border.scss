@@ -1,4 +1,4 @@
-@mixin mask-border($opening: null, $gap-height: 45, $corner-radius: 12, $stroke-width: 3.5, $inset: 0px) {
+@mixin mask-border($opening: null, $gap-height: 45, $corner-radius: 12, $stroke-width: 3.5, $inset: 0px, $color-mode: 'loud') {
     position: relative;
     box-sizing: border-box;
     padding: calc(#{$stroke-width + 'px'} - 1px);
@@ -7,7 +7,11 @@
         content: ' ';
         position: absolute;
         inset: $inset;
-        background: linear-gradient(26deg, #ffcd29 0%, var(--wp--preset--color--accent-1) 25%, #ffcd29 50%, var(--wp--preset--color--accent-1) 75%, #ffcd29 100%);
+        @if $color-mode == 'loud' {
+            background: linear-gradient(26deg, #ffcd29 0%, var(--wp--preset--color--accent-1) 25%, #ffcd29 50%, var(--wp--preset--color--accent-1) 75%, #ffcd29 100%);
+        } @else if $color-mode == 'silent' {
+            background: var(--wp--preset--color--accent-1);
+        }
         background-size: 200% 200%;
         animation: gradient-flow 6s ease infinite;
         mask-size: 100% 100%;

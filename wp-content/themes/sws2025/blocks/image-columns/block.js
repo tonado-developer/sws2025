@@ -67,6 +67,26 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
                             { label: 'Oben', value: 'top' },
                             { label: 'Keinen', value: 'none' }
                         ]
+                    },
+                    hasBorder: {
+                        type: 'choose',
+                        title: 'Umrandung',
+                        description: 'Soll das Bild eine farbige Umrandung haben?',
+                        options: [
+                            { label: 'Ja, bitte umranden.', value: 'has_border' },
+                            { label: 'Ja, bitte umranden (aber ohne verlauf).', value: 'has_silent_border' },
+                            { label: 'Nein, bitte nicht umranden.', value: 'has_no_border' }
+                        ]
+                    },
+                    textBackground: {
+                        type: 'choose',
+                        title: 'Text-Hintergrund',
+                        description: 'Welche Farbe sollde rBalken hinter dem Text sein?',
+                        options: [
+                            { label: 'Bunt', value: 'color' },
+                            { label: 'Dunkel', value: 'dark' },
+                            { label: 'Hell', value: 'light' }
+                        ]
                     }
                 }
             ]
@@ -176,7 +196,7 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
 
                     // Grundprops
                     const componentProps = {
-                        className: 'kachel-text-reveal ' + (item.opening ?? "right") +
+                        className: 'kachel-text-reveal ' + (item.opening ?? "right") + '  ' + (item.hasBorder ?? "has_border") + '  ' + (item.textBackground ?? "color") +
                             " " + pbw.choose.output(props, "onhover"),
                         key: item.key
                     };
