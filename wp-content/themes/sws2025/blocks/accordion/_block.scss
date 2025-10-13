@@ -158,4 +158,9 @@
     p,h3{
         margin: unset;
     }
+
+    a.link{
+        margin-top: 10px;
+        @include button;
+    }
 }

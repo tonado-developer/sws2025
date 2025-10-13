@@ -294,15 +294,15 @@ wp.blocks.registerBlockType('sws2025/accordion', {
                                     tagName: 'p',
                                     value: item.text || "", // Zugriff auf den ersten Wert
                                 }),
-                            ),
-                            item.link && wp.element.createElement(
-                                'a',
-                                {
-                                    href: item.link,
-                                    className: `link`,
-                                    key: item.key
-                                },
-                                item.button_text
+                                item.link && wp.element.createElement(
+                                    'a',
+                                    {
+                                        href: item.link,
+                                        className: `link`,
+                                        key: item.key
+                                    },
+                                    item.button_text
+                                )
                             )
                         );
                     })
