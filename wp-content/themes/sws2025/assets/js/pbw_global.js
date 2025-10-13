@@ -26,23 +26,31 @@ function safeGet(obj, path, defaultValue = null) {
 // TEXT INPUT/OUTPUT
 // ============================================
 
-function text_input(props, tag, name) {
+function text_input(props, tag, name, options = {}) {
     const { attributes, setAttributes } = props;
     const blockType = wp.blocks.getBlockType(props.name);
     const config = blockType?.attributes?.[name] || {};
+
+    const {
+        title = config.title,
+        description = config.description,
+        placeholder = config.placeholder,
+        allowedFormats = config.allowedFormats
+    } = options;
+    options && console.log('found text config', title)
 
     return createElement('div', {
         className: 'pbw-field-wrapper',
         style: styles.fieldWrapper
     },
-        config.title && createElement('label', { style: styles.fieldLabel }, config.title),
-        config.description && createElement('p', { style: styles.fieldDescription }, config.description),
+        title && createElement('label', { style: styles.fieldLabel }, title),
+        description && createElement('p', { style: styles.fieldDescription }, description),
         createElement(RichText, {
             tagName: tag,
             value: attributes[name] || '',
             onChange: (value) => setAttributes({ [name]: value }),
-            placeholder: config.placeholder || 'Text eingeben...',
-            allowedFormats: config.allowedFormats || ['core/bold', 'core/italic']
+            placeholder: placeholder || 'Text eingeben...',
+            allowedFormats: allowedFormats || ['core/bold', 'core/italic']
         })
     );
 }
@@ -64,7 +72,11 @@ function media_input(props, name, options = {}) {
     const blockType = wp.blocks.getBlockType(props.name);
     const config = blockType?.attributes?.[name] || {};
 
-    const { allowedTypes = ['image'] } = options;
+    const {
+        allowedTypes = ['image'],
+        title = config.title,
+        description = config.description,
+    } = options;
     const url = attributes[name];
     const alt = attributes[name + 'Alt'] || '';
     const id = attributes[name + 'Id'];
@@ -73,8 +85,8 @@ function media_input(props, name, options = {}) {
         className: 'pbw-field-wrapper',
         style: styles.fieldWrapper
     },
-        config.title && createElement('label', { style: styles.fieldLabel }, config.title),
-        config.description && createElement('p', { style: styles.fieldDescription }, config.description),
+        title && createElement('label', { style: styles.fieldLabel }, title),
+        description && createElement('p', { style: styles.fieldDescription }, description),
 
         url && createElement('img', {
             src: url,
@@ -152,18 +164,23 @@ function media_output(props, name, settings = {}) {
 // LINK INPUT/OUTPUT
 // ============================================
 
-function link_input(props, name) {
+function link_input(props, name, options = {}) {
     const { attributes, setAttributes } = props;
     const blockType = wp.blocks.getBlockType(props.name);
     const config = blockType?.attributes?.[name] || {};
     const url = attributes[name] || '';
 
+    const {
+        title = config.title,
+        description = config.description,
+    } = options;
+
     return createElement('div', {
         className: 'pbw-field-wrapper',
         style: styles.fieldWrapper
     },
-        config.title && createElement('label', { style: styles.fieldLabel }, config.title),
-        config.description && createElement('p', { style: styles.fieldDescription }, config.description),
+        title && createElement('label', { style: styles.fieldLabel }, title),
+        description && createElement('p', { style: styles.fieldDescription }, description),
         createElement(BaseControl, { label: 'URL' },
             createElement(URLInputButton, {
                 url: url,
@@ -185,24 +202,29 @@ function link_output(props, name, content = null) {
 // SELECT INPUT/OUTPUT
 // ============================================
 
-function select_input(props, name, options) {
+function select_input(props, name, items, options = {}) {
     const { attributes, setAttributes } = props;
     const blockType = wp.blocks.getBlockType(props.name);
     const config = blockType?.attributes?.[name] || {};
 
-    const optionsArray = typeof options === 'function'
-        ? options(props)
-        : (options || config.options || []);
+    const itemsArray = typeof items === 'function'
+        ? items(props)
+        : (items || config.items || []);
+
+    const {
+        title = config.title,
+        description = config.description,
+    } = options;
 
     return createElement('div', {
         className: 'pbw-field-wrapper',
         style: styles.fieldWrapper
     },
-        config.title && createElement('label', { style: styles.fieldLabel }, config.title),
-        config.description && createElement('p', { style: styles.fieldDescription }, config.description),
+        title && createElement('label', { style: styles.fieldLabel }, title),
+        description && createElement('p', { style: styles.fieldDescription }, description),
         createElement(SelectControl, {
             value: attributes[name] || '',
-            options: optionsArray,
+            options: itemsArray,
             onChange: (value) => setAttributes({ [name]: value })
         })
     );
@@ -738,17 +760,17 @@ window.pbw2 = {
     // Text
     h1: {
         attr: (params = {}) => pbw_attributes({ ...params }),
-        input: (props, tag, name) => text_input(props, 'h1', name),
+        input: (props, tag, name, options) => text_input(props, 'h1', name, options),
         output: (props, tag, name) => text_output(props, 'h1', name)
     },
     h2: {
         attr: (params = {}) => pbw_attributes({ ...params }),
-        input: (props, tag, name) => text_input(props, 'h2', name),
+        input: (props, tag, name, options) => text_input(props, 'h2', name, options),
         output: (props, tag, name) => text_output(props, 'h2', name)
     },
     p: {
         attr: (params = {}) => pbw_attributes({ ...params }),
-        input: (props, tag, name) => text_input(props, 'p', name),
+        input: (props, tag, name, options) => text_input(props, 'p', name, options),
         output: (props, tag, name) => text_output(props, 'p', name)
     },
     text: {

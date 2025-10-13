@@ -1,11 +1,11 @@
 registerBlockType('sws2025/image-mapper2', {
-    title: 'Berge V2',
+    title: 'Berge',
     description: "Der Berglandschafts-Editor deines Vertrauens",
     icon: wp.element.createElement('img', {
         src: php_vars.template_directory_uri + '/assets/img/Logo SWS 2 zeilig_min.svg',
     }),
     category: 'custom-blocks',
-    
+
     attributes: {
         // Basis-Bilder
         ...pbw2.img.attr('backgroundImage', {
@@ -28,12 +28,12 @@ registerBlockType('sws2025/image-mapper2', {
             title: 'Illustration',
             description: 'Dekorative Grafik (SVG)'
         }),
-        
+
         illustrationImageSvg: {
             type: 'string',
             default: ''
         },
-        
+
         // Texte
         sideHeadline: pbw2.h1.attr({
             title: 'Haupt-Überschrift',
@@ -43,18 +43,19 @@ registerBlockType('sws2025/image-mapper2', {
             title: 'Beschreibungstext',
             description: 'Längerer Text unter der Überschrift'
         }),
-        
+
         // Hotspots Array (flache Objekt-Struktur)
         hotspots: pbw2.array.attr({
             title: 'Hotspots',
-            description: 'Interaktive Bereiche auf dem Bild'
+            description: 'Interaktive Bereiche auf dem Bild',
+
         })
     },
 
-    edit: function(props) {
+    edit: function (props) {
         const { attributes, setAttributes } = props;
         const { useState, useRef, useEffect } = wp.element;
-        
+
         const [isDragging, setIsDragging] = useState(false);
         const [draggedIndex, setDraggedIndex] = useState(null);
         const previewRef = useRef(null);
@@ -75,7 +76,7 @@ registerBlockType('sws2025/image-mapper2', {
         // SVG Loader für Hotspot Illustrationen
         useEffect(() => {
             if (!attributes.hotspots) return;
-            
+
             attributes.hotspots.forEach((hotspot, index) => {
                 if (hotspot.illustrationImage && !hotspot.illustrationImageSvg) {
                     fetch(hotspot.illustrationImage)
@@ -83,9 +84,9 @@ registerBlockType('sws2025/image-mapper2', {
                         .then(svg => {
                             const base64 = btoa(unescape(encodeURIComponent(svg.trim())));
                             const newHotspots = [...attributes.hotspots];
-                            newHotspots[index] = { 
-                                ...newHotspots[index], 
-                                illustrationImageSvg: base64 
+                            newHotspots[index] = {
+                                ...newHotspots[index],
+                                illustrationImageSvg: base64
                             };
                             setAttributes({ hotspots: newHotspots });
                         })
@@ -134,12 +135,12 @@ registerBlockType('sws2025/image-mapper2', {
 
             // Bilder Section
             group('🖼️ Bilder', { open: false },
-                wp.element.createElement('div', { 
-                    style: { 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(2, 1fr)', 
-                        gap: '16px' 
-                    } 
+                wp.element.createElement('div', {
+                    style: {
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: '16px'
+                    }
                 },
                     pbw2.img.input(props, 'backgroundImage'),
                     pbw2.img.input(props, 'baseImage'),
@@ -169,7 +170,7 @@ registerBlockType('sws2025/image-mapper2', {
                         marginBottom: '16px'
                     }
                 },
-                    wp.element.createElement('strong', { style: { display: 'block', marginBottom: '8px' } }, 
+                    wp.element.createElement('strong', { style: { display: 'block', marginBottom: '8px' } },
                         '💡 Bedienungshinweise:'
                     ),
                     wp.element.createElement('ul', { style: { margin: 0, fontSize: '13px', paddingLeft: '20px' } },
@@ -179,13 +180,13 @@ registerBlockType('sws2025/image-mapper2', {
                     )
                 ),
 
-                attributes.baseImage ? wp.element.createElement('div', { 
-                    style: { 
+                attributes.baseImage ? wp.element.createElement('div', {
+                    style: {
                         position: 'relative',
                         border: '2px dashed #ccc',
                         borderRadius: '8px',
                         overflow: 'hidden'
-                    } 
+                    }
                 },
                     wp.element.createElement('img', {
                         ref: previewRef,
@@ -193,9 +194,9 @@ registerBlockType('sws2025/image-mapper2', {
                         alt: 'Preview',
                         style: { width: '100%', display: 'block', cursor: 'crosshair' }
                     }),
-                    
+
                     // Hotspot Markers
-                    attributes.hotspots?.map((hotspot, index) => 
+                    attributes.hotspots?.map((hotspot, index) =>
                         wp.element.createElement('div', {
                             key: index,
                             style: {
@@ -217,11 +218,11 @@ registerBlockType('sws2025/image-mapper2', {
                         },
                             hotspot.overlay && wp.element.createElement('img', {
                                 src: hotspot.overlay,
-                                style: { 
-                                    width: '100%', 
-                                    height: '100%', 
+                                style: {
+                                    width: '100%',
+                                    height: '100%',
                                     objectFit: 'contain',
-                                    pointerEvents: 'none' 
+                                    pointerEvents: 'none'
                                 }
                             }),
                             wp.element.createElement('span', {
@@ -252,7 +253,7 @@ registerBlockType('sws2025/image-mapper2', {
                     }
                 },
                     wp.element.createElement('div', { style: { fontSize: '48px', marginBottom: '12px' } }, '🖼️'),
-                    wp.element.createElement('p', { style: { margin: 0, color: '#666' } }, 
+                    wp.element.createElement('p', { style: { margin: 0, color: '#666' } },
                         'Bitte zuerst ein Basis-Bild auswählen'
                     )
                 )
@@ -262,51 +263,57 @@ registerBlockType('sws2025/image-mapper2', {
             group('⚙️ Hotspot-Konfiguration', { open: false },
                 pbw2.array.input(props, 'hotspots', (itemProps, index) => {
                     return wp.element.createElement(wp.element.Fragment, null,
-                        
+
                         // Basis-Einstellungen
                         group('📍 Basis-Einstellungen', { open: false },
-                            pbw2.text.input(itemProps, 'p', 'catName'),
-                            pbw2.img.input(itemProps, 'overlay'),
-                            
-                            wp.element.createElement('div', { 
-                                style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' } 
+                            pbw2.text.input(itemProps, 'p', 'catName', { title: 'Hotspot-Name' }),
+                            pbw2.img.input(itemProps, 'overlay', { title: 'Hover Overlay (WebP 100% Vollton, Größe = Echtes Format auf Basis-Bild)' }),
+
+                            wp.element.createElement('div', {
+                                style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }
                             },
-                                pbw2.text.input(itemProps, 'p', 'xPosition'),
-                                pbw2.text.input(itemProps, 'p', 'yPosition'),
-                                pbw2.text.input(itemProps, 'p', 'width')
+                                pbw2.text.input(itemProps, 'p', 'xPosition', { title: 'X Position (%)' }),
+                                pbw2.text.input(itemProps, 'p', 'yPosition', { title: 'Y Position (%)' }),
+                                pbw2.text.input(itemProps, 'p', 'width', { title: 'Breite (%)' })
                             )
                         ),
 
                         // Zoom-Inhalte
                         group('🔍 Zoom-Inhalte', { open: false },
-                            pbw2.img.input(itemProps, 'zoomImage'),
-                            pbw2.img.input(itemProps, 'personImage'),
-                            pbw2.img.input(itemProps, 'illustrationImage'),
-                            pbw2.text.input(itemProps, 'p', 'sideText'),
-                            pbw2.link.input(itemProps, 'sideLink'),
-                            pbw2.text.input(itemProps, 'p', 'sideLinkText')
+                            pbw2.img.input(itemProps, 'zoomImage', { title: 'Freigestellter Berg (WebP, Größe = Echtes Format auf Basis-Bild HD)' }),
+                            pbw2.img.input(itemProps, 'personImage', { title: 'Person Bild (WebP 1920 x 1080)' }),
+                            pbw2.img.input(itemProps, 'illustrationImage', { title: 'Orange Illustration (SVG) (fluegel.svg,illu_feuer.svg,illu_helm.svg)' }),
+                            pbw2.text.input(itemProps, 'p', 'sideText', { title: 'Seiten-Text' }),
+                            pbw2.link.input(itemProps, 'sideLink', { title: 'Seiten-Link' }),
+                            pbw2.text.input(itemProps, 'p', 'sideLinkText', { title: 'Link-Text' })
                         ),
 
                         // SVG Pfad + Checkpoints
                         group('🛤️ SVG Pfad & Checkpoints', { open: false },
-                            pbw2.img.input(itemProps, 'pathSvg'),
-                            
+                            pbw2.img.input(itemProps, 'pathSvg', { title: 'SVG Pfad (SVG)' }),
+
                             // NESTED ARRAY - Checkpoints
                             pbw2.array.input(itemProps, 'checkpoints', (checkpointProps) => {
-                                return wp.element.createElement(wp.element.Fragment, null,
-                                    pbw2.text.input(checkpointProps, 'p', 'pathPosition'),
-                                    pbw2.img.input(checkpointProps, 'previewImage'),
-                                    pbw2.text.input(checkpointProps, 'p', 'previewLabel'),
-                                    pbw2.text.input(checkpointProps, 'p', 'previewText'),
-                                    pbw2.link.input(checkpointProps, 'targetLink'),
-                                    pbw2.choose.input(checkpointProps, 'previewOrientation', [
-                                        { label: 'Rechts', value: 'right' },
-                                        { label: 'Links', value: 'left' }
-                                    ])
+                                return group(checkpointProps.attributes.previewLabel || "Marker", { open: false },
+                                    wp.element.createElement(wp.element.Fragment, null,
+                                        pbw2.text.input(checkpointProps, 'p', 'pathPosition', { title: 'Position auf Pfad (0-100%)' }),
+                                        pbw2.img.input(checkpointProps, 'previewImage', { title: 'Vorschau Bild (WebP min200 x min200)' }),
+                                        pbw2.text.input(checkpointProps, 'p', 'previewLabel', { title: 'Vorschau Überschrift' }),
+                                        pbw2.text.input(checkpointProps, 'p', 'previewText', { title: 'Vorschau Text' }),
+                                        pbw2.link.input(checkpointProps, 'targetLink', { title: 'Zielseite' }),
+                                        pbw2.choose.input(checkpointProps, 'previewOrientation', [
+                                            { label: 'Rechts', value: 'right' },
+                                            { label: 'Links', value: 'left' }
+                                        ], {
+                                            title: 'Vorschau-Ausrichtung',
+                                            description: 'In welche Richtung soll sich die Vorschau öffnen?'
+                                        })
+                                    )
                                 );
                             }, {
                                 title: 'Checkpoints',
                                 addButtonText: 'Checkpoint hinzufügen',
+                                maximum: 5,
                                 emptyTemplate: {
                                     pathPosition: '50',
                                     previewImage: null,
@@ -356,11 +363,11 @@ registerBlockType('sws2025/image-mapper2', {
         );
     },
 
-    save: function(props) {
+    save: function (props) {
         const { attributes } = props;
 
         return wp.element.createElement('div', { className: 'image-mapper-container' },
-            
+
             // Background Image
             attributes.backgroundImage && wp.element.createElement('img', {
                 className: 'backgroundImage',
@@ -400,8 +407,8 @@ registerBlockType('sws2025/image-mapper2', {
             attributes.illustrationImageSvg && wp.element.createElement('div', {
                 className: 'illustration-image open',
                 'data-original-file': attributes.illustrationImage,
-                dangerouslySetInnerHTML: { 
-                    __html: atob(attributes.illustrationImageSvg) 
+                dangerouslySetInnerHTML: {
+                    __html: atob(attributes.illustrationImageSvg)
                 },
                 style: {
                     transform: 'translate(-20%,100%) scale(.7)',
@@ -429,7 +436,7 @@ registerBlockType('sws2025/image-mapper2', {
                 // Hotspots
                 pbw2.array.output(props, 'hotspots', (itemProps, index) => {
                     const hotspot = itemProps.attributes;
-                    
+
                     return wp.element.createElement('div', {
                         key: index,
                         className: 'position-marker',
@@ -522,8 +529,8 @@ registerBlockType('sws2025/image-mapper2', {
                             className: 'illustration-image',
                             'data-hotspot-id': index,
                             'data-original-file': hotspot.illustrationImage,
-                            dangerouslySetInnerHTML: { 
-                                __html: atob(hotspot.illustrationImageSvg) 
+                            dangerouslySetInnerHTML: {
+                                __html: atob(hotspot.illustrationImageSvg)
                             },
                             style: {
                                 transform: 'translate(-20%,100%) scale(.7)',
@@ -546,7 +553,7 @@ registerBlockType('sws2025/image-mapper2', {
                                 alt: ''
                             }),
                             wp.element.createElement('div', { className: 'checkpointsWrapper' },
-                                hotspot.checkpoints.map((checkpoint, cpIndex) => 
+                                hotspot.checkpoints.map((checkpoint, cpIndex) =>
                                     wp.element.createElement('div', {
                                         key: cpIndex,
                                         className: `checkpoint-marker markerLabel opening-${checkpoint.previewOrientation || 'right'}`,
@@ -558,7 +565,7 @@ registerBlockType('sws2025/image-mapper2', {
                                             className: 'badge',
                                             onclick: 'Overlay.open(this.href, event); return false;'
                                         }, checkpoint.previewLabel),
-                                        
+
                                         wp.element.createElement('div', {
                                             className: `badgeInfo has_border is_rounded`
                                         },
