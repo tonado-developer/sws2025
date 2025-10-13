@@ -45,6 +45,11 @@ wp.blocks.registerBlockType('sws2025/image-text', {
             default: "none",
             title: 'Karte',
             description: 'Soll der Block in eine Karte verpackt werden? Wenn ja welcher Farbmodus?',
+        }),
+        align: pbw.choose.attr({
+            default: "center",
+            title: 'Ausrichtung',
+            description: 'Wie sollen die Panele auf der X-Achse ausgerichtet werden?',
         })
     },
     example: {
@@ -97,6 +102,12 @@ wp.blocks.registerBlockType('sws2025/image-text', {
                         { label: 'Oben', value: 'top' },
                         { label: 'Keinen', value: 'none' }
                     ]),
+                    // Ausrichtung
+                    pbw.choose.input(props, 'align', [
+                        { label: 'Obere Kante', value: 'top' },
+                        { label: 'Mittig', value: 'center' },
+                        { label: 'Untere Kante', value: 'bottom' }
+                    ]),
                     // Sektion Hintergrund
                     pbw.choose.input(props, 'sectionBackground', [
                         { label: 'Keine Hintergrundfarbe', value: 'none' },
@@ -129,6 +140,12 @@ wp.blocks.registerBlockType('sws2025/image-text', {
                     { label: 'Oben', value: 'top' },
                     { label: 'Keinen', value: 'none' }
                 ]),
+                // Ausrichtung
+                pbw.choose.input(props, 'align', [
+                    { label: 'Obere Kante', value: 'top' },
+                    { label: 'Mittig', value: 'center' },
+                    { label: 'Untere Kante', value: 'bottom' }
+                ]),
                 // Sektion Hintergrund
                 pbw.choose.input(props, 'sectionBackground', [
                     { label: 'Keine Hintergrundfarbe', value: 'none' },
@@ -155,7 +172,9 @@ wp.blocks.registerBlockType('sws2025/image-text', {
             wp.element.createElement(
                 'container',
                 {
-                    className: "imageTextGrid has_border is_rounded opening-" + pbw.choose.output(props, "opening") + " figure-" + pbw.choose.output(props, "order"),
+                    className: "imageTextGrid has_border is_rounded opening-" + pbw.choose.output(props, "opening")
+                        + " figure-" + pbw.choose.output(props, "order")
+                        + " align-items-" + pbw.choose.output(props, "align"),
                 },
                 pbw.img.output(props, "image"),
                 wp.element.createElement(

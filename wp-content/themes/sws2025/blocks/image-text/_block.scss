@@ -61,4 +61,13 @@
     .link{
         @include button;
     }
+    .align-items-center{
+        align-items: center;
+    }
+    .align-items-top{
+        align-items: start;
+    }
+    .align-items-bottom{
+        align-items: end;
+    }
 }
