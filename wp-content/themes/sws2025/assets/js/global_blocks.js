@@ -15,38 +15,39 @@
  */
 
 // BLOCK EDITOR KOMPONENTEN (wp.blockEditor)
-const {
-    URLInput,
-    URLInputButton,
-    InnerBlocks,
-    MediaUpload,
-    InspectorControls,
-    RichText,
-    useBlockProps,
-    ColorPalette
-} = wp.blockEditor;
+// const {
+//     URLInput,
+//     URLInputButton,
+//     InnerBlocks,
+//     MediaUpload,
+//     InspectorControls,
+//     RichText,
+//     useBlockProps,
+//     ColorPalette
+// } = wp.blockEditor;
 
-// UI KOMPONENTEN (wp.components) 
-const {
-    Button,
-    PanelBody,
-    TextControl,
-    SelectControl,
-    ExternalLink,
-    BaseControl
-} = wp.components;
+// // UI KOMPONENTEN (wp.components) 
+// const {
+//     Button,
+//     PanelBody,
+//     TextControl,
+//     SelectControl,
+//     ExternalLink,
+//     BaseControl
+// } = wp.components;
 
-// REACT-ÄHNLICHE FUNKTIONEN (wp.element)
-const {
-    createElement,
-    Fragment
-} = wp.element;
+// // REACT-ÄHNLICHE FUNKTIONEN (wp.element)
+// const {
+//     createElement,
+//     Fragment,
+//     useState
+// } = wp.element;
 
 // BLOCK REGISTRATION (wp.blocks)
-const { registerBlockType } = wp.blocks;
+// const { registerBlockType } = wp.blocks;
 
 // INTERNATIONALISIERUNG (wp.i18n) 
-const { __ } = wp.i18n;
+// const { __ } = wp.i18n;
 
 /**
  * UTILITY FUNCTIONS
@@ -1849,61 +1850,13 @@ function nested_array_addblock(props, parentIndex, parentFieldName, fieldName, n
     const addNestedBlock = () => {
         try {
             const currentItems = [...(props.attributes[parentFieldName] || [])];
-
+            console.log(currentItems)
             if (!currentItems[parentIndex]) {
                 console.warn('[PBW] Parent item not found');
                 return;
             }
 
             let currentParent = currentItems[parentIndex];
-
-            // OBJEKT-FORMAT zu ARRAY-FORMAT konvertieren wenn nötig (COPY VON nested_array_input)
-            if (!Array.isArray(currentParent)) {
-                const blockType = wp.blocks.getBlockType(props.name);
-                const parentAttrConfig = blockType?.attributes?.[parentFieldName];
-                const template = parentAttrConfig?.default?.[0];
-
-                if (template) {
-                    const newArrayItem = [];
-
-                    // WICHTIG: Durchlaufe ALLE Template-Felder (nicht nur existierende)
-                    Object.keys(template).forEach(key => {
-                        const fieldConfig = template[key];
-                        const existingData = currentParent[key] || {}; // Falls Feld fehlt: leeres Object
-
-                        const newField = {
-                            name: key,
-                            type: fieldConfig.type,
-                            label: fieldConfig.label || key
-                        };
-
-                        if (fieldConfig.type === 'img') {
-                            newField[key] = existingData[key] || null;
-                            newField[key + 'Alt'] = existingData[key + 'Alt'] || '';
-                            newField[key + 'Data'] = existingData[key + 'Data'] || '';
-                        } else if (fieldConfig.type === 'nested_array') {
-                            // Verwende existierende Daten ODER leeres Array (nicht das Template)
-                            newField[key] = existingData[key] || [];
-                            // WICHTIG: Speichere auch default für spätere Referenz
-                            newField.default = fieldConfig.default;
-                        } else if (fieldConfig.type === 'choose') {
-                            newField[key] = existingData[key] || fieldConfig.default || '';
-                        } else {
-                            newField[key] = existingData[key] || fieldConfig.default || '';
-                        }
-
-                        newArrayItem.push(newField);
-                    });
-
-                    currentParent = newArrayItem;
-                    currentItems[parentIndex] = newArrayItem;
-                }
-            }
-
-            if (!Array.isArray(currentParent)) {
-                console.warn('[PBW] Could not convert parent to array format');
-                return;
-            }
 
             currentParent = [...currentParent];
             const fieldIndex = currentParent.findIndex(item => item && item.name === fieldName);
@@ -1935,6 +1888,7 @@ function nested_array_addblock(props, parentIndex, parentFieldName, fieldName, n
                     newField[key] = null;
                     newField[key + 'Alt'] = '';
                     newField[key + 'Data'] = '';
+                    newField[key + 'Id'] = null;
                 } else {
                     newField[key] = config.default || '';
                 }
@@ -1943,6 +1897,7 @@ function nested_array_addblock(props, parentIndex, parentFieldName, fieldName, n
             });
 
             const currentNestedArray = currentParent[fieldIndex][fieldName] || [];
+            
             currentParent[fieldIndex][fieldName] = [...currentNestedArray, newNestedItem];
             currentItems[parentIndex] = currentParent;
 
@@ -2013,46 +1968,6 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
     const currentItems = props.attributes[parentFieldName] || [];
     let currentParent = currentItems[parentIndex] || [];
 
-    // OBJEKT zu ARRAY konvertieren SOFORT
-    if (!Array.isArray(currentParent)) {
-        const blockType = wp.blocks.getBlockType(props.name);
-        const parentAttrConfig = blockType?.attributes?.[parentFieldName];
-        const template = parentAttrConfig?.default?.[0];
-
-        if (template) {
-            const newArrayItem = [];
-
-            // WICHTIG: Durchlaufe ALLE Template-Felder (nicht nur existierende)
-            Object.keys(template).forEach(key => {
-                const fieldConfig = template[key];
-                const existingData = currentParent[key] || {}; // Falls Feld fehlt: leeres Object
-
-                const newField = {
-                    name: key,
-                    type: fieldConfig.type,
-                    label: fieldConfig.label || key
-                };
-
-                if (fieldConfig.type === 'img') {
-                    newField[key] = existingData[key] || null;
-                    newField[key + 'Alt'] = existingData[key + 'Alt'] || '';
-                    newField[key + 'Data'] = existingData[key + 'Data'] || '';
-                } else if (fieldConfig.type === 'nested_array') {
-                    newField[key] = existingData[key] || [];
-                } else if (fieldConfig.type === 'choose') {
-                    newField[key] = existingData[key] || fieldConfig.default || '';
-                } else {
-                    newField[key] = existingData[key] || fieldConfig.default || '';
-                }
-
-                newArrayItem.push(newField);
-            });
-
-            currentParent = newArrayItem;
-            currentItems[parentIndex] = newArrayItem;
-        }
-    }
-
     let nestedArray = [];
     if (Array.isArray(currentParent)) {
         const fieldItem = currentParent.find(item => item && item.name === fieldName);
@@ -2090,6 +2005,7 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
                                 newField[nestedFieldName] = null;
                                 newField[nestedFieldName + 'Alt'] = '';
                                 newField[nestedFieldName + 'Data'] = '';
+                                newField[nestedFieldName + 'Id'] = null;
                             } else {
                                 newField[nestedFieldName] = '';
                             }
@@ -2221,9 +2137,46 @@ function nested_array_input(props, parentIndex, parentFieldName, fieldName, nest
                             };
                         }
 
+                        // FIX: Zeige title und description für jedes Feld an
                         return wp.element.createElement(
                             'div',
-                            { key: nestedFieldName, style: { marginBottom: '8px' } },
+                            {
+                                key: nestedFieldName,
+                                style: {
+                                    marginBottom: '12px',
+                                    padding: '8px',
+                                    backgroundColor: '#f9f9f9',
+                                    borderRadius: '3px'
+                                }
+                            },
+                            // Titel hinzufügen
+                            fieldConfig?.title && wp.element.createElement(
+                                'label',
+                                {
+                                    style: {
+                                        display: 'block',
+                                        fontWeight: '600',
+                                        marginBottom: '4px',
+                                        fontSize: '12px',
+                                        color: '#2c3e50'
+                                    }
+                                },
+                                fieldConfig.title
+                            ),
+                            // Description hinzufügen
+                            fieldConfig?.description && wp.element.createElement(
+                                'p',
+                                {
+                                    style: {
+                                        fontSize: '11px',
+                                        color: '#666',
+                                        marginBottom: '8px',
+                                        marginTop: '0'
+                                    }
+                                },
+                                fieldConfig.description
+                            ),
+                            // Input Feld
                             fieldConfig.type === 'text' && text_input(tempProps, 'p', tempKey),
                             fieldConfig.type === 'link' && link_input(tempProps, tempKey),
                             fieldConfig.type === 'img' && media_input(tempProps, tempKey)

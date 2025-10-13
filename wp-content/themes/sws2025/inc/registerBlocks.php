@@ -31,6 +31,15 @@ function custom_block_editor_assets()
         true
     );
 
+    // Globales Skript NUR im Editor
+    wp_enqueue_script(
+        'custom-global-script2',
+        get_template_directory_uri() . '/assets/js/pbw_global.js',
+        array('wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-block-editor', 'wp-media-utils'),
+        filemtime(get_template_directory() . '/assets/js/pbw_global.js'),
+        true
+    );
+
     // Globale Editor CSS NUR im Editor
     wp_enqueue_style(
         "custom-category-style",
