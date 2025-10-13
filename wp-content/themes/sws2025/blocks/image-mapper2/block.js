@@ -264,7 +264,7 @@ registerBlockType('sws2025/image-mapper2', {
                     return wp.element.createElement(wp.element.Fragment, null,
                         
                         // Basis-Einstellungen
-                        group('📍 Basis-Einstellungen', { open: true },
+                        group('📍 Basis-Einstellungen', { open: false },
                             pbw2.text.input(itemProps, 'p', 'catName'),
                             pbw2.img.input(itemProps, 'overlay'),
                             
@@ -399,8 +399,12 @@ registerBlockType('sws2025/image-mapper2', {
             // Illustration (Global)
             attributes.illustrationImageSvg && wp.element.createElement('div', {
                 className: 'illustration-image open',
+                'data-original-file': attributes.illustrationImage,
                 dangerouslySetInnerHTML: { 
                     __html: atob(attributes.illustrationImageSvg) 
+                },
+                style: {
+                    transform: 'translate(-20%,100%) scale(.7)',
                 }
             }),
 
@@ -517,8 +521,12 @@ registerBlockType('sws2025/image-mapper2', {
                             key: `illu-${index}`,
                             className: 'illustration-image',
                             'data-hotspot-id': index,
+                            'data-original-file': hotspot.illustrationImage,
                             dangerouslySetInnerHTML: { 
                                 __html: atob(hotspot.illustrationImageSvg) 
+                            },
+                            style: {
+                                transform: 'translate(-20%,100%) scale(.7)',
                             }
                         })
                     );
@@ -541,7 +549,7 @@ registerBlockType('sws2025/image-mapper2', {
                                 hotspot.checkpoints.map((checkpoint, cpIndex) => 
                                     wp.element.createElement('div', {
                                         key: cpIndex,
-                                        className: 'checkpoint-marker markerLabel',
+                                        className: `checkpoint-marker markerLabel opening-${checkpoint.previewOrientation || 'right'}`,
                                         'data-path-position': checkpoint.pathPosition,
                                         style: `--path-position: ${checkpoint.pathPosition}%`
                                     },
@@ -552,7 +560,7 @@ registerBlockType('sws2025/image-mapper2', {
                                         }, checkpoint.previewLabel),
                                         
                                         wp.element.createElement('div', {
-                                            className: `badgeInfo has_border is_rounded opening-${checkpoint.previewOrientation || 'right'}`
+                                            className: `badgeInfo has_border is_rounded`
                                         },
                                             pbw2.img.output({ attributes: checkpoint }, "previewImage"),
                                             wp.element.createElement('div', { className: 'textwrap' },

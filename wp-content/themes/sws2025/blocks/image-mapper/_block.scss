@@ -361,6 +361,16 @@ img.parent_img.hdImage {
     bottom: unset;
     transform: translate(-20px,-100%);
     padding: 20px;
+    &.opening-left{
+        transform: translate(calc(-100% + 20px), -100%);
+        display: flex;
+        flex-direction: column;
+        align-content: flex-end;
+        align-items: flex-end;
+        .badge{
+            border-radius: 10px 10px 0px 10px;
+        }
+    }
     &:hover{
         z-index: 2;
         .badgeInfo{
@@ -369,6 +379,15 @@ img.parent_img.hdImage {
         a.badge{
             display: none;
         }
+    }
+    .badge {
+        padding: 6px 12px;
+        background: var(--wp--preset--color--accent-1);
+        margin: unset;
+        border-radius: 10px 10px 10px 0px;
+        color: var(--wp--preset--color--base);
+        text-decoration: none;
+        font-size: var(--wp--preset--font-size--large);
     }
     .badgeInfo{
         grid-template-columns: auto 1fr;
@@ -551,16 +570,6 @@ img.parent_img.hdImage {
     min-height: 80px;
     width: 0px;
     border-left: dashed 2px var(--wp--preset--color--accent-1);
-}
-
-.markerLabel .badge {
-    padding: 6px 12px;
-    background: var(--wp--preset--color--accent-1);
-    margin: unset;
-    border-radius: 10px 10px 10px 0px;
-    color: var(--wp--preset--color--base);
-    text-decoration: none;
-    font-size: var(--wp--preset--font-size--large);
 }
 
 /**
