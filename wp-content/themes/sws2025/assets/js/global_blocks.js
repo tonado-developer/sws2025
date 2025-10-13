@@ -1519,6 +1519,18 @@ function array_input(props, field, params = {}) {
                             const tempProps = createTempProps(index, fieldName, fieldConfig.type, fieldConfig, currentItems, editItem, props);
                             const tempKey = `temp_${index}_${fieldName}`;
 
+                            const originalBlockType = wp.blocks.getBlockType(props.name);
+                            if (originalBlockType && !originalBlockType.attributes[tempKey]) {
+                                originalBlockType.attributes[tempKey] = {
+                                    title: fieldConfig?.title,
+                                    description: fieldConfig?.description,
+                                    placeholder: fieldConfig?.placeholder,
+                                    allowedFormats: fieldConfig?.allowedFormats,
+                                    allowedTypes: fieldConfig?.allowedTypes,
+                                    options: fieldConfig?.options
+                                };
+                            }
+
                             return wp.element.createElement(
                                 'div',
                                 {
@@ -1541,6 +1553,18 @@ function array_input(props, field, params = {}) {
                              */
                             const tempProps = createTempProps(index, fieldName, fieldConfig.type, fieldConfig, currentItems, editItem, props);
                             const tempKey = `temp_${index}_${fieldName}`;
+
+                            const originalBlockType = wp.blocks.getBlockType(props.name);
+                            if (originalBlockType && !originalBlockType.attributes[tempKey]) {
+                                originalBlockType.attributes[tempKey] = {
+                                    title: fieldConfig?.title,
+                                    description: fieldConfig?.description,
+                                    placeholder: fieldConfig?.placeholder,
+                                    allowedFormats: fieldConfig?.allowedFormats,
+                                    allowedTypes: fieldConfig?.allowedTypes,
+                                    options: fieldConfig?.options
+                                };
+                            }
 
                             return wp.element.createElement(
                                 'div',
@@ -2605,7 +2629,7 @@ const group = (name, settings = {}, ...children) => {
             wp.element.createElement(
                 'p',
                 {
-                    style: { display: 'inline', fontWeight: "bold"},
+                    style: { display: 'inline', fontWeight: "bold" },
                 },
                 name
             )
