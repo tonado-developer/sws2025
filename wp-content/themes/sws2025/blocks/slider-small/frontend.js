@@ -1,4 +1,3 @@
-// Infinite Slider Controller
 class SliderController {
     constructor(container) {
         this.container = container;
@@ -10,42 +9,27 @@ class SliderController {
         this.leftArrow = this.container.querySelector('.sliderArrow.left');
         this.rightArrow = this.container.querySelector('.sliderArrow.right');
 
-        // Config
         const timeoutValue = container.dataset.timeout;
         this.durationValue = parseInt(container.dataset.duration) || 300;
         this.itemCount = parseInt(container.dataset.itemCount);
         this.hasAutoplay = timeoutValue && timeoutValue !== 'none';
         this.timeout = this.hasAutoplay ? parseInt(timeoutValue) : null;
+        
+        // Check if linear animation should be used for autoplay
+        this.useLinearAutoplay = this.timeout === this.durationValue;
 
-        // Dimensions
         this.containerWidth = this.container.offsetWidth;
         this.slideWidth = this.originalSlides[0]?.offsetWidth || 0;
         this.slideGap = parseInt(window.getComputedStyle(this.slideWrap).gap) || 0;
         this.slideWidthWithGap = this.slideWidth + this.slideGap;
 
-        // Calculate visible items
         const contentSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wp--style--global--content-size').trim());
         const wideSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wp--style--global--wide-size').trim());
         const padding = (wideSize - contentSize) / 2;
         this.visibleItems = Math.ceil((this.containerWidth - padding) / this.slideWidthWithGap);
-        
-        // Calculate offset for left padding (slides visible on the left)
         this.leftOffset = Math.ceil(padding / this.slideWidthWithGap);
-        
-        // Calculate clones needed (need enough for smooth infinite scroll)
         this.clonesNeeded = Math.max(this.visibleItems + this.leftOffset + 2, this.itemCount);
 
-        // console.log('Slider Setup:', {
-        //     containerWidth: this.containerWidth,
-        //     slideWidth: this.slideWidth,
-        //     slideGap: this.slideGap,
-        //     visibleItems: this.visibleItems,
-        //     leftOffset: this.leftOffset,
-        //     clonesNeeded: this.clonesNeeded,
-        //     totalSlides: this.itemCount
-        // });
-
-        // State
         this.currentIndex = 0;
         this.isAnimating = false;
         this.autoplayInterval = null;
@@ -56,45 +40,34 @@ class SliderController {
     }
 
     init() {
-        // Validate slides exist
         if (!this.originalSlides.length) {
             console.error('No slides found');
             return;
         }
 
-        // Clone slides for infinite scroll
         this.setupInfiniteScroll();
-        
-        // Set initial position (offset left so clones are visible)
         this.currentIndex = this.clonesNeeded - this.leftOffset;
         this.updatePosition(false);
-
-        // Set first slide active
         this.updateActiveStates();
 
-        // Setup CSS
         if (this.hasAutoplay) {
             this.container.style.setProperty('--slide-timeout', `${this.timeout}ms`);
             this.container.style.setProperty('--slide-duration', `${this.durationValue}ms`);
         }
 
-        // Bind events
         this.bindEvents();
 
-        // Start autoplay
         if (this.hasAutoplay) {
             this.startAutoplay();
         }
     }
 
     setupInfiniteScroll() {
-        // Validate original slides
         if (!this.originalSlides || this.originalSlides.length === 0) {
             console.error('No original slides found');
             return;
         }
 
-        // Clone slides at the end
         for (let i = 0; i < this.clonesNeeded; i++) {
             const sourceIndex = i % this.itemCount;
             const sourceSlide = this.originalSlides[sourceIndex];
@@ -110,7 +83,6 @@ class SliderController {
             this.slideWrap.appendChild(clone);
         }
 
-        // Clone slides at the beginning
         for (let i = 0; i < this.clonesNeeded; i++) {
             const sourceIndex = (this.itemCount - 1 - i + this.itemCount) % this.itemCount;
             const sourceSlide = this.originalSlides[sourceIndex];
@@ -126,15 +98,15 @@ class SliderController {
             this.slideWrap.insertBefore(clone, this.slideWrap.firstChild);
         }
 
-        // Update slides array
         this.allSlides = Array.from(this.slideWrap.querySelectorAll('.slidePane'));
     }
 
-    updatePosition(animate = true) {
+    updatePosition(animate = true, isAutoplay = false) {
         const offset = -this.currentIndex * this.slideWidthWithGap;
         
         if (animate) {
-            this.slideWrap.style.transition = `transform ${this.durationValue}ms ease-in-out`;
+            const timingFunction = (isAutoplay && this.useLinearAutoplay) ? 'linear' : 'ease-in-out';
+            this.slideWrap.style.transition = `transform ${this.durationValue}ms ${timingFunction}`;
         } else {
             this.slideWrap.style.transition = 'none';
         }
@@ -145,12 +117,10 @@ class SliderController {
     updateActiveStates() {
         const realIndex = this.getRealIndex();
         
-        // Update slides
         this.allSlides.forEach((slide, i) => {
             slide.classList.toggle('open', i === this.currentIndex);
         });
 
-        // Update navigation
         this.navigation.forEach((nav, i) => {
             nav.classList.toggle('current', i === realIndex);
         });
@@ -163,7 +133,6 @@ class SliderController {
     }
 
     bindEvents() {
-        // Navigation clicks
         this.navigation.forEach((navItem, index) => {
             navItem.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -171,7 +140,6 @@ class SliderController {
             });
         });
 
-        // Arrow clicks
         if (this.leftArrow) {
             this.leftArrow.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -188,14 +156,12 @@ class SliderController {
             });
         }
 
-        // Handle transition end for infinite scroll reset
         this.slideWrap.addEventListener('transitionend', (e) => {
             if (e.propertyName === 'transform') {
                 this.handleInfiniteReset();
             }
         });
 
-        // Resume autoplay on mouseleave
         this.sliderContainer.addEventListener('mouseleave', (e) => {
             if (!this.sliderContainer.contains(e.relatedTarget)) {
                 if (this.pauseTimeout) {
@@ -209,29 +175,29 @@ class SliderController {
     }
 
     handleInfiniteReset() {
-        // Reset to real slide if we're on a clone
         const minIndex = this.leftOffset;
         const maxIndex = this.clonesNeeded + this.itemCount - this.leftOffset;
         
         if (this.currentIndex < minIndex) {
-            // We're at the beginning clones, jump to end originals
             this.currentIndex = this.currentIndex + this.itemCount;
             this.updatePosition(false);
         } else if (this.currentIndex >= maxIndex) {
-            // We're at the end clones, jump to beginning originals
             this.currentIndex = this.currentIndex - this.itemCount;
             this.updatePosition(false);
         }
         this.isAnimating = false;
     }
 
-    nextSlide() {
+    nextSlide(isAutoplay = false) {
         if (this.isAnimating) return;
         this.isAnimating = true;
         
-        this.pauseAutoplay(true);
+        if (!isAutoplay) {
+            this.pauseAutoplay(true);
+        }
+        
         this.currentIndex++;
-        this.updatePosition(true);
+        this.updatePosition(true, isAutoplay);
         this.updateActiveStates();
         this.resetProgressAnimation();
     }
@@ -242,7 +208,7 @@ class SliderController {
         
         this.pauseAutoplay(true);
         this.currentIndex--;
-        this.updatePosition(true);
+        this.updatePosition(true, false);
         this.updateActiveStates();
         this.resetProgressAnimation();
     }
@@ -253,7 +219,7 @@ class SliderController {
         
         this.pauseAutoplay(true);
         this.currentIndex = (this.clonesNeeded - this.leftOffset) + realIndex;
-        this.updatePosition(true);
+        this.updatePosition(true, false);
         this.updateActiveStates();
         this.resetProgressAnimation();
     }
@@ -264,7 +230,7 @@ class SliderController {
         this.stopAutoplay();
         
         this.autoplayInterval = setInterval(() => {
-            this.nextSlide();
+            this.nextSlide(true);
         }, this.timeout);
 
         this.isPlaying = true;
@@ -325,7 +291,6 @@ class SliderController {
     }
 }
 
-// Initialize
 function initSliders() {
     const sliders = document.querySelectorAll('.wp-block-sws2025-slider-small');
     

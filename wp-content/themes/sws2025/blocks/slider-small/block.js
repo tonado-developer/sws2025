@@ -14,12 +14,12 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                     image: {
                         type: 'img',
                         title: 'Bild',
-                        description: "Das Bild neben dem Text (falls erwünscht)"
+                        description: "Das Bild das oben in der Karte erscheint"
                     },
                     headline: {
                         type: 'text',
                         title: 'Überschrift',
-                        description: 'Die Überschrift für den Text'
+                        description: 'Die Überschrift unter dem Bild'
                     },
                     text: {
                         type: 'text',
@@ -34,18 +34,6 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                         type: 'text',
                         title: 'Button Text',
                         description: 'Dieser Text steht später auf dem Button'
-                    },
-                    opening: {
-                        type: 'choose',
-                        title: 'Randöffnung',
-                        description: 'An welcher Seite soll sich eine Öffnung im Rand befinden?',
-                        options: [
-                            { label: 'Rechts', value: 'right' },
-                            { label: 'Unten', value: 'bottom' },
-                            { label: 'Links', value: 'left' },
-                            { label: 'Oben', value: 'top' },
-                            { label: 'Keinen', value: 'none' }
-                        ]
                     }
                 }
             ]
@@ -61,12 +49,12 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
             description: 'Soll der Block in eine Karte verpackt werden? Wenn ja welcher Farbmodus?',
         }),
         duration: pbw.choose.attr({
-            default: "300",
+            default: "500",
             title: 'Übergangs-Geschwindigkeit',
             description: 'Wie Schnell soll die Animation vom Wechsel sein?',
         }),
         timeout: pbw.choose.attr({
-            default: "none",
+            default: "1000s",
             title: 'Wartezeit',
             description: 'Wie lange soll ein Slide zu sehen sein bis er gewechselt wird?',
         })
@@ -108,12 +96,10 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                     ]),
                     // Übergangs-Geschwindigkeit
                     pbw.choose.input(props, 'duration', [
-                        { label: 'Keine Animationen hier ok? Bitte, danke !', value: 'none' },
-                        { label: '100ms', value: '100' },
-                        { label: '200ms', value: '200' },
-                        { label: '300ms', value: '300' },
-                        { label: '400ms', value: '400' },
-                        { label: '500ms', value: '500' }
+                        { label: '0.3s', value: '300' },
+                        { label: '0.5s', value: '500' },
+                        { label: '1s', value: '1000' },
+                        { label: '2s', value: '2000' }
                     ]),
                     // Wartezeit
                     pbw.choose.input(props, 'timeout', [
@@ -121,8 +107,6 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                         { label: '1s', value: '1000' },
                         { label: '2s', value: '2000' },
                         { label: '3s', value: '3000' },
-                        { label: '5s', value: '5000' },
-                        { label: '7s', value: '7000' }
                     ])
                 )
             ),
@@ -150,12 +134,10 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                 ]),
                 // Übergangs-Geschwindigkeit
                 pbw.choose.input(props, 'duration', [
-                    { label: 'Keine Animationen hier ok? Bitte, danke !', value: 'none' },
-                    { label: '100ms', value: '100' },
-                    { label: '200ms', value: '200' },
-                    { label: '300ms', value: '300' },
-                    { label: '400ms', value: '400' },
-                    { label: '500ms', value: '500' }
+                    { label: '0.3s', value: '300' },
+                    { label: '0.5s', value: '500' },
+                    { label: '1s', value: '1000' },
+                    { label: '2s', value: '2000' }
                 ]),
                 // Wartezeit
                 pbw.choose.input(props, 'timeout', [
@@ -163,8 +145,6 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                     { label: '1s', value: '1000' },
                     { label: '2s', value: '2000' },
                     { label: '3s', value: '3000' },
-                    { label: '5s', value: '5000' },
-                    { label: '7s', value: '7000' }
                 ])
             )
         );
@@ -183,7 +163,7 @@ wp.blocks.registerBlockType('sws2025/slider-small', {
                 item.image && wp.element.createElement(
                     'figure',
                     { className: `wp-block-image`, key: item.key },
-                    pbw.img.output({attributes:item}, "image"),
+                    pbw.img.output({ attributes: item }, "image"),
                 ),
                 (item.text || item.headline) && wp.element.createElement(
                     'div',
