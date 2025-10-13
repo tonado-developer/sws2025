@@ -314,6 +314,27 @@
                 "color": {
                     "text": "var:preset|color|accent-1"
                 }
+            },
+            "button": {
+                "color": {
+                    "background": "var(--wp--preset--color--accent-1)",
+                    "text": "var(--wp--preset--color--base)"
+                },
+                "spacing": {
+                    "padding": {
+                        "top": "8px",
+                        "right": "16px",
+                        "bottom": "8px",
+                        "left": "16px"
+                    }
+                },
+                "typography": {
+                    "textDecoration": "none"
+                },
+                "border": {
+                    "radius": "8px"
+                },
+                "css": "& { display: inline-block; cursor: pointer; transition: transform 50ms ease, background-color 300ms ease, filter 300ms ease; opacity: 1; } &:hover { filter: brightness(1.1); } &:active { transform: scale(0.95); opacity: 0.8; }"
             }
         },
         "blocks": {
@@ -337,6 +358,60 @@
                 "spacing": {
                     "margin": "0",
                     "padding": "0"
+                }
+            },
+            "core/button": {
+                "variations": {
+                    "fill": {
+                        "color": {
+                            "background": "var(--wp--preset--color--accent-1)",
+                            "text": "var(--wp--preset--color--base)"
+                        }
+                    },
+                    "outline": {
+                        "color": {
+                            "text": "var(--wp--preset--color--accent-1)"
+                        },
+                        "border": {
+                            "color": "var(--wp--preset--color--accent-1)",
+                            "width": "2px"
+                        }
+                    }
+                },
+                "elements": {
+                    "link": {
+                        "color": {
+                            "text": "var(--wp--preset--color--base)",
+                            "background": "var(--wp--preset--color--accent-1)"
+                        },
+                        "spacing": {
+                            "padding": {
+                                "top": "8px",
+                                "right": "16px",
+                                "bottom": "8px",
+                                "left": "16px"
+                            }
+                        },
+                        "typography": {
+                            "textDecoration": "none"
+                        },
+                        "border": {
+                            "radius": "8px"
+                        },
+                        ":hover": {
+                            "color": {
+                                "text": "var(--wp--preset--color--base)",
+                                "background": "var(--wp--preset--color--accent-1)"
+                            },
+                            "filter": {
+                                "brightness": "110"
+                            }
+                        },
+                        ":active": {
+                            "transform": "scale(0.95)",
+                            "opacity": "0.8"
+                        }
+                    }
                 }
             }
         }
