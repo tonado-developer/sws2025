@@ -12,6 +12,10 @@
             margin: unset;
             display: none;
             width: 100%;
+            // hack
+            //   width: 20vw;
+            //   height: 20vw;
+
             position: relative;
             align-items: center;
             justify-content: center;
@@ -32,9 +36,12 @@
                 opacity: 0;
                 transition: opacity 0ms ease;
             }
-            &.open{
+            &.open, &.media-wrap--image{
                 display: flex;
                 opacity: 1;
+            }
+            &.media-wrap--image {
+                width: 20vw;
             }
         }
     }

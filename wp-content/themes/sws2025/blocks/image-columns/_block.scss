@@ -32,8 +32,8 @@
         
         &.onhover{
             .text-to-reveal{
-                grid-template-rows: minmax(0px,0fr);
-                opacity: 0;
+                grid-template-rows: minmax(0px,1fr);
+                opacity: 1;
             }
             &:hover{
                 .text-to-reveal{
