@@ -20,19 +20,6 @@
 }
 .bg-dark{
     @include bg-dark;
-    &.flat{
-        background: var(--wp--preset--color--accent-2);
-    }
-    a:where(:not(.wp-element-button)){
-        color: var(--wp--preset--color--base);
-        &:hover{
-            opacity: 0.7;
-        }
-    }
-}
-section.bg-color{
-    padding-top: 20px;
-    padding-bottom: 20px;
 }
 @mixin bg-color {
     background: #ff9720;
@@ -54,18 +41,12 @@ section.bg-color{
 }
 .bg-color{
     @include bg-color;
-    a:where(:not(.wp-element-button)){
-        color: var(--wp--preset--color--base);
-        &:hover{
-            opacity: 0.7;
-        }
-    }
 }
 
 @mixin card {
     width: var(--wp--style--global--content-size);
     margin: auto;
-    border-radius: $borderRadius;
+    border-radius: 30px;
     padding: 40px
 }
 

@@ -217,7 +217,6 @@ img.parent_img.hdImage {
         bottom: 0;
         background-color: rgba(255, 255, 255, 0.6);
         backdrop-filter: blur(6px);
-        will-change: transform;
     }
     .fakeCorner {
         position: absolute;
@@ -239,8 +238,7 @@ img.parent_img.hdImage {
             backdrop-filter: blur(6px);
             transition: all 2s ease;
             transform: translateX($sideWidth);
-            will-change: transform;
-
+            
         }
         &::before{
             content: " ";
@@ -284,7 +282,7 @@ img.parent_img.hdImage {
     color: var(--wp--preset--color--base);
     padding: 12px 24px;
     text-decoration: none;
-    border-radius: $borderRadius;
+    border-radius: 6px;
     font-weight: bold;
     font-size: 12px;
     text-transform: uppercase;
@@ -361,16 +359,6 @@ img.parent_img.hdImage {
     bottom: unset;
     transform: translate(-20px,-100%);
     padding: 20px;
-    &.opening-left{
-        transform: translate(calc(-100% + 20px), -100%);
-        display: flex;
-        flex-direction: column;
-        align-content: flex-end;
-        align-items: flex-end;
-        .badge{
-            border-radius: $borderRadius $borderRadius 0px $borderRadius;
-        }
-    }
     &:hover{
         z-index: 2;
         .badgeInfo{
@@ -409,7 +397,7 @@ img.parent_img.hdImage {
         padding: 15px 20px 15px 30px;
         transform: translateY(10px);
         max-width: 350px;
-        border-radius: $borderRadius;
+        border-radius: 20px;
     }
     .has_border{
         figure{
@@ -427,7 +415,7 @@ img.parent_img.hdImage {
     }
     .is_rounded{
         figure,img,figure::after{
-            border-radius: $borderRadius;
+            border-radius: 20px;
         }
     }
 }
@@ -441,7 +429,7 @@ img.parent_img.hdImage {
     background: rgba(0,0,0,0.9);
     color: white;
     padding: 10px 15px;
-    border-radius: $borderRadius;
+    border-radius: 6px;
     font-size: 12px;
     white-space: nowrap;
     opacity: 0;
@@ -469,7 +457,7 @@ img.parent_img.hdImage {
     width: 60px;
     height: 40px;
     object-fit: cover;
-    border-radius: $borderRadius;
+    border-radius: 4px;
     margin-right: 10px;
     vertical-align: middle;
 }
@@ -486,7 +474,7 @@ img.parent_img.hdImage {
     color: var(--wp--preset--color--base);
     padding: 12px 24px;
     cursor: pointer;
-    border-radius: $borderRadius;
+    border-radius: 6px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -548,15 +536,6 @@ img.parent_img.hdImage {
     bottom: calc(100% - 25px);
     z-index: 1;
     opacity: 0;
-    .badge {
-        padding: 6px 12px;
-        background: var(--wp--preset--color--accent-1);
-        margin: unset;
-        border-radius: $borderRadius $borderRadius $borderRadius 0px;
-        color: var(--wp--preset--color--base);
-        text-decoration: none;
-        font-size: var(--wp--preset--font-size--large);
-    }
 }
 
 .markerLabel .string::after {
@@ -570,6 +549,16 @@ img.parent_img.hdImage {
     min-height: 80px;
     width: 0px;
     border-left: dashed 2px var(--wp--preset--color--accent-1);
+}
+
+.markerLabel .badge {
+    padding: 6px 12px;
+    background: var(--wp--preset--color--accent-1);
+    margin: unset;
+    border-radius: 10px 10px 10px 0px;
+    color: var(--wp--preset--color--base);
+    text-decoration: none;
+    font-size: var(--wp--preset--font-size--large); ;
 }
 
 /**
@@ -600,7 +589,8 @@ img.parent_img.hdImage {
     left: 0;
     width: 100%;
     height: 100%;
-    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -617,7 +607,7 @@ img.parent_img.hdImage {
 /* Content Panel */
 .wp-overlay-content {
     background: var(--wp--preset--color--accent-1);
-    border-radius: $borderRadius;
+    border-radius: 40px;
     overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     transform-origin: top left;
@@ -635,7 +625,7 @@ img.parent_img.hdImage {
     color: var(--wp--preset--color--base);
     padding: 12px 24px;
     cursor: pointer;
-    border-radius: $borderRadius;
+    border-radius: 6px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -648,7 +638,6 @@ img.parent_img.hdImage {
 
 .wp-overlay-close:hover {
     background: var(--wp--preset--color--base);
-    color: var(--wp--preset--color--accent-1);
 }
 
 /* Body */

@@ -1,17 +1,8 @@
 .wp-block-sws2025-text{
-    padding: 1px 0px;
-    .headingWrap{
-        margin-bottom: 26px;
-    }
+    padding: 40px 0px;
     .headingCircledTrue{
-        &:not(:has(.wp-block-h3)){
-            @include mask-border(right,60);
-            padding: 16px 0px 16px 20px;
-        }
-        &:has(.wp-block-h3){
-            @include mask-border(right,70);
-            padding: 16px 0px 16px 20px;
-        }
+        @include mask-border(right);
+        padding: 16px 0px 16px 20px;
         position: relative;
         text-align: left;
         &::after{
@@ -21,12 +12,14 @@
         }
         *{
             margin: unset;
+            background-color: var(--wp--preset--color--base);
+            position: relative;
             padding: 6px;
+            z-index: 2;
         }
-        
     }
-    .headingCircledTrue + .textWrap{
-        padding-left: 26px;
+    .textIndentTrue{
+        padding-left: 100px;
     }
     hr{
         margin: unset;

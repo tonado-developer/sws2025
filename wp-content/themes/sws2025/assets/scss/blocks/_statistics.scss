@@ -1,0 +1,16 @@
+.wp-block-sws2025-statistics{
+    padding: 40px;
+    .flex {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 40px;
+    }
+    .numberWrap{
+        text-align: center;
+    }
+    .number{
+        font-size: 2rem;
+        font-weight: bold
+    }
+}

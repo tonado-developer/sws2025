@@ -1,9 +1,9 @@
 @mixin button {
     display: inline-block;
     padding: 8px 16px;
-    background-color: var(--wp--preset--color--accent-1);
-    border-radius: $borderRadius;
-    color: var(--wp--preset--color--base);
+    background-color: #FF6920;
+    border-radius: 8px;
+    color: white;
     text-decoration: none;
     cursor: pointer;
     transition: transform 50ms ease, background-color 300ms ease;
@@ -11,9 +11,5 @@
     &:active{
         transform: scale(0.95);
         opacity: 0.8;
-    }
-    &:hover{
-        // opacity: 0.85;
-        filter: brightness(1.1);
     }
 }

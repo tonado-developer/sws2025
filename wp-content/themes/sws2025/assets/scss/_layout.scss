@@ -67,8 +67,6 @@ container {
     padding-top: 160px;
     min-height: calc(100vh - var(--wp-admin--admin-bar--height) + 1px);
     padding-bottom: 80px;
-    padding-left: 120px;
-    padding-right: 120px;
 }
 
 .backgroundWrap{
@@ -92,7 +90,7 @@ container {
 
 .card{
     background-color: white;
-    border-radius: $borderRadius;
+    border-radius: 40px;
     padding: unset;
     overflow: hidden;
 }
