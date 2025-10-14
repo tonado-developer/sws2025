@@ -1,10 +1,14 @@
 @import "_variables.scss";
+@import "_border.scss";
 @import "_layout.scss";
 @import "_buttons_links.scss";
 @import "_effects.scss";
 @import "_colors.scss";
 @import "_navbar.scss";
 @import "_footer.scss";
+@import "_sidebar.scss";
+@import "_typography.scss";
+
 
 @import "../../blocks/image-mapper/_block.scss";
 @import "../../blocks/hero/_block.scss";
@@ -17,4 +21,9 @@
 @import "../../blocks/tabs-big/_block.scss";
 @import "../../blocks/image-text/_block.scss";
 @import "../../blocks/slider/_block.scss";
+@import "../../blocks/slider-small/_block.scss";
 @import "../../blocks/interactivemap/_block.scss";
+
+.mwai-messages-theme{
+    --mwai-iconTextColor: white;
+}
