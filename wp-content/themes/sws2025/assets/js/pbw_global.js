@@ -50,7 +50,7 @@ function text_input(props, tag, name, options = {}) {
             value: attributes[name] || '',
             onChange: (value) => setAttributes({ [name]: value }),
             placeholder: placeholder || 'Text eingeben...',
-            allowedFormats: allowedFormats || ['core/bold', 'core/italic']
+            allowedFormats: allowedFormats || ['core/bold', 'core/italic', 'core/link']
         })
     );
 }
