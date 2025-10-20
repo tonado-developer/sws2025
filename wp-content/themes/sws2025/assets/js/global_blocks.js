@@ -27,14 +27,14 @@
 // } = wp.blockEditor;
 
 // // UI KOMPONENTEN (wp.components) 
-// const {
-//     Button,
-//     PanelBody,
-//     TextControl,
-//     SelectControl,
-//     ExternalLink,
-//     BaseControl
-// } = wp.components;
+const {
+    // Button,
+    // PanelBody,
+    // TextControl,
+    // SelectControl,
+    ExternalLink,
+    // BaseControl
+} = wp.components;
 
 // // REACT-ÄHNLICHE FUNKTIONEN (wp.element)
 // const {
