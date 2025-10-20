@@ -1,0 +1,36 @@
+.wp-block-sws2025-company-profile{
+    container{
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 40px;
+    }
+    &.bg-dark,&.bg-light,&.bg-color{
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    .company-profile-sidebar{
+        padding: 25px;
+        padding-bottom: 45px;
+        position: relative;
+        
+        &.is_rounded{
+            border-radius: $borderRadius;
+            img{
+                border-radius: $borderRadius;
+                background-color: white;
+            }
+        }
+        figure{
+            width: 100%;
+            img{
+                width: 100%;
+            }
+        }
+        .item{
+            p{
+                margin: unset;
+            }
+            margin-bottom: 20px;
+        }
+    }
+}
