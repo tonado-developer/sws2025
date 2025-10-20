@@ -87,15 +87,16 @@ function loadMap(mapId, config) {
     // In der loadMap Funktion, beim Karte initialisieren:
     const map = L.map(mapId, {
         center: config.center || [51.1657, 10.4515],
-        zoom: config.zoom || 13,
+        zoom: 1,  // ← Niedriger Startwert
         zoomControl: false,
         attributionControl: false,
         scrollWheelZoom: false,
-        doubleClickZoom: true,
-        dragging: true,
-        touchZoom: true,
-        minZoom: config.minZoom || 2,  // Maximaler Zoom Out
-        maxZoom: config.maxZoom || 18  // Optional: Maximaler Zoom In
+        doubleClickZoom: false,
+        dragging: false,
+        touchZoom: false,
+        minZoom: 0,  // ← Aktivieren für maximales Rauszoomen
+        maxZoom: config.maxZoom || 18,
+        worldCopyJump: false  // ← Verhindert Tile-Wiederholungen
     });
 
     // Tile Layer hinzufügen
@@ -159,7 +160,7 @@ function loadMap(mapId, config) {
             const group = new L.featureGroup(
                 config.locations.map(loc => L.marker([loc.lat, loc.lon]))
             );
-            map.fitBounds(group.getBounds().pad(0.1));
+            map.fitBounds(group.getBounds().pad(0.2));  // ← Kein maxZoom Limit, größerer pad
         }
     }
 

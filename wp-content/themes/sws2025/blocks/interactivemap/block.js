@@ -282,6 +282,7 @@ wp.blocks.registerBlockType('sws2025/interactivemap', {
                     ]),
 
                     pbw.choose.input(props, 'zoomLevel', [
+                        { label: 'Ultra Weit (7)', value: '7' },
                         { label: 'Weit (10)', value: '10' },
                         { label: 'Standard (13)', value: '13' },
                         { label: 'Nah (15)', value: '15' },
