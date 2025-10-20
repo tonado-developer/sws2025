@@ -1,4 +1,7 @@
 footer {
+    border-bottom-left-radius: 1px;
+    border-bottom-right-radius: 1px;
+    overflow: hidden;
     .wp-block-social-links {
         margin: unset;
     }
@@ -88,7 +91,7 @@ footer {
 
     /* Custom Social Icons mit CSS Masks */
     .wp-block-social-links{
-        
+        margin-bottom: 15px;
         span:not(.screen-reader-text).custom-social-icon {
             display: block;
             width: 24px;

@@ -2,7 +2,7 @@ body,html{
     height: auto;    
 }
 
-:where(.wp-site-blocks) > * {
+:where(.wp-site-blocks) > * ,:root :where(.is-layout-flow) > *{
     margin-block-start:0;
     margin-block-end: 0;
 }
@@ -73,9 +73,9 @@ container {
 }
 
 .subpage{
-    padding-top: 160px;
+    padding-top: calc($headerHeight + 20px);
     min-height: calc(100vh - var(--wp-admin--admin-bar--height) + 1px);
-    padding-bottom: 80px;
+    padding-bottom: 0px;
     padding-left: 120px;
     padding-right: 120px;
 }
