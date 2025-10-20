@@ -34,9 +34,6 @@
             }
         }
     }
-    .tabPane:not(:has(figure)) {
-        text-align: center;
-      }
     figure{
         margin: unset;
         grid-row: 1;
