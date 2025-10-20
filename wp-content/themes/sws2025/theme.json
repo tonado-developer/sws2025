@@ -124,11 +124,11 @@
                 },
                 {
                     "fluid": {
-                        "max": "3rem",
-                        "min": "2.15rem"
+                        "max": "2rem",
+                        "min": "1.75rem"
                     },
                     "name": "Extra Extra Large",
-                    "size": "2.15rem",
+                    "size": "1.75rem",
                     "slug": "xx-large"
                 }
             ],
@@ -373,7 +373,7 @@
                     "textDecoration": "none"
                 },
                 "border": {
-                    "radius": "8px"
+                    "radius": "6px"
                 },
                 "css": "& { display: inline-block; cursor: pointer; transition: transform 50ms ease, background-color 300ms ease, filter 300ms ease; opacity: 1; } &:hover { filter: brightness(1.1); } &:active { transform: scale(0.95); opacity: 0.8; }"
             }
