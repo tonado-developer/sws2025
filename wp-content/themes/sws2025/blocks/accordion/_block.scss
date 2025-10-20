@@ -170,4 +170,13 @@
         margin-top: 10px;
         @include button;
     }
+
+    &:not(:has(img)){
+        .accordionImages{
+            display: none;
+        }
+        .contentGrid{
+            grid-template-columns: 1fr !important;
+        }
+    }
 }
