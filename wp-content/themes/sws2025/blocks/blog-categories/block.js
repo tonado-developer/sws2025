@@ -6,6 +6,12 @@ wp.blocks.registerBlockType('sws2025/blog-categories', {
         style: {pointerEvents: 'none'}
     }),
     category: 'custom-blocks',
+    supports: {
+        spacing: {
+            padding: true,
+            margin: true
+        }
+    },
     attributes: {
         sectionBackground: pbw.choose.attr({
             default: "none",

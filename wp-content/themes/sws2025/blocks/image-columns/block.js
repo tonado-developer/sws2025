@@ -6,6 +6,12 @@ wp.blocks.registerBlockType('sws2025/image-columns', {
         style: {pointerEvents: 'none'}
     }),
     category: 'custom-blocks',
+    supports: {
+        spacing: {
+            padding: true,
+            margin: true
+        }
+    },
     attributes: {
         columns: pbw.choose.attr({
             default: 3,

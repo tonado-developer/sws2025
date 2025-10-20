@@ -6,6 +6,12 @@ wp.blocks.registerBlockType('sws2025/tabs-small', {
         style: {pointerEvents: 'none'}
     }),
     category: 'custom-blocks',
+    supports: {
+        spacing: {
+            padding: true,
+            margin: true
+        }
+    },
     attributes: {
         items: {
             type: 'array',

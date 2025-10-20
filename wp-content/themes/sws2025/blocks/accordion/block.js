@@ -6,6 +6,12 @@ wp.blocks.registerBlockType('sws2025/accordion', {
         style: {pointerEvents: 'none'}
     }),
     category: 'custom-blocks',
+    supports: {
+        spacing: {
+            padding: true,
+            margin: true
+        }
+    },
     attributes: {
         ...pbw.img.attr('image', {
             title: "Haupt-Bild",

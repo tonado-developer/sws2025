@@ -6,6 +6,12 @@ wp.blocks.registerBlockType('sws2025/tabs-big', {
         style: {pointerEvents: 'none'}
     }),
     category: 'custom-blocks',
+    supports: {
+        spacing: {
+            padding: true,
+            margin: true
+        }
+    },
     attributes: {
         heading: pbw.h1.attr({
             title: "Überschrift",
