@@ -19,7 +19,7 @@ function sws2025_render_blog_categories($attributes)
 
             <div class="categories-filter wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex" role="navigation" aria-label="Kategorie-Filter">
                 <div class="wp-block-button">
-                    <a class="wp-block-button__link wp-element-button category-btn" data-category="all">Alle</a>
+                    <a class="wp-block-button__link wp-element-button category-btn active" data-category="all">Alle</a>
                 </div>
                 <?php foreach ($categories as $cat): ?>
                     <div class="wp-block-button">
