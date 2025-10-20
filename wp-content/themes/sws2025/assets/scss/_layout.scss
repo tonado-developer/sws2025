@@ -2,6 +2,11 @@ body,html{
     height: auto;    
 }
 
+:where(.wp-site-blocks) > * {
+    margin-block-start:0;
+    margin-block-end: 0;
+}
+
 
 @media screen and (min-width:$navbarBreakpoint) {
     .admin-bar{
