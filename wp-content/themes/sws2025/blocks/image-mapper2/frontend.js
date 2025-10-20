@@ -355,11 +355,52 @@ class WordPressImageMapper {
         // Initialize markers
         this.initMarkers();
 
+        // Precompute marker transforms ONLY for root level (zoom level 0)
+        // These transforms must stay constant for switching to work
+        if (this.state.zoomLevel === 0 && !this.markerTransforms) {
+            this.precomputeMarkerTransforms();
+        }
+
         this.initAllSVGPaths();
 
         this.initBadgePositioning();
 
         this.debug(`Container initialized with ${markers.length} markers, ${Object.keys(this.state.globalElements || {}).length} global element types`);
+    }
+
+    /**
+     * Precompute all marker transforms at initialization
+     */
+    precomputeMarkerTransforms() {
+        if (!this.state.currentContainer || !this.markers) return;
+
+        // Store original container state
+        this.markerTransforms = new Map();
+
+        // Ensure container is in clean state for calculations
+        const currentTransform = {
+            scale: gsap.getProperty(this.state.currentContainer, "scale") || 1,
+            x: gsap.getProperty(this.state.currentContainer, "x") || 0,
+            y: gsap.getProperty(this.state.currentContainer, "y") || 0
+        };
+
+        // Temporarily reset for clean calculations
+        gsap.set(this.state.currentContainer, { scale: 1, x: 0, y: 0 });
+
+        // Calculate transform for each marker
+        this.markers.forEach(marker => {
+            const transform = this.calculateZoomTransform(marker);
+            this.markerTransforms.set(marker.dataset.hotspotId, {
+                scale: transform.scale,
+                translateX: transform.translateX,
+                translateY: transform.translateY
+            });
+        });
+
+        // Restore original transform
+        gsap.set(this.state.currentContainer, currentTransform);
+
+        this.debug(`Precomputed transforms for ${this.markerTransforms.size} markers`);
     }
 
     /**
@@ -1618,9 +1659,9 @@ class WordPressImageMapper {
     }
 
     /**
-     * Switch to a different marker (for future implementation)
-     * @param {HTMLElement} newMarker - New marker to zoom to
-     */
+ * Switch to a different marker (for future implementation)
+ * @param {HTMLElement} newMarker - New marker to zoom to
+ */
     switchToMarker(newMarker) {
         if (this.state.zooming || !newMarker) return;
 
@@ -1664,7 +1705,16 @@ class WordPressImageMapper {
 
         this.state.zoomedMarker = newMarker;
 
-        const newZoomData = this.calculateZoomTransformReset(newMarker);
+        // NEU: Verwende vorberechnete Transforms
+        let newZoomData;
+        if (this.markerTransforms && this.markerTransforms.has(newMarkerId)) {
+            newZoomData = this.markerTransforms.get(newMarkerId);
+            this.debug(`Using precomputed transform for marker ${newMarkerId}`);
+        } else {
+            // Fallback: Berechne neu wenn nicht vorhanden
+            this.debug(`No precomputed transform for marker ${newMarkerId}, calculating...`);
+            newZoomData = this.calculateZoomTransform(newMarker);
+        }
 
         if (previousMarker) {
             this.setHoverState(previousMarker, false);
@@ -2372,6 +2422,9 @@ class WordPressImageMapper {
             clearTimeout(this._badgeCalcTimeout);
             this._badgeCalcTimeout = null;
         }
+
+        // Clear precomputed transforms
+        this.markerTransforms = null;
 
         this.debug('Image Mapper destroyed');
     }
