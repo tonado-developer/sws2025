@@ -3,6 +3,7 @@
         display: grid;
         grid-template-columns: 1fr 350px;
         gap: 40px;
+        align-items: start;
     }
     &.bg-dark,&.bg-light,&.bg-color{
         padding-top: 20px;
