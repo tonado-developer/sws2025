@@ -1,13 +1,27 @@
 .blog-categories-block {
 
+    &.bg-dark,
+    &.bg-light,
+    &.bg-color {
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    &.bg-light,&.card-light {
+        .post-card {
+            background-color: white;
+        }
+    }
+
     .category-btn:not(.active) {
         opacity: 0.6;
     }
-    .categories-filter{
+
+    .categories-filter {
         margin-bottom: 20px;
     }
 
-    .posts-grid{
+    .posts-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(300px, 1fr));
         gap: 2rem;
@@ -19,9 +33,19 @@
         padding: 25px;
         padding-bottom: 45px;
         position: relative;
-        &.is_rounded{
+        &.bg-light{
+            *{
+                color: var(--wp--preset--color--contrast);
+            }
+        }
+        &.is_rounded {
             border-radius: $borderRadius;
         }
+    }
+
+    img{
+        width: 100%;
+        object-fit: cover;
     }
 
     .post-card.fade-in {
