@@ -165,7 +165,9 @@ class WordPressImageMapper {
  */
 
     initBadgePositioning() {
-        this.badgePositions = new Map(); // Cache für berechnete Positionen
+        this.badgePositions = new Map();
+        this._badgeCalcPending = false; // NEU
+        this._badgeCalcTimeout = null; // NEU
 
         const markers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel');
 
@@ -186,79 +188,90 @@ class WordPressImageMapper {
             });
         });
 
-        // Update on scroll/zoom
-        let scrollTimeout;
+        // NEU: Throttled scroll handler
         const handleScroll = () => {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
+            if (this._badgeCalcTimeout) return;
+
+            this._badgeCalcTimeout = setTimeout(() => {
                 this.calculateAllBadgePositions();
-                // Update aktuell gehoverte badges
                 const hoveredMarkers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel:hover');
                 hoveredMarkers.forEach(marker => this.applyBadgeTransform(marker));
-            }, 50); // Debounce
+                this._badgeCalcTimeout = null;
+            }, 100);
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('resize', handleScroll, { passive: true });
 
-        // During zoom
-        gsap.ticker.add(() => {
-            if (this.state.zooming) {
-                this.calculateAllBadgePositions();
-                const hoveredMarkers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel:hover');
-                hoveredMarkers.forEach(marker => this.applyBadgeTransform(marker));
+        // NEU: Nur während Zoom, nicht bei jedem Frame
+        this._badgeTickerActive = false;
+        const badgeTicker = () => {
+            if (this.state.zooming && !this._badgeCalcPending) {
+                this._badgeCalcPending = true;
+                requestAnimationFrame(() => {
+                    this.calculateAllBadgePositions();
+                    const hoveredMarkers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel:hover');
+                    hoveredMarkers.forEach(marker => this.applyBadgeTransform(marker));
+                    this._badgeCalcPending = false;
+                });
             }
-        });
+        };
+
+        gsap.ticker.add(badgeTicker);
+        this._badgeTicker = badgeTicker;
     }
 
     /**
      * Calculate positions for all badges (background)
      */
     calculateAllBadgePositions() {
-        const markers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel');
+        if (this._badgeCalcPending) return; // Prevent overlapping calculations
+        this._badgeCalcPending = true;
 
-        markers.forEach(marker => {
-            const badgeInfo = marker.querySelector('.badgeInfo');
-            if (!badgeInfo) return;
+        requestAnimationFrame(() => {
+            const markers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel');
 
-            // Temp show für measurement
-            const wasHidden = window.getComputedStyle(badgeInfo).display === 'none';
-            if (wasHidden) {
-                badgeInfo.style.display = 'grid';
-                badgeInfo.style.visibility = 'hidden';
-            }
+            markers.forEach(marker => {
+                const badgeInfo = marker.querySelector('.badgeInfo');
+                if (!badgeInfo) return;
 
-            const rect = badgeInfo.getBoundingClientRect();
-            const viewport = {
-                width: window.innerWidth,
-                height: window.innerHeight,
-                padding: 20
-            };
+                const wasHidden = window.getComputedStyle(badgeInfo).display === 'none';
+                if (wasHidden) {
+                    badgeInfo.style.display = 'grid';
+                    badgeInfo.style.visibility = 'hidden';
+                }
 
-            let adjustX = 0;
-            let adjustY = 0;
+                const rect = badgeInfo.getBoundingClientRect();
+                const viewport = {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    padding: 20
+                };
 
-            // Calculate offset needed
-            if (rect.left < viewport.padding) {
-                adjustX = viewport.padding - rect.left;
-            } else if (rect.right > viewport.width - viewport.padding) {
-                adjustX = (viewport.width - viewport.padding) - rect.right;
-            }
+                let adjustX = 0;
+                let adjustY = 0;
 
-            if (rect.top < viewport.padding) {
-                adjustY = viewport.padding - rect.top;
-            } else if (rect.bottom > viewport.height - viewport.padding) {
-                adjustY = (viewport.height - viewport.padding) - rect.bottom;
-            }
+                if (rect.left < viewport.padding) {
+                    adjustX = viewport.padding - rect.left;
+                } else if (rect.right > viewport.width - viewport.padding) {
+                    adjustX = (viewport.width - viewport.padding) - rect.right;
+                }
 
-            // Store in cache
-            this.badgePositions.set(marker, { x: adjustX, y: adjustY });
+                if (rect.top < viewport.padding) {
+                    adjustY = viewport.padding - rect.top;
+                } else if (rect.bottom > viewport.height - viewport.padding) {
+                    adjustY = (viewport.height - viewport.padding) - rect.bottom;
+                }
 
-            // Reset temp changes
-            if (wasHidden) {
-                badgeInfo.style.display = '';
-                badgeInfo.style.visibility = '';
-            }
+                this.badgePositions.set(marker, { x: adjustX, y: adjustY });
+
+                if (wasHidden) {
+                    badgeInfo.style.display = '';
+                    badgeInfo.style.visibility = '';
+                }
+            });
+
+            this._badgeCalcPending = false;
         });
     }
 
@@ -469,6 +482,9 @@ class WordPressImageMapper {
                     el.classList.remove(this.config.classes.open);
                 });
                 this.state.currentlyVisibleElements.clear();
+
+                this.pauseSVGPositioning();
+
                 if (onComplete) onComplete();
             }
         });
@@ -536,7 +552,15 @@ class WordPressImageMapper {
                 return;
             }
 
-            const tl = gsap.timeline({ onComplete });
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    // NEU: Restart SVG positioning wenn Elemente sichtbar
+                    if (elementsToShow.some(el => el.classList.contains('svg-path-container'))) {
+                        this.startSVGPositioning();
+                    }
+                    if (onComplete) onComplete();
+                }
+            });
             elementsToShow.forEach(el => {
                 tl.to(el, {
                     duration: this.config.animation.elementFadeIn,
@@ -732,12 +756,12 @@ class WordPressImageMapper {
     }
 
     /**
-     * Start continuous positioning updates
-     */
+ * Start continuous positioning updates
+ */
     startSVGPositioning() {
         if (!this.svgUpdateTicker) {
             this.svgUpdateTicker = () => {
-                // Nur wenn Checkpoints sichtbar UND animiert
+                // Nur wenn Checkpoints aktiv UND (zooming ODER sichtbare Elemente)
                 if (this.activeCheckpoints.size > 0 &&
                     (this.state.zooming || this.state.currentlyVisibleElements.size > 0)) {
                     this.updateSVGCheckpoints();
@@ -752,6 +776,16 @@ class WordPressImageMapper {
      */
     stopSVGPositioning() {
         if (this.svgUpdateTicker) {
+            gsap.ticker.remove(this.svgUpdateTicker);
+            this.svgUpdateTicker = null;
+        }
+    }
+
+    /**
+     * Pause SVG positioning when not needed
+     */
+    pauseSVGPositioning() {
+        if (this.svgUpdateTicker && this.activeCheckpoints.size === 0 && !this.state.zooming) {
             gsap.ticker.remove(this.svgUpdateTicker);
             this.svgUpdateTicker = null;
         }
@@ -1173,7 +1207,7 @@ class WordPressImageMapper {
      */
     setupMarkerCanvas(marker, img, index) {
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const ctx = canvas.getContext('2d'); // OHNE willReadFrequently
 
         const processImage = () => {
             canvas.width = img.naturalWidth;
@@ -1184,20 +1218,16 @@ class WordPressImageMapper {
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
                 this.canvasData.set(index, {
-                    canvas,
-                    ctx,
-                    imageData,
+                    imageData: imageData,
                     width: canvas.width,
                     height: canvas.height
                 });
 
-                // Setup markerLabel AFTER canvas data is available
                 this.setupmarkerLabel(marker, index);
 
             } catch (e) {
                 this.debug('Canvas CORS issue for marker', index, e.message);
                 this.canvasData.set(index, null);
-                // Fallback: setup markerLabel without canvas data
                 this.setupmarkerLabel(marker, index);
             }
         };
@@ -1599,7 +1629,10 @@ class WordPressImageMapper {
 
         if (oldMarkerId === newMarkerId) return;
 
-        this.resetIllustrationAnimation()
+        this.resetIllustrationAnimation();
+
+        // NEU: Cleanup vor Switch
+        this.cleanupPreviousMarker();
 
         this.state.zooming = true;
 
@@ -1623,15 +1656,12 @@ class WordPressImageMapper {
         this.state.parentContainer = keepData.parent;
         this.parent = parent;
 
-        // Marker Collection aktualisieren
         this.markers = this.state.currentContainer.querySelectorAll(this.config.selectors.marker);
 
-        // KORREKTUR: Letzten History-Eintrag UPDATEN statt neuen zu pushen
         if (this.state.zoomHistory.length > 0) {
             this.state.zoomHistory[this.state.zoomHistory.length - 1].marker = newMarker;
         }
-        // zoomLevel NICHT erhöhen - wir bleiben auf gleicher Ebene
-        // this.state.zoomLevel++; // ENTFERNT
+
         this.state.zoomedMarker = newMarker;
 
         const newZoomData = this.calculateZoomTransformReset(newMarker);
@@ -1653,7 +1683,6 @@ class WordPressImageMapper {
             }
         });
 
-        // Elements mit korrektem Timing wechseln
         tl.add(() => {
             this.hideAllElements(() => {
                 if (newMarkerId) {
@@ -1674,6 +1703,31 @@ class WordPressImageMapper {
         }, 0);
 
         this.state.zoomTimeline = tl;
+    }
+
+    /**
+     * Cleanup previous marker resources
+     */
+    cleanupPreviousMarker() {
+        // Remove old SVG position handlers
+        const oldContainers = this.state.rootContainer?.querySelectorAll('.svg-path-container:not(.open)');
+        if (oldContainers) {
+            oldContainers.forEach(container => {
+                if (container._positionUpdateHandler) {
+                    gsap.ticker.remove(container._positionUpdateHandler);
+                    delete container._positionUpdateHandler;
+                }
+            });
+        }
+
+        // Clean inactive checkpoints
+        this.activeCheckpoints.forEach(checkpoint => {
+            if (!checkpoint._svgContainer?.classList.contains('open')) {
+                this.activeCheckpoints.delete(checkpoint);
+                delete checkpoint._svgContainer;
+                delete checkpoint._pathData;
+            }
+        });
     }
 
     /**
@@ -2309,6 +2363,16 @@ class WordPressImageMapper {
         this.state.globalElements = null;
         this.state.currentlyVisibleElements.clear();
 
+        // NEU: Badge ticker cleanup
+        if (this._badgeTicker) {
+            gsap.ticker.remove(this._badgeTicker);
+            this._badgeTicker = null;
+        }
+        if (this._badgeCalcTimeout) {
+            clearTimeout(this._badgeCalcTimeout);
+            this._badgeCalcTimeout = null;
+        }
+
         this.debug('Image Mapper destroyed');
     }
 
@@ -2461,23 +2525,20 @@ class ScrollExtension {
     initSimpleAnimation() {
         let scrollAccumulator = 0;
         let lastScrollTime = 0;
+        let rafPending = false; // NEU
 
-        // Listen for wheel events
         const handleWheel = (e) => {
-            // Check if overlay is open - NEW CHECK
             if (this.isOverlayOpen()) {
                 return;
             }
 
             e.preventDefault();
 
-            // Skip if currently navigating or zooming
             if (this.mapper.state.zooming || this.state.isNavigating) return;
 
             const now = Date.now();
             const timeDiff = now - lastScrollTime;
 
-            // Reset accumulator if too much time passed
             if (timeDiff > 500) {
                 scrollAccumulator = 0;
             }
@@ -2485,21 +2546,24 @@ class ScrollExtension {
             scrollAccumulator += e.deltaY;
             lastScrollTime = now;
 
-            // Trigger animation when threshold reached
-            if (Math.abs(scrollAccumulator) > this.config.scrollSensitivity) {
-                if (scrollAccumulator > 0) {
-                    this.nextMarker();
-                } else {
-                    this.previousMarker();
-                }
-                scrollAccumulator = 0;
+            // NEU: RAF-based throttling
+            if (!rafPending && Math.abs(scrollAccumulator) > this.config.scrollSensitivity) {
+                rafPending = true;
+                requestAnimationFrame(() => {
+                    if (scrollAccumulator > 0) {
+                        this.nextMarker();
+                    } else {
+                        this.previousMarker();
+                    }
+                    scrollAccumulator = 0;
+                    rafPending = false;
+                });
             }
         };
 
         window.addEventListener('wheel', handleWheel, { passive: false });
         this._wheelHandler = handleWheel;
 
-        // Touch support
         this.setupTouchScroll();
 
         console.log('Simple animation mode initialized');
