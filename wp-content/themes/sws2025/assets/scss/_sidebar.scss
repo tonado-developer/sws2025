@@ -1,13 +1,22 @@
+.wp-overlay-open{
+    .sidebar{
+        z-index: 500;
+        transform: translateX(-15px);
+    }
+}
 .sidebar{
     position: fixed;
     top: 22%;
     right: 0;
-    z-index: 5;
+    z-index: 6;
     a{
         display: grid;
         grid-template-columns: 1fr auto;
         align-items: center;
+        transition: all 150ms ease; 
         &::after{
+            position: absolute;
+            right: 0px;
             content: " ";
             background-color: var(--wp--preset--color--base);
             width: 0px;
@@ -19,7 +28,10 @@
             transition: all 150ms ease;
         }
         &:hover{
+            padding-right: 26px;
+            padding-left: 6px;
             &::after{
+                
                 margin: unset;
                 width: 25px;
             }

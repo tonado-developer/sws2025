@@ -737,7 +737,9 @@ class WordPressImageMapper {
     startSVGPositioning() {
         if (!this.svgUpdateTicker) {
             this.svgUpdateTicker = () => {
-                if (this.activeCheckpoints.size > 0) {
+                // Nur wenn Checkpoints sichtbar UND animiert
+                if (this.activeCheckpoints.size > 0 &&
+                    (this.state.zooming || this.state.currentlyVisibleElements.size > 0)) {
                     this.updateSVGCheckpoints();
                 }
             };
@@ -1383,7 +1385,7 @@ class WordPressImageMapper {
             const markerLabel = marker.querySelector('.markerLabel h3.badge');
             if (markerLabel) {
                 const labelRect = markerLabel.getBoundingClientRect();
-                
+
                 if (e.clientX >= labelRect.left && e.clientX <= labelRect.right &&
                     e.clientY >= labelRect.top && e.clientY <= labelRect.bottom) {
                     return marker;

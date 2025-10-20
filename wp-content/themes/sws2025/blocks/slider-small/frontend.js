@@ -1,4 +1,4 @@
-class SliderController {
+class SliderControllerSmall {
     constructor(container) {
         this.container = container;
         this.sliderContainer = this.container.querySelector('.sliderContainer');
@@ -296,7 +296,7 @@ function initSliders() {
     
     sliders.forEach(container => {
         if (container._sliderInitialized) return;
-        new SliderController(container);
+        new SliderControllerSmall(container);
         container._sliderInitialized = true;
     });
 }

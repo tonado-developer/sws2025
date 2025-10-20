@@ -60,9 +60,7 @@ function sws2025_render_blog_categories($attributes)
                             </div>
 
                             <h3 class="post-title">
-                                <a href="<?php echo get_permalink($post->ID); ?>">
-                                    <?php echo get_the_title($post->ID); ?>
-                                </a>
+                                <?php echo get_the_title($post->ID); ?>
                             </h3>
 
                             <div class="post-excerpt">

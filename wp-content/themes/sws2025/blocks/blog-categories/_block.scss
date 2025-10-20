@@ -34,7 +34,7 @@
         padding-bottom: 45px;
         position: relative;
         &.bg-light{
-            *{
+            *:not(.post-title) {
                 color: var(--wp--preset--color--contrast);
             }
         }
