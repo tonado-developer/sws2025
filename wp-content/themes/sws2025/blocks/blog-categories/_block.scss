@@ -1,0 +1,36 @@
+.blog-categories-block {
+
+    .category-btn:not(.active) {
+        opacity: 0.6;
+    }
+    .categories-filter{
+        margin-bottom: 20px;
+    }
+
+    .posts-grid{
+        display: grid;
+        grid-template-columns: repeat(3, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .post-card {
+        opacity: 0;
+        animation: fadeIn 0.3s ease-in forwards;
+        padding: 25px;
+        padding-bottom: 45px;
+        position: relative;
+        &.is_rounded{
+            border-radius: $borderRadius;
+        }
+    }
+
+    .post-card.fade-in {
+        animation: fadeIn 0.3s ease-in forwards;
+    }
+
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+    }
+}

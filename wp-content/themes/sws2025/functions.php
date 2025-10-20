@@ -347,3 +347,14 @@ add_action('admin_init', function () {
     $editor = get_role('editor');
     $editor->add_cap('edit_theme_options');
 });
+
+// functions.php - Block Registration
+
+require_once get_template_directory() . '/blocks/blog-categories/render.php';
+function sws2025_register_blog_categories_block()
+{
+    register_block_type('sws2025/blog-categories', [
+        'render_callback' => 'sws2025_render_blog_categories',
+    ]);
+}
+add_action('init', 'sws2025_register_blog_categories_block');
