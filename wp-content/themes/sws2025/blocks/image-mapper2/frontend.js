@@ -2459,12 +2459,12 @@ class WordPressImageMapper {
 document.addEventListener('DOMContentLoaded', () => {
     window.wpImageMapper = new WordPressImageMapper({
         zoom: {
-            targetViewportHeight: 1,
+            targetViewportHeight: 0.6,
             targetViewportWidth: 0.9,
             pushRight: 3,
             maxScaleBoost: 0.8,
             viewportPadding: 0.3,
-            topPadding: 150
+            topPadding: 200
         },
         animation: {
             zoomDuration: 1.5,
