@@ -133,6 +133,7 @@ img.parent_img.hdImage {
     height: 100%;
     object-fit: contain;
     z-index: 1;
+    position: relative;
 }
 
 .position-marker.hover:not(.zoomed) img.overlay {
