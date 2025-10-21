@@ -42,6 +42,11 @@ img.parent_img.hdImage {
     display: flex;
     justify-content: center;
     align-items: flex-end;
+    figure{
+        margin: 0;
+        padding: 0;
+
+    }
 }
 
 .position-preview {
@@ -87,7 +92,7 @@ img.parent_img.hdImage {
 .position-preview.zoomed .parent_overlay {
     opacity: 1;
 }
-.position-preview.zoomed > .position-marker > .markerLabel{
+.position-preview.zoomed > .marker-zoom-content .position-marker > .markerLabel{
     opacity: 0 !important;
 }
 
@@ -548,6 +553,7 @@ img.parent_img.hdImage {
     bottom: calc(100% - 25px);
     z-index: 1;
     opacity: 0;
+    transition: opacity 250ms ease;
     .badge {
         padding: 6px 12px;
         background: var(--wp--preset--color--accent-1);

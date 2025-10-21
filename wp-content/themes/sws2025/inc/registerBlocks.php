@@ -52,11 +52,22 @@ function custom_block_editor_assets()
     $blocks = getBlocks();
     foreach ($blocks as $block) {
         // Block JS NUR im Editor
+
+        if (file_exists(get_template_directory() . "/blocks/$block/components.js")) {
+            wp_enqueue_script(
+                'custom-components',
+                get_template_directory_uri() . "/blocks/$block/components.js",
+                ['custom-global-script', 'wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-block-editor', 'wp-media-utils'],
+                filemtime(get_template_directory() . "/blocks/$block/components.js"),
+                true
+            );
+        }
+
         if (file_exists(get_template_directory() . "/blocks/$block/block.js")) {
             wp_enqueue_script(
                 "custom-block-$block-script",
                 get_template_directory_uri() . "/blocks/$block/block.js",
-                array('custom-global-script', 'wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-block-editor', 'wp-media-utils'),
+                array('custom-global-script', 'wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-block-editor', 'wp-media-utils', 'custom-components'),
                 filemtime(get_template_directory() . "/blocks/$block/block.js"),
                 true
             );

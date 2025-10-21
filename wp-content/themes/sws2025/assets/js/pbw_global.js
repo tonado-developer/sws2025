@@ -37,7 +37,6 @@ function text_input(props, tag, name, options = {}) {
         placeholder = config.placeholder,
         allowedFormats = config.allowedFormats
     } = options;
-    options && console.log('found text config', title)
 
     return createElement('div', {
         className: 'pbw-field-wrapper',
@@ -138,14 +137,21 @@ function media_output(props, name, settings = {}) {
         className = '',
         fancybox = false,
         fancyboxGroup = 'gallery',
-        size = null
+        size = null,
+        dataset = {}
     } = settings;
+
+    const dataAttrs = {};
+    for (const key in dataset) {
+        dataAttrs[`data-${key}`] = dataset[key];
+    }
 
     const img = createElement('img', {
         src: url,
         alt: alt,
         className: `media-image ${name} ${className}`.trim(),
-        loading: 'lazy'
+        loading: 'lazy',
+        ...(dataAttrs ? dataAttrs : {}),
     });
 
     if (fancybox) {
