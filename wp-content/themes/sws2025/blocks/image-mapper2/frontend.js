@@ -262,8 +262,9 @@ class WordPressImageMapper {
                 } else if (rect.bottom > viewport.height - viewport.padding) {
                     adjustY = (viewport.height - viewport.padding) - rect.bottom;
                 }
+                // console.log("Badge position adjustment for marker", badgeInfo, { adjustX, adjustY });
 
-                this.badgePositions.set(marker, { x: adjustX, y: adjustY });
+                // this.badgePositions.set(marker, { x: adjustX, y: adjustY });
 
                 if (wasHidden) {
                     badgeInfo.style.display = '';
