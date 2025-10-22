@@ -90,6 +90,16 @@ window.imageMapperComponents = {
                 return pbw2.img.output(props, 'baseImageHd', {
                     className: 'parent_img hdImage'
                 });
+            },
+
+            // Base image HD for the image mapper
+            zoomBoundaries: () => {
+                return createElement(
+                    'div',
+                    {
+                        className: 'zoom-boundaries'
+                    },
+                );
             }
         },
 
@@ -213,6 +223,17 @@ window.imageMapperComponents = {
                         }
                     });
                 }
+            },
+
+            // Wrapper for marker Zoom Content
+            personWrapper: (...children) => {
+                return createElement(
+                    'div',
+                    {
+                        className: 'person-illu-wrapper'
+                    },
+                    ...children
+                );
             },
 
             // Side bar content for markers

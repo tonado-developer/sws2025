@@ -29,7 +29,8 @@ class WordPressImageMapper {
                 sideContent: '.side-content',
                 personImage: '.person-image',
                 illustrationImage: '.illustration-image',
-                markerLabel: '.markerLabel'
+                markerLabel: '.markerLabel',
+                zoomBoundaries: '.zoom-boundaries'
             },
 
             // CSS Classes
@@ -878,7 +879,7 @@ class WordPressImageMapper {
                     }
 
                     gsap.set(el, { opacity: 1 });
-                    el.style.display = 'block';
+                    el.style.display = 'flex';
 
                     wings.forEach((wing) => {
                         gsap.set(wings, {
@@ -953,7 +954,7 @@ class WordPressImageMapper {
                     }
 
                     gsap.set(el, { opacity: 1 });
-                    el.style.display = 'block';
+                    el.style.display = 'flex';
 
                     flames.forEach((flame) => {
                         gsap.set(flame, {
@@ -1053,7 +1054,7 @@ class WordPressImageMapper {
                     const rope = paths[1]; // Seil
 
                     gsap.set(el, { opacity: 1 });
-                    el.style.display = 'block';
+                    el.style.display = 'flex';
 
                     // Helm anfänglich außerhalb des Sichtfelds
                     gsap.set(helm, {
@@ -1839,6 +1840,18 @@ class WordPressImageMapper {
      * @returns {Object} Transform data
      */
     calculateZoomTransform(marker) {
+        const zoomBoundaries = this.state.rootContainer.querySelector(this.config.selectors.zoomBoundaries);
+        const boundaryRect = zoomBoundaries.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(zoomBoundaries);
+
+        // Extract paddings from element
+        const padding = {
+            top: parseFloat(computedStyle.paddingTop),
+            right: parseFloat(computedStyle.paddingRight),
+            bottom: parseFloat(computedStyle.paddingBottom),
+            left: parseFloat(computedStyle.paddingLeft)
+        };
+
         const container = this.state.currentContainer;
         const containerRect = container.getBoundingClientRect();
         const markerRect = marker.getBoundingClientRect();
@@ -1874,13 +1887,21 @@ class WordPressImageMapper {
             x: (markerCenter.x - containerCenter.x) * scale,
             y: (markerCenter.y - containerCenter.y) * scale
         };
+        
+        console.log("debug transformdata:",
+            {
+                'scale': scale,
+                'translateX': viewportCenter.x - containerCenter.x - scaledMarkerOffset.x,
+                'translateY': viewportCenter.y - containerCenter.y - scaledMarkerOffset.y
+            }
+        );
 
         let translateX = viewportCenter.x - containerCenter.x - scaledMarkerOffset.x;
         let translateY = viewportCenter.y - containerCenter.y - scaledMarkerOffset.y;
 
-        // Apply boundary constraints
+        // Apply boundary constraints from HTML element
         const bounds = this.calculateBoundaryConstraints(
-            parentRect, containerRect, scale, translateX, translateY
+            parentRect, containerRect, scale, translateX, translateY, padding
         );
 
         translateX = bounds.x;
@@ -1891,108 +1912,16 @@ class WordPressImageMapper {
     }
 
     /**
-     * Calculate zoom transform
-     * @param {HTMLElement} marker - Target marker
-     * @returns {Object} Transform data
-     */
-    calculateZoomTransformReset(marker) {
-        const container = this.state.currentContainer;
-        const containerRect = container.getBoundingClientRect();
-        const markerRect = marker.getBoundingClientRect();
-        const parentRect = this.parent.getBoundingClientRect();
-
-        const currentTransform = {
-            scale: gsap.getProperty(container, "scale") || 1,
-            x: gsap.getProperty(container, "x") || 0,
-            y: gsap.getProperty(container, "y") || 0
-        };
-
-        // Container-Center VOR Transformation (im Parent-Koordinatensystem)
-        const containerOriginalCenter = {
-            x: (container.offsetLeft + container.offsetWidth / 2),
-            y: (container.offsetTop + container.offsetHeight / 2)
-        };
-
-        // Aktuelles Container-Center (transformiert)
-        const containerCurrentCenter = {
-            x: containerRect.left + containerRect.width / 2 - parentRect.left,
-            y: containerRect.top + containerRect.height / 2 - parentRect.top
-        };
-
-        // Marker-Center im aktuellen (transformierten) Zustand
-        const markerCurrentCenter = {
-            x: markerRect.left + markerRect.width / 2 - parentRect.left,
-            y: markerRect.top + markerRect.height / 2 - parentRect.top
-        };
-
-        // Rückrechnung der Original-Position des Markers
-        // Distanz vom transformierten Container-Center zum Marker
-        const deltaX = markerCurrentCenter.x - containerCurrentCenter.x;
-        const deltaY = markerCurrentCenter.y - containerCurrentCenter.y;
-
-        // Diese Distanz durch Scale teilen für Original-Distanz
-        const originalDeltaX = deltaX / currentTransform.scale;
-        const originalDeltaY = deltaY / currentTransform.scale;
-
-        // Original Marker-Center
-        const markerOriginalCenter = {
-            x: containerOriginalCenter.x + originalDeltaX,
-            y: containerOriginalCenter.y + originalDeltaY
-        };
-
-        // Jetzt calculateZoomTransform-Logik mit den korrekten Werten anwenden
-        const viewportCenter = {
-            x: window.innerWidth / 2,
-            y: window.innerHeight / 2
-        };
-
-        const targetHeight = window.innerHeight * this.config.zoom.targetViewportHeight;
-        const targetWidth = window.innerWidth * this.config.zoom.targetViewportWidth;
-
-        let scale = Math.min(
-            targetHeight / (markerRect.height / currentTransform.scale),
-            targetWidth / (markerRect.width / currentTransform.scale)
-        );
-
-        // Translation berechnen (Parent-Koordinaten zu Viewport)
-        const scaledMarkerOffset = {
-            x: (markerOriginalCenter.x - containerOriginalCenter.x) * scale,
-            y: (markerOriginalCenter.y - containerOriginalCenter.y) * scale
-        };
-
-        let translateX = viewportCenter.x - (parentRect.left + containerOriginalCenter.x) - scaledMarkerOffset.x;
-        let translateY = viewportCenter.y - (parentRect.top + containerOriginalCenter.y) - scaledMarkerOffset.y;
-
-        const bounds = this.calculateBoundaryConstraints(
-            parentRect, containerRect, scale, translateX, translateY
-        );
-
-        return {
-            scale: bounds.scale,
-            translateX: bounds.x,
-            translateY: bounds.y
-        };
-    }
-
-
-    /**
-     * Calculate boundary constraints to keep parent image in viewport
+     * Calculate boundary constraints using HTML element padding
      * @param {DOMRect} parentRect - Parent image rect
      * @param {DOMRect} containerRect - Container rect
      * @param {number} scale - Current scale
      * @param {number} translateX - Current X translation
      * @param {number} translateY - Current Y translation
+     * @param {Object} padding - Padding values from HTML element
      * @returns {Object} Adjusted transform values
      */
-    calculateBoundaryConstraints(parentRect, containerRect, scale, translateX, translateY) {
-        const padding = {
-            x: window.innerWidth * this.config.zoom.viewportPadding,
-            y: window.innerHeight * this.config.zoom.viewportPadding
-        };
-
-        // Verwende festes top padding
-        const topPadding = this.config.zoom.topPadding || padding.y;
-
+    calculateBoundaryConstraints(parentRect, containerRect, scale, translateX, translateY, padding) {
         // Calculate scaled dimensions
         const scaledParentWidth = parentRect.width * scale;
         const scaledParentHeight = parentRect.height * scale;
@@ -2016,7 +1945,6 @@ class WordPressImageMapper {
         };
 
         // Calculate parent bounds in viewport after transformation
-        // Parent position = transformed container center + scaled parent offset - half of scaled container size
         const parentBounds = {
             left: transformedContainerCenter.x
                 + (parentOffsetInContainer.x * scale)
@@ -2029,30 +1957,10 @@ class WordPressImageMapper {
         parentBounds.right = parentBounds.left + scaledParentWidth;
         parentBounds.bottom = parentBounds.top + scaledParentHeight;
 
-        // Adjust translation to keep parent in viewport
-        if (parentBounds.left > padding.x) {
-            translateX -= (parentBounds.left - padding.x);
-        } else if (parentBounds.right < window.innerWidth - padding.x) {
-            translateX += (window.innerWidth - padding.x - parentBounds.right);
-        }
-
-        // KORRIGIERT: Verwende topPadding für oben, padding.y für unten
-        if (parentBounds.top > topPadding) {
-            translateY -= (parentBounds.top - topPadding);
-        } else if (parentBounds.bottom < window.innerHeight - padding.y) {
-            translateY += (window.innerHeight - padding.y - parentBounds.bottom);
-        }
-
-        // Apply push-right modifier
-        const pushModifier = Math.max(1,
-            (window.innerWidth - (parentBounds.left + scaledParentWidth / 2)) / 1000 * this.config.zoom.pushRight
-        );
-        translateX *= pushModifier;
-
         // Limit translation to reasonable bounds
         const maxTranslate = {
-            x: (window.innerWidth * scale - window.innerWidth) / 2,
-            y: (window.innerHeight * scale - window.innerHeight) / 2
+            x: parentRect.width * (scale - 1) / 2,
+            y: parentRect.height * (scale - 1) / 2
         };
 
         translateX = Math.max(-maxTranslate.x, Math.min(maxTranslate.x, translateX));

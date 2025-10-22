@@ -227,17 +227,23 @@ registerBlockType('sws2025/image-mapper2', {
             //  Wrapper for Global Details
             globalWrapper(
 
+                // Zoom boundaries
+                global.zoomBoundaries(),
+
                 // Background Image
                 global.backgroundImage(props),
 
                 // Side Content (Global)
                 marker.sideBarContent(attributes),
+                
 
-                // Person Image (Global)
-                marker.personImage(attributes),
+                marker.personWrapper(
+                    // Person Image
+                    marker.personImage(attributes),
 
-                // Illustration (Global)
-                marker.personIllustration(attributes),
+                    // Person Illustration
+                    marker.personIllustration(attributes)
+                )
             ),
 
             // Wrapper for the content that needs zoom functionality
@@ -269,11 +275,12 @@ registerBlockType('sws2025/image-mapper2', {
                     // return Wrapper for each marker
                     return marker.wrapper(
 
-                        // Person Illustration
-                        marker.personIllustration(markerData, index),
-
-                        // Person Image
-                        marker.personImage(markerData, index),
+                        marker.personWrapper(
+                            // Person Image
+                            marker.personImage(markerData, index),
+                            // Person Illustration
+                            marker.personIllustration(markerData, index)
+                        ),
 
                         // Svg Path with Checkpoints
                         marker.svgPath(markerData, index),
