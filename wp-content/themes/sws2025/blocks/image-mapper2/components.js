@@ -301,6 +301,13 @@ window.imageMapperComponents = {
             }, param);
         },
 
+        // Iterate over checkpoints
+        checkpointsIterate: (props, callback, param = {}) => {
+            return pbw2.array.input(props, 'checkpoints', (itemProps, index) => {
+                return callback(itemProps, index);
+            }, param);
+        },
+
         marker: {
             positioningInstructions: () => {
                 return createElement(

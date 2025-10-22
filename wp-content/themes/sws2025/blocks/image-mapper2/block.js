@@ -59,7 +59,8 @@ registerBlockType('sws2025/image-mapper2', {
         // Import Components from custom components file
         const {
             marker,
-            markerIterate
+            markerIterate,
+            checkpointsIterate
         } = window.imageMapperComponents.backend;
 
 
@@ -85,7 +86,7 @@ registerBlockType('sws2025/image-mapper2', {
             if (!attributes.hotspots) return;
 
             attributes.hotspots.forEach((hotspot, index) => {
-                if (hotspot.illustrationImage && !hotspot.illustrationImageSvg) {
+                if (hotspot.illustrationImage) {
                     fetch(hotspot.illustrationImage)
                         .then(r => r.text())
                         .then(svg => {
@@ -192,7 +193,7 @@ registerBlockType('sws2025/image-mapper2', {
                         // SVG Pfad + Checkpoints
                         group('🛤️ SVG Pfad & Checkpoints', { open: false },
                             marker.svgPathInput(itemProps),
-                            markerIterate(
+                            checkpointsIterate(
                                 itemProps,
                                 (itemProps) => marker.svgPathCheckpoint(itemProps),
                                 marker.checkpointIterateSettings
