@@ -225,7 +225,7 @@ class WordPressImageMapper {
      * Calculate positions for all badges (background)
      */
     calculateAllBadgePositions() {
-        if (this._badgeCalcPending) return; // Prevent overlapping calculations
+        if (this._badgeCalcPending) return;
         this._badgeCalcPending = true;
 
         requestAnimationFrame(() => {
@@ -262,9 +262,8 @@ class WordPressImageMapper {
                 } else if (rect.bottom > viewport.height - viewport.padding) {
                     adjustY = (viewport.height - viewport.padding) - rect.bottom;
                 }
-                // console.log("Badge position adjustment for marker", badgeInfo, { adjustX, adjustY });
 
-                // this.badgePositions.set(marker, { x: adjustX, y: adjustY });
+                this.badgePositions.set(marker, { x: adjustX, y: adjustY });
 
                 if (wasHidden) {
                     badgeInfo.style.display = '';
@@ -2601,7 +2600,7 @@ class ScrollExtension {
             lastScrollTime = now;
 
             // NEU: RAF-based throttling
-            if (!rafPending && Math.abs(scrollAccumulator) > this.config.scrollSensitivity) {
+            if (!rafPending && Math.abs(scrollAccumulator) > this.config.scrollSensitivity && timeDiff > 100) {
                 rafPending = true;
                 requestAnimationFrame(() => {
                     if (scrollAccumulator > 0) {
