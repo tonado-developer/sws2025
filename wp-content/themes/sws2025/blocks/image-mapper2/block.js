@@ -10,31 +10,44 @@ registerBlockType('sws2025/image-mapper2', {
         // Basis-Bilder
         ...pbw2.img.attr('backgroundImage', {
             title: 'Hintergrundbild',
-            description: 'Großflächiges Hintergrundbild (WebP 1920x1080)'
+            description: 'Großflächiges Querformat Hintergrundbild (WebP 1920x1080)'
+        }),
+        ...pbw2.img.attr('backgroundImageRespo', {
+            title: 'Hintergrundbild (Responsive)',
+            description: 'Großflächiges Hochformat Hintergrundbild (WebP 720x1440)'
         }),
         ...pbw2.img.attr('baseImage', {
             title: 'Basis-Bild',
-            description: 'Hauptbild für Hotspot-Platzierung (WebP 1920x1080)'
+            description: 'Hauptbild Querformat für Hotspot-Platzierung (WebP 1920x1080)'
         }),
-        ...pbw2.img.attr('baseImageHd', {
-            title: 'Basis-Bild HD',
-            description: 'Hochauflösende Version (WebP 3840x2160)'
+        ...pbw2.img.attr('baseImageRespo', {
+            title: 'Basis-Bild (Responsive)',
+            description: 'Hauptbild Hochformat für Hotspot-Platzierung (WebP 720x1440)'
         }),
         ...pbw2.img.attr('personImage', {
             title: 'Personen-Bild',
-            description: 'Testimonial-Foto (WebP 1920x1080)'
+            description: 'Testimonial-Foto Querformat (WebP 1920x1080)'
+        }),
+        ...pbw2.img.attr('personImageRespo', {
+            title: 'Personen-Bild',
+            description: 'Testimonial-Foto Hochformat (WebP 720x1440)'
         }),
         ...pbw2.img.attr('illustrationImage', {
             title: 'Illustration',
-            description: 'Dekorative Grafik (SVG)'
+            description: 'Dekorative Querformat Grafik (SVG)'
         }),
-
+        ...pbw2.img.attr('illustrationImageRespo', {
+            title: 'Illustration',
+            description: 'Dekorative Hochformat Grafik (SVG)'
+        }),
         illustrationImageSvg: {
             type: 'string',
             default: ''
         },
-
-        // Texte
+        illustrationImageSvgRespo: {
+            type: 'string',
+            default: ''
+        },
         sideHeadline: pbw2.h1.attr({
             title: 'Haupt-Überschrift',
             description: 'Große Überschrift für den Block'
@@ -141,8 +154,14 @@ registerBlockType('sws2025/image-mapper2', {
             // Block Title
             pbw2.block.title(props),
 
+            // Texte Section
+            group('✍️ Texte', { open: false },
+                pbw2.h1.input(props, 'h1', 'sideHeadline'),
+                pbw2.p.input(props, 'p', 'sideText')
+            ),
+
             // Bilder Section
-            group('🖼️ Bilder', { open: false },
+            group('🖼️ Bilder (Desktop)', { open: false },
                 createElement('div', {
                     style: {
                         display: 'grid',
@@ -152,16 +171,25 @@ registerBlockType('sws2025/image-mapper2', {
                 },
                     pbw2.img.input(props, 'backgroundImage'),
                     pbw2.img.input(props, 'baseImage'),
-                    pbw2.img.input(props, 'baseImageHd'),
                     pbw2.img.input(props, 'personImage'),
                     pbw2.img.input(props, 'illustrationImage')
                 )
             ),
 
-            // Texte Section
-            group('✍️ Texte', { open: false },
-                pbw2.h1.input(props, 'h1', 'sideHeadline'),
-                pbw2.p.input(props, 'p', 'sideText')
+            // Bilder Section
+            group('🖼️ Bilder (Mobile)', { open: false },
+                createElement('div', {
+                    style: {
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: '16px'
+                    }
+                },
+                    pbw2.img.input(props, 'backgroundImageRespo'),
+                    pbw2.img.input(props, 'baseImageRespo'),
+                    pbw2.img.input(props, 'personImageRespo'),
+                    pbw2.img.input(props, 'illustrationImageRespo')
+                )
             ),
 
             // Spacer
@@ -286,7 +314,7 @@ registerBlockType('sws2025/image-mapper2', {
                 markerIterate(props, (markerData, index) => {
 
                     // return Wrapper for each marker
-                    return marker.wrapper( index,
+                    return marker.wrapper(index,
 
                         // Marker Label
                         marker.markerLabel(markerData),

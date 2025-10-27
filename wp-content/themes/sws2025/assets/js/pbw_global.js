@@ -93,6 +93,8 @@ function media_input(props, name, options = {}) {
             style: styles.previewImage
         }),
 
+        url && createElement('p', { style: styles.fieldDescription }, `${url.split('/').pop()}`),
+
         createElement('div', { style: styles.mediaControls },
             createElement(MediaUpload, {
                 onSelect: (media) => setAttributes({

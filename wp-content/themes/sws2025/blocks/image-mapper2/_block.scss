@@ -572,8 +572,11 @@ img.parent_img.hdImage {
 }
 
 .position-prezoom {
-    transform: scale(1.5);
     transform-origin: bottom right;
+    @media screen and (max-width:$navbarBreakpoint) {
+        transform: scale(1.5);
+
+    }
 }
 
 .position-marker.zoomed {

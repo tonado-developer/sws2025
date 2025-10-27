@@ -1858,6 +1858,7 @@ class WordPressImageMapper {
         const zoomBoundaries = this.state.rootContainer.querySelector(this.config.selectors.zoomBoundaries);
         const computedStyle = window.getComputedStyle(zoomBoundaries);
 
+        
         const padding = {
             top: parseFloat(computedStyle.paddingTop),
             right: parseFloat(computedStyle.paddingRight),
@@ -1877,6 +1878,21 @@ class WordPressImageMapper {
         const containerRect = container.getBoundingClientRect();
         const markerRect = marker.getBoundingClientRect();
         const parentRect = this.parent.getBoundingClientRect();
+
+        // PRE-ZOOM FAKTOR ERMITTELN
+        const preZoomContainer = container.closest('.position-prezoom');
+        let preZoomFactor = 1.0;
+
+        if (preZoomContainer) {
+            const preZoomStyle = window.getComputedStyle(preZoomContainer);
+            const transform = preZoomStyle.transform;
+
+            if (transform && transform !== 'none') {
+                const matrix = new DOMMatrix(transform);
+                preZoomFactor = matrix.a; // X-Scale Wert
+            }
+        }
+        
 
         const containerCenter = {
             x: containerRect.left + containerRect.width / 2,

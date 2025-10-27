@@ -113,7 +113,7 @@ window.imageMapperComponents = {
         marker: {
 
             // Wrapper for each marker with its checkpoints
-            wrapper: (index,...children) => {
+            wrapper: (index, ...children) => {
                 return createElement(
                     'div',
                     {
@@ -442,52 +442,101 @@ window.imageMapperComponents = {
             baseSettings: (itemProps) => {
                 return group('📍 Basis-Einstellungen', { open: false },
                     pbw2.text.input(itemProps, 'p', 'catName', { title: 'Hotspot-Name' }),
-                    pbw2.img.input(itemProps, 'overlay', { title: 'Hover Overlay (WebP 100% Vollton, Größe = Echtes Format auf Basis-Bild)' }),
+                    pbw2.img.input(itemProps, 'overlay', { title: 'Hover Overlay (Desktop) (WebP 100% Vollton, Größe = Echtes Format auf Basis-Bild)' }),
 
-                    createElement('div', {
-                        style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }
-                    },
+                    createElement(
+                        'div',
+                        {
+                            style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }
+                        },
                         pbw2.text.input(itemProps, 'p', 'xPosition', { title: 'X Position (%)' }),
                         pbw2.text.input(itemProps, 'p', 'yPosition', { title: 'Y Position (%)' }),
                         pbw2.text.input(itemProps, 'p', 'width', { title: 'Breite (%)' })
+                    ),
+
+                    createElement(
+                        'div',
+                        {
+                            style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }
+                        },
+                        pbw2.text.input(itemProps, 'p', 'xPositionRespo', { title: 'X Position (%)' }),
+                        pbw2.text.input(itemProps, 'p', 'yPositionRespo', { title: 'Y Position (%)' }),
+                        pbw2.text.input(itemProps, 'p', 'widthRespo', { title: 'Breite (%)' })
                     )
                 );
             },
 
             // svg Path Input
             svgPathInput: (itemProps) => {
-                return pbw2.img.input(itemProps, 'pathSvg', { title: 'SVG Pfad (SVG)' });
+                return createElement(
+                    'div',
+                    null,
+                    pbw2.img.input(itemProps, 'pathSvg', { title: 'SVG Pfad (Desktop) (SVG)' }),
+                    pbw2.img.input(itemProps, 'pathSvgRespo', { title: 'SVG Pfad (Mobile) (SVG)' })
+                );
             },
 
             // svg Path Checkpoints
             svgPathCheckpoint: (itemProps) => {
                 return group(itemProps.attributes.previewLabel || "Marker", { open: false },
                     createElement(wp.element.Fragment, null,
-                        pbw2.text.input(itemProps, 'p', 'pathPosition', { title: 'Position auf Pfad (0-100%)' }),
-                        pbw2.img.input(itemProps, 'previewImage', { title: 'Vorschau Bild (WebP min200 x min200)' }),
                         pbw2.text.input(itemProps, 'p', 'previewLabel', { title: 'Vorschau Überschrift' }),
                         pbw2.text.input(itemProps, 'p', 'previewText', { title: 'Vorschau Text' }),
                         pbw2.link.input(itemProps, 'targetLink', { title: 'Zielseite' }),
-                        pbw2.choose.input(itemProps, 'previewOrientation', [
-                            { label: 'Rechts', value: 'right' },
-                            { label: 'Links', value: 'left' }
-                        ], {
-                            title: 'Vorschau-Ausrichtung',
-                            description: 'In welche Richtung soll sich die Vorschau öffnen?'
-                        })
+                        pbw2.img.input(itemProps, 'previewImage', { title: 'Vorschau Bild (WebP min200 x min200)' }),
+
+                        group('📍 Positionierung auf Pfad (Desktop)', { open: false },
+                            pbw2.text.input(itemProps, 'p', 'pathPosition', { title: 'Position auf Pfad (0-100%)' }),
+                            pbw2.choose.input(
+                                itemProps,
+                                'previewOrientation',
+                                [
+                                    { label: 'Rechts', value: 'right' },
+                                    { label: 'Links', value: 'left' }
+                                ],
+                                {
+                                    title: 'Vorschau-Ausrichtung',
+                                    description: 'In welche Richtung soll sich die Vorschau öffnen?'
+                                }
+                            )
+                        ),
+                        
+                        group('📍 Positionierung auf Pfad (Mobile)', { open: false },
+                            pbw2.text.input(itemProps, 'p', 'pathPositionRespo', { title: 'Position auf Pfad (0-100%)' }),
+                            pbw2.choose.input(
+                                itemProps,
+                                'previewOrientationRespo',
+                                [
+                                    { label: 'Rechts', value: 'right' },
+                                    { label: 'Links', value: 'left' }
+                                ],
+                                {
+                                    title: 'Vorschau-Ausrichtung',
+                                    description: 'In welche Richtung soll sich die Vorschau öffnen?'
+                                }
+                            )
+                        )
                     )
                 );
             },
 
             // Zoom-Inhalte Einstellungen
             zoomSettings: (itemProps) => {
-                return group('🔍 Zoom-Inhalte', { open: false },
-                    pbw2.img.input(itemProps, 'zoomImage', { title: 'Freigestellter Berg (WebP, Größe = Echtes Format auf Basis-Bild HD)' }),
-                    pbw2.img.input(itemProps, 'personImage', { title: 'Person Bild (WebP 1920 x 1080)' }),
-                    pbw2.img.input(itemProps, 'illustrationImage', { title: 'Orange Illustration (SVG) (fluegel.svg,illu_feuer.svg,illu_helm.svg)' }),
-                    pbw2.text.input(itemProps, 'p', 'sideText', { title: 'Seiten-Text' }),
-                    pbw2.link.input(itemProps, 'sideLink', { title: 'Seiten-Link' }),
-                    pbw2.text.input(itemProps, 'p', 'sideLinkText', { title: 'Link-Text' })
+                return createElement(
+                    'div',
+                    null,
+                    group('🔍 Zoom-Inhalte (Desktop)', { open: false },
+                        pbw2.img.input(itemProps, 'zoomImage', { title: 'Freigestellter Berg (WebP, Größe = Echtes Format auf Basis-Bild HD)' }),
+                        pbw2.img.input(itemProps, 'personImage', { title: 'Person Bild (WebP 1920 x 1080)' }),
+                        pbw2.img.input(itemProps, 'illustrationImage', { title: 'Orange Illustration (SVG 1920 x 1080) (fluegel.svg,illu_feuer.svg,illu_helm.svg)' }),
+                        pbw2.text.input(itemProps, 'p', 'sideText', { title: 'Seiten-Text' }),
+                        pbw2.link.input(itemProps, 'sideLink', { title: 'Seiten-Link' }),
+                        pbw2.text.input(itemProps, 'p', 'sideLinkText', { title: 'Link-Text' })
+                    ),
+                    group('🔍 Zoom-Inhalte (Mobile)', { open: false },
+                        pbw2.img.input(itemProps, 'personImageRespo', { title: 'Person Bild (WebP 720x1440)' }),
+                        pbw2.img.input(itemProps, 'illustrationImageRespo', { title: 'Orange Illustration (SVG 720x1440) (fluegel.svg,illu_feuer.svg,illu_helm.svg)' }),
+                    )
                 );
             },
 
