@@ -41,9 +41,9 @@
 
 @media screen and (max-width:$phoneBreakpoint) {
     .sidebar{
-        top: unset;
-        bottom: 10px;
-        right: 0;
+        // top: unset;
+        // bottom: 10px;
+        // right: 0;
         :where(.wp-element-button, .wp-block-button__link){
             padding: 10px;
         }

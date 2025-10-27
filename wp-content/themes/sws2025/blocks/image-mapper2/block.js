@@ -235,7 +235,7 @@ registerBlockType('sws2025/image-mapper2', {
 
                 // Side Content (Global)
                 marker.sideBarContent(attributes),
-                
+
 
                 marker.personWrapper(
                     // Person Image
@@ -262,7 +262,20 @@ registerBlockType('sws2025/image-mapper2', {
                 // marker Zoom Contents Wrapper
                 marker.zoomContentWrapper(
                     // Iterate Hotspots
-                    markerIterate(props, (markerData, index) => marker.zoomContent(markerData, index))
+                    markerIterate(props, (markerData, index) => {
+                        return marker.zoomContent(markerData, index,
+                            // Overlay
+                            pbw2.img.output({ attributes: markerData }, 'overlay'),
+
+                            // Nested Position Preview
+                            (markerData.zoomImage || markerData.pathSvg) && createElement('div',
+                                {
+                                    className: 'position-preview'
+                                },
+                                pbw2.img.output({ attributes: markerData }, 'zoomImage')
+                            )
+                        )
+                    })
                 )
             ),
 
@@ -273,7 +286,10 @@ registerBlockType('sws2025/image-mapper2', {
                 markerIterate(props, (markerData, index) => {
 
                     // return Wrapper for each marker
-                    return marker.wrapper(
+                    return marker.wrapper( index,
+
+                        // Marker Label
+                        marker.markerLabel(markerData),
 
                         marker.personWrapper(
                             // Person Image

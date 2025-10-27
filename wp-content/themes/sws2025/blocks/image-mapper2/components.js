@@ -43,9 +43,15 @@ window.imageMapperComponents = {
             return createElement(
                 'div',
                 {
-                    className: 'position-preview'
+                    className: 'position-prezoom'
                 },
-                ...children
+                createElement(
+                    'div',
+                    {
+                        className: 'position-preview'
+                    },
+                    ...children
+                )
             );
         },
 
@@ -107,11 +113,12 @@ window.imageMapperComponents = {
         marker: {
 
             // Wrapper for each marker with its checkpoints
-            wrapper: (...children) => {
+            wrapper: (index,...children) => {
                 return createElement(
                     'div',
                     {
-                        className: 'hotspot-details-container'
+                        className: 'hotspot-details-container',
+                        'data-hotspot-id': index
                     },
                     ...children
                 );
@@ -276,38 +283,31 @@ window.imageMapperComponents = {
             },
 
             // Zoom content for markers
-            zoomContent: (marker, index = null) => {
+            zoomContent: (marker, index = null, ...children) => {
                 return createElement(
                     'div',
                     {
                         key: index,
                         className: 'position-marker',
                         'data-hotspot-id': index,
-                        style: `left: ${marker.xPosition}%; top: ${marker.yPosition}%; width: ${marker.width}%`
+                        style: `--x-pos: ${marker.xPosition}%; --y-pos: ${marker.yPosition}%; --width: ${marker.width}%`
                     },
-                    // Overlay
-                    pbw2.img.output({ attributes: marker }, 'overlay'),
+                    ...children
+                );
+            },
 
-                    // Marker Label
-                    marker.catName && createElement(
+            // marker Label
+            markerLabel: (marker) => {
+                if (marker.catName) {
+                    return createElement(
                         'div',
                         {
                             className: 'markerLabel'
                         },
                         createElement('h3', { className: 'badge' }, marker.catName),
                         createElement('div', { className: 'string' })
-                    ),
-
-                    // Nested Position Preview
-                    (marker.zoomImage || marker.pathSvg) && createElement(
-                        'div',
-                        {
-                            className: 'position-preview'
-                        },
-                        createElement('div', { className: 'parent_overlay' }),
-                        pbw2.img.output({ attributes: marker }, 'zoomImage')
-                    )
-                );
+                    );
+                }
             }
         }
     },

@@ -30,7 +30,8 @@ class WordPressImageMapper {
                 personImage: '.person-image',
                 illustrationImage: '.illustration-image',
                 markerLabel: '.markerLabel',
-                zoomBoundaries: '.zoom-boundaries'
+                zoomBoundaries: '.zoom-boundaries',
+                markerDetails: '.hotspot-details-container'
             },
 
             // CSS Classes
@@ -44,6 +45,7 @@ class WordPressImageMapper {
                 IllustrationInitialized: "IllustrationInitialized",
                 IllustrationAnimating: "IllustrationAnimating",
                 IllustrationAnimated: "IllustrationAnimated",
+                animated: "animated",
             },
 
             // Animation settings
@@ -1231,7 +1233,7 @@ class WordPressImageMapper {
             this.markerZIndices.push({ marker, zIndex, index });
 
             // Setup canvas for pixel detection
-            this.setupMarkerCanvas(marker, overlay, index);
+            this.setupMarkerCanvas(overlay, index);
 
             // Attach events using event delegation
             this.attachMarkerEvents(marker);
@@ -1247,14 +1249,15 @@ class WordPressImageMapper {
      * @param {HTMLImageElement} img - Overlay image
      * @param {number} index - Marker index
      */
-    setupMarkerCanvas(marker, img, index) {
+    setupMarkerCanvas(img, index) {
+        
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d'); // OHNE willReadFrequently
 
         const processImage = () => {
             canvas.width = img.naturalWidth;
             canvas.height = img.naturalHeight;
-
+            
             try {
                 ctx.drawImage(img, 0, 0);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -1262,15 +1265,16 @@ class WordPressImageMapper {
                 this.canvasData.set(index, {
                     imageData: imageData,
                     width: canvas.width,
-                    height: canvas.height
+                    height: canvas.height,
+                    img: img.getBoundingClientRect()
                 });
-
-                this.setupmarkerLabel(marker, index);
+                
+                this.setupmarkerLabel(index);
 
             } catch (e) {
                 this.debug('Canvas CORS issue for marker', index, e.message);
                 this.canvasData.set(index, null);
-                this.setupmarkerLabel(marker, index);
+                this.setupmarkerLabel(index);
             }
         };
 
@@ -1281,7 +1285,7 @@ class WordPressImageMapper {
             img.addEventListener('error', () => {
                 this.debug('Failed to load overlay:', img.src);
                 this.canvasData.set(index, null);
-                this.setupmarkerLabel(marker, index);
+                this.setupmarkerLabel(index);
             }, { once: true });
         }
     }
@@ -1291,23 +1295,23 @@ class WordPressImageMapper {
      * @param {HTMLElement} marker - Marker element
      * @param {number} index - Marker index
      */
-    setupmarkerLabel(marker, index) {
-        const markerLabel = marker.querySelector(this.config.selectors.markerLabel);
-        if (!markerLabel) return;
+    setupmarkerLabel(index) {
+        const root = this.state.rootContainer;
+        const marker = root.querySelector(`${this.config.selectors.markerDetails}[data-hotspot-id="${index}"]`);
+        const markerLabel = marker.querySelector(`${this.config.selectors.markerLabel}`);
 
-        const computedOpacity = window.getComputedStyle(markerLabel).opacity;
-        if (parseFloat(computedOpacity) === 1) return;
+        if (!markerLabel) return;
 
         const canvasData = this.canvasData.get(index);
 
         if (!canvasData) {
             // Fallback: use center position and animate
             markerLabel.style.left = '50%';
-            this.animateMarkerSequence(markerLabel, index);
+            !markerLabel.classList.contains('animated') && this.animateMarkerSequence(markerLabel, index);
             return;
         }
 
-        const { imageData, width, height } = canvasData;
+        const { imageData, width, height, img } = canvasData;
         const data = imageData.data;
 
         // Scan from top to find first non-transparent pixel
@@ -1316,8 +1320,9 @@ class WordPressImageMapper {
                 const alpha = data[(y * width + x) * 4 + 3];
 
                 if (alpha > 0) {
-                    markerLabel.style.left = `${(x / width) * 100}%`;
-                    this.animateMarkerSequence(markerLabel, index);
+                    markerLabel.style.left = `${img.left + ((x / width) * img.width)}px`;
+                    markerLabel.style.top = `${img.top}px`;
+                    !markerLabel.classList.contains('animated') && this.animateMarkerSequence(markerLabel, index);
                     return;
                 }
             }
@@ -1349,7 +1354,10 @@ class WordPressImageMapper {
         tl.to(markerLabel, {
             opacity: 1,
             delay: 0.5,
-            duration: badgeDuration / 5
+            duration: badgeDuration / 5,
+            onComplete: () => {
+                markerLabel.classList.add(this.config.classes.animated);
+            }
         })
 
             // 2. String rises up
@@ -1451,10 +1459,12 @@ class WordPressImageMapper {
      */
     findMarkerAtPosition(e) {
         if (!this.markers) return null;
+        const root = this.state.rootContainer;
 
-        // PHASE 1: Check ALL badges first (absolute priority, z-index irrelevant)
-        for (const { marker } of this.markerZIndices) {
-            const markerLabel = marker.querySelector('.markerLabel h3.badge');
+        // Phase 1: Check badges first (highest priority)
+        for (const { marker, index } of this.markerZIndices) {
+            const markerDetails = root.querySelector(`${this.config.selectors.markerDetails}[data-hotspot-id="${index}"]`);
+            const markerLabel = markerDetails.querySelector(`${this.config.selectors.markerLabel} h3.badge`);
             if (markerLabel) {
                 const labelRect = markerLabel.getBoundingClientRect();
 
@@ -1467,6 +1477,8 @@ class WordPressImageMapper {
 
         // PHASE 2: Only if no badge was hit, check overlays (respects z-index order)
         for (const { marker, index } of this.markerZIndices) {
+            
+
             const overlay = marker.querySelector(this.config.selectors.overlay);
             if (!overlay) continue;
 
@@ -1643,6 +1655,9 @@ class WordPressImageMapper {
         // Apply classes
         this.state.currentContainer.classList.add(this.config.classes.zoomed);
         marker.classList.add(this.config.classes.zoomed);
+
+        const currentRoot = this.state.rootContainer;
+        currentRoot.classList.add(this.config.classes.zoomed);
 
         // Remove hover
         this.setHoverState(marker, false);
@@ -1835,16 +1850,14 @@ class WordPressImageMapper {
     }
 
     /**
-     * Calculate zoom transform
-     * @param {HTMLElement} marker - Target marker
-     * @returns {Object} Transform data
-     */
+ * Calculate zoom transform with object-fit: cover behavior
+ * @param {HTMLElement} marker - Target marker
+ * @returns {Object} Transform data
+ */
     calculateZoomTransform(marker) {
         const zoomBoundaries = this.state.rootContainer.querySelector(this.config.selectors.zoomBoundaries);
-        const boundaryRect = zoomBoundaries.getBoundingClientRect();
         const computedStyle = window.getComputedStyle(zoomBoundaries);
 
-        // Extract paddings from element
         const padding = {
             top: parseFloat(computedStyle.paddingTop),
             right: parseFloat(computedStyle.paddingRight),
@@ -1852,12 +1865,19 @@ class WordPressImageMapper {
             left: parseFloat(computedStyle.paddingLeft)
         };
 
+        // Verfügbare innere Fläche (ohne Padding)
+        const availableArea = {
+            width: window.innerWidth - padding.left - padding.right,
+            height: window.innerHeight - padding.top - padding.bottom,
+            centerX: padding.left + (window.innerWidth - padding.left - padding.right) / 2,
+            centerY: padding.top + (window.innerHeight - padding.top - padding.bottom) / 2
+        };
+
         const container = this.state.currentContainer;
         const containerRect = container.getBoundingClientRect();
         const markerRect = marker.getBoundingClientRect();
         const parentRect = this.parent.getBoundingClientRect();
 
-        // Calculate centers
         const containerCenter = {
             x: containerRect.left + containerRect.width / 2,
             y: containerRect.top + containerRect.height / 2
@@ -1868,96 +1888,47 @@ class WordPressImageMapper {
             y: markerRect.top + markerRect.height / 2
         };
 
-        const viewportCenter = {
-            x: window.innerWidth / 2,
-            y: window.innerHeight / 2
-        };
-
-        // Calculate scale
-        const targetHeight = window.innerHeight * this.config.zoom.targetViewportHeight;
-        const targetWidth = window.innerWidth * this.config.zoom.targetViewportWidth;
-
-        let scale = Math.min(
-            targetHeight / markerRect.height,
-            targetWidth / markerRect.width
+        // object-fit: cover Logik - nimm den GRÖSSEREN Scale-Wert
+        let scale = Math.max(
+            availableArea.height / markerRect.height,
+            availableArea.width / markerRect.width
         );
 
-        // Calculate translation
+        // Marker-Offset zum Container-Center (skaliert)
         const scaledMarkerOffset = {
             x: (markerCenter.x - containerCenter.x) * scale,
             y: (markerCenter.y - containerCenter.y) * scale
         };
-        
-        console.log("debug transformdata:",
-            {
-                'scale': scale,
-                'translateX': viewportCenter.x - containerCenter.x - scaledMarkerOffset.x,
-                'translateY': viewportCenter.y - containerCenter.y - scaledMarkerOffset.y
-            }
-        );
 
-        let translateX = viewportCenter.x - containerCenter.x - scaledMarkerOffset.x;
-        let translateY = viewportCenter.y - containerCenter.y - scaledMarkerOffset.y;
+        // Zentriere Marker in der verfügbaren inneren Fläche
+        let translateX = availableArea.centerX - containerCenter.x - scaledMarkerOffset.x;
+        let translateY = availableArea.centerY - containerCenter.y - scaledMarkerOffset.y;
 
-        // Apply boundary constraints from HTML element
+        // Boundary-Constraints anwenden
         const bounds = this.calculateBoundaryConstraints(
-            parentRect, containerRect, scale, translateX, translateY, padding
+            parentRect, containerRect, scale, translateX, translateY, padding, availableArea
         );
 
-        translateX = bounds.x;
-        translateY = bounds.y;
-        scale = bounds.scale;
-
-        return { scale, translateX, translateY };
+        return {
+            scale: bounds.scale,
+            translateX: bounds.x,
+            translateY: bounds.y
+        };
     }
 
     /**
-     * Calculate boundary constraints using HTML element padding
+     * Calculate boundary constraints
      * @param {DOMRect} parentRect - Parent image rect
      * @param {DOMRect} containerRect - Container rect
      * @param {number} scale - Current scale
      * @param {number} translateX - Current X translation
      * @param {number} translateY - Current Y translation
-     * @param {Object} padding - Padding values from HTML element
+     * @param {Object} padding - Padding values
+     * @param {Object} availableArea - Available inner area
      * @returns {Object} Adjusted transform values
      */
-    calculateBoundaryConstraints(parentRect, containerRect, scale, translateX, translateY, padding) {
-        // Calculate scaled dimensions
-        const scaledParentWidth = parentRect.width * scale;
-        const scaledParentHeight = parentRect.height * scale;
-
-        // Calculate parent position relative to container (before scaling)
-        const parentOffsetInContainer = {
-            x: parentRect.left - containerRect.left,
-            y: parentRect.top - containerRect.top
-        };
-
-        // Calculate viewport center
-        const viewportCenter = {
-            x: window.innerWidth / 2,
-            y: window.innerHeight / 2
-        };
-
-        // Calculate container center in viewport after transformation
-        const transformedContainerCenter = {
-            x: viewportCenter.x + translateX,
-            y: viewportCenter.y + translateY
-        };
-
-        // Calculate parent bounds in viewport after transformation
-        const parentBounds = {
-            left: transformedContainerCenter.x
-                + (parentOffsetInContainer.x * scale)
-                - (containerRect.width * scale / 2),
-            top: transformedContainerCenter.y
-                + (parentOffsetInContainer.y * scale)
-                - (containerRect.height * scale / 2)
-        };
-
-        parentBounds.right = parentBounds.left + scaledParentWidth;
-        parentBounds.bottom = parentBounds.top + scaledParentHeight;
-
-        // Limit translation to reasonable bounds
+    calculateBoundaryConstraints(parentRect, containerRect, scale, translateX, translateY, padding, availableArea) {
+        // Begrenze Translation (darf nicht zu weit vom Rand weg)
         const maxTranslate = {
             x: parentRect.width * (scale - 1) / 2,
             y: parentRect.height * (scale - 1) / 2
@@ -1965,6 +1936,54 @@ class WordPressImageMapper {
 
         translateX = Math.max(-maxTranslate.x, Math.min(maxTranslate.x, translateX));
         translateY = Math.max(-maxTranslate.y, Math.min(maxTranslate.y, translateY));
+
+        const scaledParentWidth = parentRect.width * scale;
+        const scaledParentHeight = parentRect.height * scale;
+
+        const parentOffsetInContainer = {
+            x: parentRect.left - containerRect.left,
+            y: parentRect.top - containerRect.top
+        };
+
+        const transformedContainerCenter = {
+            x: availableArea.centerX + translateX,
+            y: availableArea.centerY + translateY
+        };
+
+        // Parent-Grenzen nach Transformation
+        const parentBounds = {
+            left: transformedContainerCenter.x + (parentOffsetInContainer.x * scale) - (containerRect.width * scale / 2),
+            top: transformedContainerCenter.y + (parentOffsetInContainer.y * scale) - (containerRect.height * scale / 2)
+        };
+
+        parentBounds.right = parentBounds.left + scaledParentWidth;
+        parentBounds.bottom = parentBounds.top + scaledParentHeight;
+
+        // Stelle sicher, dass Parent die innere Fläche komplett abdeckt
+        const innerBounds = {
+            left: padding.left,
+            top: padding.top,
+            right: window.innerWidth - padding.right,
+            bottom: window.innerHeight - padding.bottom
+        };
+
+        // Korrigiere Translation, damit innere Fläche immer abgedeckt ist (nur wenn maxTranslate es erlaubt)
+        if (parentBounds.left > innerBounds.left) {
+            const correction = (parentBounds.left - innerBounds.left) / scale;
+            translateX = Math.max(-maxTranslate.x, translateX - correction);
+        }
+        if (parentBounds.right < innerBounds.right) {
+            const correction = (innerBounds.right - parentBounds.right) / scale;
+            translateX = Math.min(maxTranslate.x, translateX + correction);
+        }
+        if (parentBounds.top > innerBounds.top) {
+            const correction = (parentBounds.top - innerBounds.top) / scale;
+            translateY = Math.max(-maxTranslate.y, translateY - correction);
+        }
+        if (parentBounds.bottom < innerBounds.bottom) {
+            const correction = (innerBounds.bottom - parentBounds.bottom) / scale;
+            translateY = Math.min(maxTranslate.y, translateY + correction);
+        }
 
         return { x: translateX, y: translateY, scale };
     }
@@ -2059,6 +2078,8 @@ class WordPressImageMapper {
             onComplete: () => {
                 // Clear all transforms after animation
                 gsap.set(zoomData.container, { clearProps: "all" });
+                const currentRoot = this.state.rootContainer;
+                currentRoot.classList.remove(this.config.classes.zoomed);
             }
         });
 
@@ -2205,6 +2226,15 @@ class WordPressImageMapper {
         if (this.state.zoomLevel > 0 && this.state.zoomedMarker) {
             // Could recalculate zoom here if needed
         }
+        this.markers.forEach((marker, index) => {
+            const overlay = marker.querySelector(this.config.selectors.overlay);
+            if (!overlay) {
+                return;
+            }
+
+            // Setup canvas for pixel detection
+            this.setupMarkerCanvas(overlay, index);
+        });
     }
 
     /**
@@ -2365,6 +2395,12 @@ class WordPressImageMapper {
  * Auto-initialization
  */
 document.addEventListener('DOMContentLoaded', () => {
+    const isTouchDevice = () => {
+        return 'ontouchstart' in window || 
+               navigator.maxTouchPoints > 0 || 
+               navigator.msMaxTouchPoints > 0;
+    };
+    
     window.wpImageMapper = new WordPressImageMapper({
         zoom: {
             targetViewportHeight: 0.6,
@@ -2386,11 +2422,13 @@ document.addEventListener('DOMContentLoaded', () => {
         alphaThreshold: 10,
         debug: false
     });
-    window.scrollExtension = new ScrollExtension(window.wpImageMapper, {
-        mode: 'simple-animation',
-        scrollSensitivity: 100,
-        enableKeyboardNavigation: true
-    });
+    if (!isTouchDevice()) {
+        window.scrollExtension = new ScrollExtension(window.wpImageMapper, {
+            mode: 'simple-animation',
+            scrollSensitivity: 100,
+            enableKeyboardNavigation: true
+        });
+    }
 });
 
 
@@ -2525,9 +2563,9 @@ class ScrollExtension {
         window.addEventListener('wheel', handleWheel, { passive: false });
         this._wheelHandler = handleWheel;
 
-        this.setupTouchScroll();
+        // this.setupTouchScroll();
 
-        console.log('Simple animation mode initialized');
+        // console.log('Simple animation mode initialized');
     }
 
     // In ScrollExtension class
@@ -2535,7 +2573,7 @@ class ScrollExtension {
         const markerIndex = this.state.markers.findIndex(m => m.element === marker);
         if (markerIndex !== -1) {
             this.state.currentMarkerIndex = markerIndex;
-            console.log(`Synced manual zoom to marker index ${markerIndex}`);
+            // console.log(`Synced manual zoom to marker index ${markerIndex}`);
         }
     }
 
