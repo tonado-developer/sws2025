@@ -1,14 +1,31 @@
-.wp-block-sws2025-accordion{
-    .contentGrid{
+.wp-block-sws2025-accordion {
+    $imgMinSize: 200px;
+    .contentGrid {
         display: grid;
         gap: 40px;
+        @media screen and (max-width:$columnsBreakpoint) {
+            grid-template-columns: minmax(0px,1fr) !important;
+            .rowWrap {
+                grid-row: auto;
+            }
+            .accordionImages{
+                max-width: 250px;
+            }
+            .row{
+                padding-left: 45px;
+            }
+            .rowTrigger::after{
+                left: -35px;
+            }
+        }
     }
-    .accordionImages{
+
+    .accordionImages {
         grid-row: 1;
         position: relative;
         display: flex;
         align-items: center;
-        figure{
+        figure {
             margin: unset;
             display: none;
             width: 100%;
@@ -23,123 +40,152 @@
             text-decoration: none;
             transition: all 300ms ease;
             overflow: hidden;
-            img{
+
+            img {
                 display: block;
                 object-fit: cover;
                 height: 100%;
                 overflow: hidden;
                 z-index: 1;
             }
+
             &.subImage {
                 position: absolute;
                 top: 0;
                 opacity: 0;
                 transition: opacity 0ms ease;
             }
-            &.open, &.media-wrap--image{
+
+            &.open,
+            &.media-wrap--image {
                 display: flex;
                 opacity: 1;
             }
+
             &.media-wrap--image {
                 width: 20vw;
             }
         }
     }
 
-    &.img-format-1-1 .accordionImages figure img{
+    &.img-format-1-1 .accordionImages figure img {
         aspect-ratio: 1/1;
     }
-    &.img-format-16-9 .accordionImages figure img{
+
+    &.img-format-16-9 .accordionImages figure img {
         aspect-ratio: 16/9;
     }
-    &.img-format-9-16 .accordionImages figure img{
+
+    &.img-format-9-16 .accordionImages figure img {
         aspect-ratio: 9/16;
     }
+
     &.img-width-25 {
-        .figure-left{
-            grid-template-columns: minmax(0px, 1fr) minmax(0px, 3fr);
+        .figure-left {
+            grid-template-columns: minmax($imgMinSize, 1fr) minmax(0px, 3fr);
         }
-        .figure-right{
-            grid-template-columns: minmax(0px, 3fr) minmax(0px, 1fr);
+
+        .figure-right {
+            grid-template-columns: minmax(0px, 3fr) minmax($imgMinSize, 1fr);
         }
     }
+
     &.img-width-33 {
-        .figure-left{
-            grid-template-columns: minmax(0px, 1fr) minmax(0px, 2fr);
+        .figure-left {
+            grid-template-columns: minmax($imgMinSize, 1fr) minmax(0px, 2fr);
         }
-        .figure-right{
-            grid-template-columns: minmax(0px, 2fr) minmax(0px, 1fr);
+
+        .figure-right {
+            grid-template-columns: minmax(0px, 2fr) minmax($imgMinSize, 1fr);
         }
     }
+
     &.img-width-50 {
-        .figure-left{
-            grid-template-columns: minmax(0px, 1fr) minmax(0px, 1fr);
+        .figure-left {
+            grid-template-columns: minmax($imgMinSize, 1fr) minmax(0px, 1fr);
         }
-        .figure-right{
-            grid-template-columns: minmax(0px, 1fr) minmax(0px, 1fr);
+
+        .figure-right {
+            grid-template-columns: minmax(0px, 1fr) minmax($imgMinSize, 1fr);
         }
     }
-    
-    .figure-left{
-        .accordionImages{
+
+    .figure-left {
+        .accordionImages {
             grid-column: 1;
         }
     }
-    .figure-right{
-        .accordionImages{
+
+    .figure-right {
+        .accordionImages {
             grid-column: 2;
         }
     }
-    .has_border{
-        &:not(.opening-right,.opening-left,.opening-top,.opening-bottom){
-            figure{
+
+    .has_border {
+        &:not(.opening-right, .opening-left, .opening-top, .opening-bottom) {
+            figure {
                 @include mask-border();
             }
         }
-        &.opening-right figure{
+
+        &.opening-right figure {
             @include mask-border(right);
         }
-        &.opening-bottom figure{
+
+        &.opening-bottom figure {
             @include mask-border(bottom);
         }
-        &.opening-left figure{
+
+        &.opening-left figure {
             @include mask-border(left);
         }
-        &.opening-top figure{
+
+        &.opening-top figure {
             @include mask-border(top);
         }
     }
-    
-    .is_rounded{
-        figure,img,figure::after{
+
+    .is_rounded {
+
+        figure,
+        img,
+        figure::after {
             border-radius: $borderRadius;
         }
     }
-    .rowWrap{
+
+    .rowWrap {
         grid-row: 1;
     }
-    .row{
+
+    .row {
         padding-left: 60px;
         display: grid;
         grid-template-rows: auto 0fr;
         transition: all 300ms ease;
-        &.open{
+
+        &.open {
             grid-template-rows: auto 1fr;
-            .rowTrigger::after{
-                transform: translate(0,-50%) rotate(90deg);
+
+            .rowTrigger::after {
+                transform: translate(0, -50%) rotate(90deg);
             }
         }
     }
-    .textWrap{
+
+    .textWrap {
         height: 100%;
         overflow: hidden;
     }
-    .rowTrigger{
+
+    .rowTrigger {
         padding: 6px 0px;
         text-decoration: none;
         cursor: pointer;
         position: relative;
-        &::after{
+
+        &::after {
             content: " ";
             height: 24px;
             aspect-ratio: 1;
@@ -148,34 +194,37 @@
             position: absolute;
             left: -50px;
             top: 50%;
-            transform: translate(0,-50%);
+            transform: translate(0, -50%);
             transition: all 300ms ease;
         }
-        &::before{
+
+        &::before {
             content: " ";
             height: 24px;
             width: 60px;
             position: absolute;
             left: -60px;
             top: 50%;
-            transform: translate(0,-50%);
+            transform: translate(0, -50%);
         }
     }
 
-    p,h3{
+    p,
+    h3 {
         margin: unset;
     }
 
-    a.link{
+    a.link {
         margin-top: 10px;
         @include button;
     }
 
-    &:not(:has(img)){
-        .accordionImages{
+    &:not(:has(img)) {
+        .accordionImages {
             display: none;
         }
-        .contentGrid{
+
+        .contentGrid {
             grid-template-columns: 1fr !important;
         }
     }

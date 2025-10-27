@@ -3,17 +3,23 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 60px;
+        @media screen and (max-width:$columnsBreakpoint2) {
+            grid-template-columns: repeat(1,minmax(0px,1fr));
+        }
     }
     .figure-left{
         figure{
             grid-column: 1;
         }
     }
-    .figure-right{
-        figure{
-            grid-column: 2;
+    @media screen and (min-width:$columnsBreakpoint2) {
+        .figure-right{
+            figure{
+                grid-column: 2;
+            }
         }
     }
+    
     figure{
         margin: unset;
         grid-row: 1;

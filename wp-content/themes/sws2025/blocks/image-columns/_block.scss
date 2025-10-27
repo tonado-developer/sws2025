@@ -8,16 +8,25 @@
     .columns-2{
         .kachel-text-reveal{
             max-width: 530px;
+            @media screen and (max-width:$columnsBreakpoint3) {
+                max-width: 340px;
+            }
         }
     }
     .columns-3{
         .kachel-text-reveal{
             max-width: 340px;
+            @media screen and (max-width:$columnsBreakpoint4) {
+                max-width: 250px;
+            }
         }
     }
     .columns-4{
         .kachel-text-reveal{
             max-width: 245px;
+            @media screen and (max-width:$columnsBreakpoint5) {
+                max-width: 180px;
+            }
         }
     }
     .kachel-text-reveal{
