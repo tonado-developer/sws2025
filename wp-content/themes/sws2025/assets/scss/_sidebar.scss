@@ -39,13 +39,15 @@
     }
 }
 
-@media screen and (max-width:$phoneBreakpoint) {
+@media screen and (max-width:$navbarBreakpoint) {
     .sidebar{
-        // top: unset;
-        // bottom: 10px;
-        // right: 0;
+        top: unset;
+        bottom: 80px;
         :where(.wp-element-button, .wp-block-button__link){
-            padding: 10px;
+            padding: 6px 10px;
+        }
+        .wp-block-buttons{
+            gap: 6px;
         }
     }
 }

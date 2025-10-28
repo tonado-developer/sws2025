@@ -947,6 +947,81 @@ class WordPressImageMapper {
                     });
                 }
             },
+            "fluegel_mobile.svg": {
+                "init": (el) => {
+                    const wings = el.querySelectorAll("path");
+                    if (wings.length != 2) {
+                        console.warn("Expected 2 wings, found:", wings.length);
+                        return;
+                    }
+
+                    gsap.set(el, { opacity: 1 });
+                    el.style.display = 'flex';
+
+                    wings.forEach((wing) => {
+                        gsap.set(wings, {
+                            scale: 0,
+                            opacity: 0.6,
+                            transformOrigin: (i) => (i === 0 ? "right bottom" : "left bottom")
+                        });
+
+                    });
+
+                    return el;
+                },
+
+                "fadeIn": (el, onComplete) => {
+                    const wings = el.querySelectorAll("path");
+                    if (wings.length != 2) return;
+
+                    wings.forEach((wing, index) => {
+                        // Kleine zufällige Verzögerung, damit die Flügel nicht exakt synchron starten
+                        const delay = index * 0.1 + (Math.random() * 0.1); // 0–0.1 Sek. Unterschied
+
+                        gsap.to(wing, {
+                            scale: 1,
+                            duration: 1.5,
+                            ease: "back.out(1.7)",
+                            stagger: 0.1,
+                            opacity: 1,
+                            delay: delay,
+                            onComplete: () => {
+                                // Leichte dauerhafte Flatterbewegung, kaum Variation
+                                const direction = index === 0 ? -1 : 1;
+                                const baseAngle = 8;
+                                const angleVariation = (Math.random() * 2) - 1; // ±1 Grad Variation
+                                gsap.to(wing, {
+                                    rotation: (baseAngle + angleVariation) * direction,
+                                    transformOrigin: index === 0 ? "right bottom" : "left bottom",
+                                    duration: 1.2,
+                                    ease: "sine.inOut",
+                                    repeat: -1,
+                                    yoyo: true
+                                });
+                                onComplete && onComplete();
+                            }
+                        });
+                    });
+
+                    return el;
+                },
+
+
+
+                "fadeOut": (el) => {
+                    const wings = el.querySelectorAll("path");
+                    gsap.to(wings, {
+                        scale: 0,
+                        opacity: 0,
+                        duration: 0.8,
+                        ease: "power2.in",
+                        onComplete: () => {
+                            el.style.display = 'none';
+                            gsap.set(el, { opacity: 0 });
+                        }
+                    });
+                }
+            },
             "illu_feuer.svg": {
                 "init": (el) => {
                     const flames = el.querySelectorAll("path");
@@ -1222,7 +1297,7 @@ class WordPressImageMapper {
         this.markerZIndices = [];
 
         this.markers.forEach((marker, index) => {
-            const overlay = marker.querySelector(this.config.selectors.overlay);
+            const overlay = marker.querySelector(`${this.config.selectors.overlay} img`);
             if (!overlay) {
                 this.debug(`No overlay found for marker ${index}`);
                 return;
@@ -1269,6 +1344,7 @@ class WordPressImageMapper {
                     img: img.getBoundingClientRect()
                 });
                 
+
                 this.setupmarkerLabel(index);
 
             } catch (e) {
@@ -1281,6 +1357,7 @@ class WordPressImageMapper {
         if (img.complete && img.naturalWidth > 0) {
             processImage();
         } else {
+
             img.addEventListener('load', processImage, { once: true });
             img.addEventListener('error', () => {
                 this.debug('Failed to load overlay:', img.src);
@@ -1299,11 +1376,10 @@ class WordPressImageMapper {
         const root = this.state.rootContainer;
         const marker = root.querySelector(`${this.config.selectors.markerDetails}[data-hotspot-id="${index}"]`);
         const markerLabel = marker.querySelector(`${this.config.selectors.markerLabel}`);
-
         if (!markerLabel) return;
 
         const canvasData = this.canvasData.get(index);
-
+        
         if (!canvasData) {
             // Fallback: use center position and animate
             markerLabel.style.left = '50%';

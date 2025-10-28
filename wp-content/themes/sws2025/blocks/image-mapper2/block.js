@@ -94,6 +94,19 @@ registerBlockType('sws2025/image-mapper2', {
             }
         }, [attributes.illustrationImage]);
 
+        // SVG Loader für globale Illustration
+        useEffect(() => {
+            if (attributes.illustrationImageRespo && !attributes.illustrationImageSvgRespo) {
+                fetch(attributes.illustrationImageRespo)
+                    .then(r => r.text())
+                    .then(svg => {
+                        const base64 = btoa(unescape(encodeURIComponent(svg.trim())));
+                        setAttributes({ illustrationImageSvgRespo: base64 });
+                    })
+                    .catch(err => console.error('SVG load error:', err));
+            }
+        }, [attributes.illustrationImageRespo]);
+
         // SVG Loader für Hotspot Illustrationen
         useEffect(() => {
             if (!attributes.hotspots) return;
@@ -292,16 +305,15 @@ registerBlockType('sws2025/image-mapper2', {
                     // Iterate Hotspots
                     markerIterate(props, (markerData, index) => {
                         return marker.zoomContent(markerData, index,
-                            // Overlay
-                            pbw2.img.output({ attributes: markerData }, 'overlay'),
-
                             // Nested Position Preview
                             (markerData.zoomImage || markerData.pathSvg) && createElement('div',
                                 {
                                     className: 'position-preview'
                                 },
                                 pbw2.img.output({ attributes: markerData }, 'zoomImage')
-                            )
+                            ),
+                            // Overlay
+                            pbw2.img.output({ attributes: markerData }, 'overlay'),
                         )
                     })
                 )

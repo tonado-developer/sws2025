@@ -1,4 +1,4 @@
-@mixin dot{
+@mixin dot {
     width: 30px;
     height: 15px;
     border-radius: 50%;
@@ -13,11 +13,11 @@ body.image-mapper-active {
     height: 100vh;
 }
 
-body.image-mapper-active > .position-preview {
+body.image-mapper-active>.position-preview {
     aspect-ratio: 16/9;
 }
 
-img.backgroundImage {
+.background-images {
     position: absolute;
     top: 0;
     left: 0;
@@ -25,6 +25,16 @@ img.backgroundImage {
     height: 100%;
     object-fit: cover;
     display: block;
+
+    .backgroundImageRespo {
+        display: none;
+    }
+
+    * {
+        object-fit: cover;
+        height: 100%;
+        width: 100%;
+    }
 }
 
 img.parent_img.hdImage {
@@ -42,20 +52,90 @@ img.parent_img.hdImage {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    figure{
+
+    figure {
         margin: 0;
         padding: 0;
+    }
 
+    .position-marker {
+        will-change: transform, opacity;
+        backface-visibility: hidden;
+        left: calc(var(--x-pos) - 0px);
+        top: calc(var(--y-pos) - 0px);
+        width: calc(var(--width) * 1);
+    }
+
+    @media screen and (min-width:$navbarBreakpoint) {
+        .mobile {
+            display: none !important;
+        }
+        .position-marker {
+            left: calc(var(--x-pos) - 0px);
+            top: calc(var(--y-pos) - 0px);
+            width: calc(var(--width) * 1);
+        }
+    }
+
+    @media screen and (max-width:$navbarBreakpoint) {
+        .desktop {
+            display: none !important;
+        }
+        .position-marker {
+            left: calc(var(--x-pos-mobile) - 0px);
+            top: calc(var(--y-pos-mobile) - 0px);
+            width: calc(var(--width-mobile) * 1);
+        }
+        .position-prezoom {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .baseImageRespo{
+            width: fit-content;
+            img{
+                width: auto;
+            }
+        }
+        .base-images{
+            display: flex;
+            justify-content: center;
+        }
+        .global-zoom-content{
+            width: fit-content;
+        }
+        .position-preview{
+            width: fit-content;
+        }
+        .side-content{
+            width: 100%;
+            max-width: 450px;
+            padding: 10px 20px;
+        }
+        .markerLabel{
+            .string{
+                display: none;
+            }
+            .badge{
+                font-size: var(--wp--preset--font-size--medium);
+                transform: translate(-50%, 50%);
+                border-radius: 12px;
+            }
+        }
     }
 }
 
 .position-preview {
     position: relative;
     width: 100%;
-    height: auto; 
+    height: 100%;
     display: block;
-    display: flex;
-    align-items: flex-end;
+    *:not(.position-marker){
+        height: 100%;
+    }
+}
+.position-prezoom{
+    width: 100%;
 }
 
 .position-preview img {
@@ -84,7 +164,8 @@ img.parent_img.hdImage {
 .position-preview.zoomed .parent_overlay {
     opacity: 1;
 }
-.image-mapper-container.zoomed .hotspot-details-container > .markerLabel{
+
+.image-mapper-container.zoomed .hotspot-details-container>.markerLabel {
     opacity: 0 !important;
 }
 
@@ -97,17 +178,18 @@ img.parent_img.hdImage {
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     z-index: 2;
-    img{
+
+    img {
         height: 100%;
     }
 }
 
-.position-marker > * {
+.position-marker>* {
     grid-area: content;
 }
 
 /* Hover Effects - Scale removed for smoother experience */
-.position-marker.hover:not(.zoomed) .overlay {
+.position-marker.hover:not(.zoomed) .overlay img {
     opacity: 0.8;
     /* transform: scale(1.05); - REMOVED */
 }
@@ -128,15 +210,17 @@ img.parent_img.hdImage {
     position: relative;
 }
 
-.position-marker.hover:not(.zoomed) img.overlay {
+.position-marker.hover:not(.zoomed) .overlay img {
     opacity: 0.4;
 }
 
-.position-marker.zoomed > .position-preview > .svg-path-container {
+.position-marker.zoomed>.position-preview>.svg-path-container {
     opacity: 1;
     position: absolute;
-    z-index: 10; /* Über person (5) und illustration (6) */
-    pointer-events: none; /* Container selbst nicht klickbar */
+    z-index: 10;
+    /* Über person (5) und illustration (6) */
+    pointer-events: none;
+    /* Container selbst nicht klickbar */
 }
 
 
@@ -146,7 +230,7 @@ img.parent_img.hdImage {
     object-fit: cover;
 }
 
-.person-illu-wrapper{
+.person-illu-wrapper {
     display: grid;
     position: fixed;
     top: 0;
@@ -155,12 +239,11 @@ img.parent_img.hdImage {
     bottom: 0;
     z-index: 6;
     align-items: end;
-    grid-template-rows: minmax(0px,1fr);
+    grid-template-rows: minmax(0px, 1fr);
 }
 
 /* Person Image in Zoom */
 .person-image {
-    grid-area: 1 / 1 / 2 / 2;
     height: 100%;
     width: 100%;
     object-fit: contain;
@@ -168,14 +251,16 @@ img.parent_img.hdImage {
     transition: all 1.8s ease;
     opacity: 0;
     pointer-events: none;
-    aspect-ratio: 16/9;
-    max-width: 80vw;
+
+    @media screen and (min-width:$navbarBreakpoint) {
+        aspect-ratio: 16/9;
+        max-width: 80vw;
+    }
 }
 
 
 /* Illustration in Zoom */
 .illustration-image {
-    grid-area: 1 / 1 / 2 / 2;
     height: 100%;
     width: auto;
     object-fit: contain;
@@ -186,10 +271,17 @@ img.parent_img.hdImage {
     align-items: flex-end;
     aspect-ratio: 16/9;
     max-width: 80vw;
-    svg{
+
+    svg {
         width: auto;
         height: auto;
     }
+}
+
+.person-illustrations,
+.person-images {
+    grid-area: 1/1/2/2;
+    height: 100%;
 }
 
 .zoom-boundaries {
@@ -207,31 +299,28 @@ img.parent_img.hdImage {
 
 @media (orientation: portrait) {
     .zoom-boundaries {
-        padding-left: 40px;
-        padding-top: max(100px, 50vh);
-        padding-right: 40px;
-        padding-bottom: 40px;
-    }
-  }
-
-@media screen and (min-width:$navbarBreakpoint) {
-    .person-image,.illustration-image {
-        // width: 100%;
+        padding-left: 20px;
+        padding-top: max(100px,41vh);
+        padding-right: 20px;
+        padding-bottom: 136px;
     }
 }
-@media screen and (max-width:$navbarBreakpoint) {
-    .person-image,.illustration-image {
-        margin-left: -5%;
+
+@media screen and (min-width:$navbarBreakpoint) {
+
+    .person-image,
+    .illustration-image {
+        // width: 100%;
     }
 }
 
 /* Side Content */
 .side-content {
-    position: fixed ;
-    left: 0% ;
-    top: calc($headerHeightResponsive + 50px) ;
+    position: fixed;
+    left: 0%;
+    top: calc($headerHeightResponsive + 50px);
     width: $sideWidth;
-    z-index: 4 ;
+    z-index: 4;
     color: black;
     padding: 30px;
     transition: all 2s ease;
@@ -248,6 +337,7 @@ img.parent_img.hdImage {
         backdrop-filter: blur(6px);
         will-change: transform;
     }
+
     .fakeCorner {
         position: absolute;
         top: -50px;
@@ -256,7 +346,8 @@ img.parent_img.hdImage {
         right: 0;
         overflow: hidden;
         display: flex;
-        &::after{
+
+        &::after {
             content: " ";
             width: 150px;
             height: 100%;
@@ -271,7 +362,8 @@ img.parent_img.hdImage {
             will-change: transform;
 
         }
-        &::before{
+
+        &::before {
             content: " ";
             width: 500px;
             height: 100%;
@@ -286,16 +378,21 @@ img.parent_img.hdImage {
     }
 }
 
-.side-content.open,.person-image.open {
+.side-content.open,
+.person-image.open {
     display: block;
     transform: unset !important;
     opacity: 1;
+
     .fakeCorner {
-        &::after,&::before{
+
+        &::after,
+        &::before {
             transform: unset;
         }
     }
 }
+
 .illustration-image.open {
     transform: unset !important;
 }
@@ -332,33 +429,36 @@ img.parent_img.hdImage {
 
 /* SVG Path Container */
 .svg-path-container {
-    position: absolute ;
-    top: 0 ;
-    left: 0 ;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 1s ease,filter 1s ease;
+    transition: opacity 1s ease, filter 1s ease;
     filter: blur(10px);
     z-index: 7;
-    &.open{
+
+    &.open {
         opacity: 1;
         filter: blur(0px);
     }
-    &.overlayOpen{
+
+    &.overlayOpen {
         z-index: 0;
     }
-    
+
     .svg-path {
         width: 100%;
         height: 100%;
         object-fit: cover;
         opacity: 0.8;
     }
+
     .checkpoint-marker {
-        pointer-events: auto;  // Explizit für den gesamten Marker, nicht nur <a>
-        
+        pointer-events: auto; // Explizit für den gesamten Marker, nicht nur <a>
+
         &:hover .badgeInfo {
             display: block;
         }
@@ -380,52 +480,63 @@ img.parent_img.hdImage {
 }
 
 /* Checkpoints */
-.checkpoint-marker a{
+.checkpoint-marker a {
     pointer-events: auto;
 }
-.badgeInfo{
+
+.badgeInfo {
     display: none;
 }
-.checkpoint-marker.markerLabel{
+
+.checkpoint-marker.markerLabel {
     opacity: 1;
     bottom: unset;
-    transform: translate(-20px,-100%);
+    transform: translate(-20px, -100%);
     padding: 20px;
-    &.opening-left{
+
+    &.opening-left {
         transform: translate(calc(-100% + 20px), -100%);
         display: flex;
         flex-direction: column;
         align-content: flex-end;
         align-items: flex-end;
-        .badge{
+
+        .badge {
             border-radius: $borderRadius $borderRadius 0px $borderRadius;
         }
     }
-    &:hover{
+
+    &:hover {
         z-index: 2;
-        .badgeInfo{
+
+        .badgeInfo {
             display: grid;
         }
-        a.badge{
+
+        a.badge {
             display: none;
         }
     }
-    .badgeInfo{
+
+    .badgeInfo {
         grid-template-columns: auto 1fr;
         z-index: 1;
         position: relative;
     }
-    .string{
+
+    .string {
         min-height: 15px;
     }
-    figure{
+
+    figure {
         width: 150px;
         margin: unset;
         margin-left: -10px;
         margin-right: -10px;
         position: relative;
         z-index: 1;
-        img{
+
+        img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -434,29 +545,37 @@ img.parent_img.hdImage {
             z-index: 1;
         }
     }
-    .textwrap{
+
+    .textwrap {
         background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 20px 15px 30px;
         transform: translateY(10px);
         max-width: 350px;
         border-radius: $borderRadius;
     }
-    .has_border{
-        figure{
+
+    .has_border {
+        figure {
             @include mask-border(right);
         }
     }
-    .targetLink{
+
+    .targetLink {
         @include button;
         position: absolute;
         right: 20px;
         transition: 200ms all;
-        &:hover{
+
+        &:hover {
             transform: scale(1.05);
         }
     }
-    .is_rounded{
-        figure,img,figure::after{
+
+    .is_rounded {
+
+        figure,
+        img,
+        figure::after {
             border-radius: $borderRadius;
         }
     }
@@ -468,7 +587,7 @@ img.parent_img.hdImage {
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0,0,0,0.9);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 10px 15px;
     border-radius: $borderRadius;
@@ -478,7 +597,7 @@ img.parent_img.hdImage {
     pointer-events: none;
     transition: all 0.3s ease;
     z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .checkpoint-tooltip::after {
@@ -488,7 +607,7 @@ img.parent_img.hdImage {
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-top-color: rgba(0,0,0,0.9);
+    border-top-color: rgba(0, 0, 0, 0.9);
 }
 
 .checkpoint-marker:hover .checkpoint-tooltip {
@@ -523,8 +642,9 @@ img.parent_img.hdImage {
     transition: all 0.3s ease;
     opacity: 0;
     animation: fadeInBack 0.5s ease 0.5s forwards;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
+
 @media screen and (min-width:$navbarBreakpoint) {
     .zoom-back-btn {
         top: calc($headerHeight + 20px);
@@ -535,7 +655,7 @@ img.parent_img.hdImage {
 .zoom-back-btn:hover {
     background: var(--wp--preset--color--accent-1);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes fadeInBack {
@@ -543,6 +663,7 @@ img.parent_img.hdImage {
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -558,24 +679,12 @@ img.parent_img.hdImage {
 }
 
 @keyframes loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
+    0% {
+        background-position: 200% 0;
+    }
 
-/* Performance Optimizations */
-.position-marker{
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-    left: calc(var(--x-pos) - 0px);
-    top: calc(var(--y-pos) - 0px);
-    width: calc(var(--width) * 1);
-}
-
-.position-prezoom {
-    transform-origin: bottom right;
-    @media screen and (max-width:$navbarBreakpoint) {
-        transform: scale(1.5);
-
+    100% {
+        background-position: -200% 0;
     }
 }
 
@@ -583,7 +692,7 @@ img.parent_img.hdImage {
     will-change: auto;
 }
 
-.markerLabel{
+.markerLabel {
     position: absolute;
     left: 50%;
     bottom: calc(100% - 25px);
@@ -593,6 +702,7 @@ img.parent_img.hdImage {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+
     .badge {
         padding: 6px 12px;
         background: var(--wp--preset--color--accent-1);
@@ -651,7 +761,7 @@ img.parent_img.hdImage {
     transition: opacity 0.3s ease;
 }
 
-.wp-overlay-content-wrap{
+.wp-overlay-content-wrap {
     overflow: auto;
     position: relative;
     height: 100%;
@@ -686,7 +796,7 @@ img.parent_img.hdImage {
     letter-spacing: 1px;
     transition: all 0.3s ease;
     opacity: 0;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     top: calc($headerHeight + 20px);
     left: 60px;
 }
@@ -723,7 +833,9 @@ img.parent_img.hdImage {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Error State */

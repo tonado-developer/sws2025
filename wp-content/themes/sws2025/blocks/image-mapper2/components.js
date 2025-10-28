@@ -78,17 +78,36 @@ window.imageMapperComponents = {
 
             // Background image for the image mapper
             backgroundImage: (props) => {
-                return pbw2.img.output(props, 'backgroundImage');
+                return createElement(
+                    'div',
+                    {
+                        className: 'background-images'
+                    },
+                    pbw2.img.output(props, 'backgroundImage'),
+                    pbw2.img.output(props, 'backgroundImageRespo')
+                );
             },
 
             // Base image for the image mapper
             baseImage: (props) => {
-                return pbw2.img.output(props, 'baseImage', {
-                    dataset: {
-                        'hd': props.attributes.baseImageHd
+                return createElement(
+                    'div',
+                    {
+                        className: 'base-images'
                     },
-                    className: 'parent_img alwaysVisibile'
-                });
+                    pbw2.img.output(props, 'baseImage', {
+                        dataset: {
+                            'hd': props.attributes.baseImageHd
+                        },
+                        className: 'parent_img desktop alwaysVisibile'
+                    }),
+                    pbw2.img.output(props, 'baseImageRespo', {
+                        dataset: {
+                            'hd': props.attributes.baseImageHd
+                        },
+                        className: 'parent_img mobile alwaysVisibile'
+                    })
+                );
             },
 
             // Base image HD for the image mapper
@@ -189,13 +208,15 @@ window.imageMapperComponents = {
             // Illustration for person markers
             personIllustration: (marker, index = null) => {
 
+                const elements = [];
+
                 // Only render if there is an illustration SVG
                 if (marker.illustrationImageSvg) {
 
                     // Determine if the content should be open by default
-                    const className = 'illustration-image' + (index === null ? ` open` : '');
+                    const className = 'illustration-image desktop' + (index === null ? ` open` : '');
 
-                    return createElement('div', {
+                    elements.push(createElement('div', {
                         key: `illu-${index}`,
                         className: className,
                         'data-hotspot-id': index,
@@ -206,20 +227,49 @@ window.imageMapperComponents = {
                         style: {
                             transform: 'translate(-20%,100%) scale(.7)',
                         }
-                    })
+                    }));
                 }
+
+                // Only render if there is an illustration SVG
+                if (marker.illustrationImageSvgRespo) {
+
+                    // Determine if the content should be open by default
+                    const className = 'illustration-image mobile' + (index === null ? ` open` : '');
+
+                    elements.push(createElement('div', {
+                        key: `illu-${index}`,
+                        className: className,
+                        'data-hotspot-id': index,
+                        'data-original-file': marker.illustrationImageRespo,
+                        dangerouslySetInnerHTML: {
+                            __html: atob(marker.illustrationImageSvgRespo)
+                        },
+                        style: {
+                            transform: 'translate(-20%,100%) scale(.7)',
+                        }
+                    }));
+                }
+
+                return createElement(
+                    'div',
+                    {
+                        className: 'person-illustrations'
+                    },
+                    ...elements
+                );
             },
 
             // Person image for person markers
             personImage: (marker, index = null) => {
 
+                const elements = [];
                 // Only render if there is a person image
                 if (marker.personImage) {
 
                     // Determine if the content should be open by default
-                    const className = 'person-image' + (index === null ? ` open` : '');
+                    const className = 'person-image desktop' + (index === null ? ` open` : '');
 
-                    return createElement('img', {
+                    elements.push(createElement('img', {
                         key: `person-${index}`,
                         className: className,
                         'data-hotspot-id': index,
@@ -228,8 +278,33 @@ window.imageMapperComponents = {
                         style: {
                             transform: 'translate(-20%,100%) scale(.7)',
                         }
-                    });
+                    }));
                 }
+
+                if (marker.personImageRespo) {
+
+                    // Determine if the content should be open by default
+                    const className = 'person-image mobile' + (index === null ? ` open` : '');
+
+                    elements.push(createElement('img', {
+                        key: `person-${index}`,
+                        className: className,
+                        'data-hotspot-id': index,
+                        src: marker.personImageRespo,
+                        alt: marker.personImageRespoAlt || '',
+                        style: {
+                            transform: 'translate(-20%,100%) scale(.7)',
+                        }
+                    }));
+                }
+
+                return createElement(
+                    'div',
+                    {
+                        className: 'person-images'
+                    },
+                    ...elements
+                );
             },
 
             // Wrapper for marker Zoom Content
@@ -290,7 +365,14 @@ window.imageMapperComponents = {
                         key: index,
                         className: 'position-marker',
                         'data-hotspot-id': index,
-                        style: `--x-pos: ${marker.xPosition}%; --y-pos: ${marker.yPosition}%; --width: ${marker.width}%`
+                        style: `
+                        --x-pos: ${marker.xPosition}%; 
+                        --y-pos: ${marker.yPosition}%; 
+                        --width: ${marker.width}%;
+                        --x-pos-mobile: ${marker.xPositionRespo}%; 
+                        --y-pos-mobile: ${marker.yPositionRespo}%; 
+                        --width-mobile: ${marker.widthRespo}%
+                        `
                     },
                     ...children
                 );
@@ -459,9 +541,9 @@ window.imageMapperComponents = {
                         {
                             style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }
                         },
-                        pbw2.text.input(itemProps, 'p', 'xPositionRespo', { title: 'X Position (%)' }),
-                        pbw2.text.input(itemProps, 'p', 'yPositionRespo', { title: 'Y Position (%)' }),
-                        pbw2.text.input(itemProps, 'p', 'widthRespo', { title: 'Breite (%)' })
+                        pbw2.text.input(itemProps, 'p', 'xPositionRespo', { title: 'X Position (Mobile) (%)' }),
+                        pbw2.text.input(itemProps, 'p', 'yPositionRespo', { title: 'Y Position (Mobile) (%)' }),
+                        pbw2.text.input(itemProps, 'p', 'widthRespo', { title: 'Breite (Mobile) (%)' })
                     )
                 );
             },

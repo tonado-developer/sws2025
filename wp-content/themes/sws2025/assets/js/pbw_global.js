@@ -151,7 +151,7 @@ function media_output(props, name, settings = {}) {
     const img = createElement('img', {
         src: url,
         alt: alt,
-        className: `media-image ${name} ${className}`.trim(),
+        className: `media-image`.trim(),
         loading: 'lazy',
         ...(dataAttrs ? dataAttrs : {}),
     });
@@ -165,7 +165,7 @@ function media_output(props, name, settings = {}) {
         }, img);
     }
 
-    return createElement('figure', { className: 'media-wrap media-wrap--image' }, img);
+    return createElement('figure', { className: `media-wrap media-wrap--image ${name} ${className}` }, img);
 }
 
 // ============================================
