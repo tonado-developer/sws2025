@@ -1200,6 +1200,77 @@ class WordPressImageMapper {
                         }
                     });
                 }
+            },
+            "illu_striche.svg": {
+                "init": (el) => {
+                    const paths = el.querySelectorAll("path");
+                    if (paths.length === 0) {
+                        console.warn("No paths found in SVG");
+                        return;
+                    }
+
+                    gsap.set(el, { opacity: 1 });
+                    el.style.display = 'flex';
+
+                    paths.forEach((path) => {
+                        gsap.set(path, {
+                            scale: 0,
+                            opacity: 0,
+                            transformOrigin: "center center"
+                        });
+                    });
+
+                    return el;
+                },
+
+                "fadeIn": (el, onComplete) => {
+                    const paths = el.querySelectorAll("path");
+                    if (paths.length === 0) return;
+
+                    paths.forEach((path, index) => {
+                        const delay = index * 0.05;
+
+                        gsap.to(path, {
+                            scale: 1,
+                            opacity: 1,
+                            duration: 0.8,
+                            ease: "back.out(1.2)",
+                            delay: delay,
+                            onComplete: () => {
+                                // Subtile Puls-Animation für alle Elemente
+                                gsap.to(path, {
+                                    scale: 1.02,
+                                    duration: 2 + (Math.random() * 0.5),
+                                    ease: "sine.inOut",
+                                    repeat: -1,
+                                    yoyo: true
+                                });
+
+                                if (index === paths.length - 1) {
+                                    onComplete && onComplete();
+                                }
+                            }
+                        });
+                    });
+
+                    return el;
+                },
+
+                "fadeOut": (el) => {
+                    const paths = el.querySelectorAll("path");
+
+                    gsap.to(paths, {
+                        scale: 0,
+                        opacity: 0,
+                        duration: 0.6,
+                        ease: "power2.in",
+                        stagger: 0.03,
+                        onComplete: () => {
+                            el.style.display = 'none';
+                            gsap.set(el, { opacity: 0 });
+                        }
+                    });
+                }
             }
         }
     }
@@ -1325,14 +1396,14 @@ class WordPressImageMapper {
      * @param {number} index - Marker index
      */
     setupMarkerCanvas(img, index) {
-        
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d'); // OHNE willReadFrequently
 
         const processImage = () => {
             canvas.width = img.naturalWidth;
             canvas.height = img.naturalHeight;
-            
+
             try {
                 ctx.drawImage(img, 0, 0);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -1343,7 +1414,7 @@ class WordPressImageMapper {
                     height: canvas.height,
                     img: img.getBoundingClientRect()
                 });
-                
+
 
                 this.setupmarkerLabel(index);
 
@@ -1379,7 +1450,7 @@ class WordPressImageMapper {
         if (!markerLabel) return;
 
         const canvasData = this.canvasData.get(index);
-        
+
         if (!canvasData) {
             // Fallback: use center position and animate
             markerLabel.style.left = '50%';
@@ -1553,7 +1624,7 @@ class WordPressImageMapper {
 
         // PHASE 2: Only if no badge was hit, check overlays (respects z-index order)
         for (const { marker, index } of this.markerZIndices) {
-            
+
 
             const overlay = marker.querySelector(this.config.selectors.overlay);
             if (!overlay) continue;
@@ -1934,7 +2005,7 @@ class WordPressImageMapper {
         const zoomBoundaries = this.state.rootContainer.querySelector(this.config.selectors.zoomBoundaries);
         const computedStyle = window.getComputedStyle(zoomBoundaries);
 
-        
+
         const padding = {
             top: parseFloat(computedStyle.paddingTop),
             right: parseFloat(computedStyle.paddingRight),
@@ -1968,7 +2039,7 @@ class WordPressImageMapper {
                 preZoomFactor = matrix.a; // X-Scale Wert
             }
         }
-        
+
 
         const containerCenter = {
             x: containerRect.left + containerRect.width / 2,
@@ -2490,11 +2561,11 @@ class WordPressImageMapper {
  */
 document.addEventListener('DOMContentLoaded', () => {
     const isTouchDevice = () => {
-        return 'ontouchstart' in window || 
-               navigator.maxTouchPoints > 0 || 
-               navigator.msMaxTouchPoints > 0;
+        return 'ontouchstart' in window ||
+            navigator.maxTouchPoints > 0 ||
+            navigator.msMaxTouchPoints > 0;
     };
-    
+
     window.wpImageMapper = new WordPressImageMapper({
         zoom: {
             targetViewportHeight: 0.6,
