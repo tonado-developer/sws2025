@@ -57,38 +57,40 @@
             }
         }
         &.has_border{
-            &:not(.right,.left,.top,.bottom){
-                @include mask-border();
-            }
-            &.right{
-                @include mask-border(right);
-            }
-            &.bottom{
-                @include mask-border(bottom);
-            }
-            &.left{
-                @include mask-border(left);
-            }
-            &.top{
-                @include mask-border(top);
-            }
+            @include mask-border();
+            // &:not(.right,.left,.top,.bottom){
+            //     @include mask-border();
+            // }
+            // &.right{
+            //     @include mask-border(right);
+            // }
+            // &.bottom{
+            //     @include mask-border(bottom);
+            // }
+            // &.left{
+            //     @include mask-border(left);
+            // }
+            // &.top{
+            //     @include mask-border(top);
+            // }
         }
         &.has_silent_border{
-            &:not(.right,.left,.top,.bottom){
-                @include mask-border('',45,12,3.5,0px,'silent');
-            }
-            &.right{
-                @include mask-border(right,45,12,3.5,0px,'silent');
-            }
-            &.bottom{
-                @include mask-border(bottom,45,12,3.5,0px,'silent');
-            }
-            &.left{
-                @include mask-border(left,45,12,3.5,0px,'silent');
-            }
-            &.top{
-                @include mask-border(top,45,12,3.5,0px,'silent');
-            }
+            @include mask-border('',45,12,3.5,0px,'silent');
+            // &:not(.right,.left,.top,.bottom){
+            //     @include mask-border('',45,12,3.5,0px,'silent');
+            // }
+            // &.right{
+            //     @include mask-border(right,45,12,3.5,0px,'silent');
+            // }
+            // &.bottom{
+            //     @include mask-border(bottom,45,12,3.5,0px,'silent');
+            // }
+            // &.left{
+            //     @include mask-border(left,45,12,3.5,0px,'silent');
+            // }
+            // &.top{
+            //     @include mask-border(top,45,12,3.5,0px,'silent');
+            // }
         }
         &.has_border,&.has_silent_border{
             .text-to-reveal{

@@ -14,6 +14,7 @@
             position: absolute;
             left: calc((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size))/2);
             right: calc((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size))/2);
+
             @media screen and (max-width:$navbarBreakpoint) {
                 right: 20px;
             }
@@ -60,12 +61,13 @@
         opacity: 0;
         padding: 40px;
         padding-right: 60px;
+
         @media screen and (max-width:$navbarBreakpoint) {
             padding-right: 20px;
         }
 
         clip-path: polygon(0 0, 0% 0, 0% 100%, 0% 100%);
-        
+
         &.open {
             clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
             grid-template-rows: minmax(0px, 1fr);
@@ -107,25 +109,29 @@
     }
 
     .tabPane.has_border {
-        &:not(.opening-right):not(.opening-left):not(.opening-top):not(.opening-bottom) figure {
+        figure {
             @include mask-border();
         }
 
-        &.opening-right figure {
-            @include mask-border(right);
-        }
+        // &:not(.opening-right):not(.opening-left):not(.opening-top):not(.opening-bottom) figure {
+        //     @include mask-border();
+        // }
 
-        &.opening-bottom figure {
-            @include mask-border(bottom);
-        }
+        // &.opening-right figure {
+        //     @include mask-border(right);
+        // }
 
-        &.opening-left figure {
-            @include mask-border(left);
-        }
+        // &.opening-bottom figure {
+        //     @include mask-border(bottom);
+        // }
 
-        &.opening-top figure {
-            @include mask-border(top);
-        }
+        // &.opening-left figure {
+        //     @include mask-border(left);
+        // }
+
+        // &.opening-top figure {
+        //     @include mask-border(top);
+        // }
     }
 
     .is_rounded {

@@ -1,27 +1,27 @@
 .wp-block-sws2025-slider {
-    
-    .link{
+
+    .link {
         @include button;
     }
 
     .sliderContainer {
         position: relative;
     }
-    
+
     .slideWrap {
         position: relative;
         overflow: hidden;
-        transition: opacity  var(--slide-duration, 300ms) ease,
-                    height var(--slide-duration, 300ms) ease;
+        transition: opacity var(--slide-duration, 300ms) ease,
+            height var(--slide-duration, 300ms) ease;
         opacity: 0;
         height: auto;
         min-height: 300px;
-        
+
         &.open {
             opacity: 1;
         }
     }
-    
+
     .slidePane {
         position: absolute;
         top: 0;
@@ -36,45 +36,45 @@
         opacity: 0;
         visibility: hidden;
         transform: translateX(100%);
-        transition: transform  var(--slide-duration, 300ms) ease,
-                    opacity  var(--slide-duration, 300ms) ease,
-                    visibility 0s  var(--slide-duration, 300ms);
-        
+        transition: transform var(--slide-duration, 300ms) ease,
+            opacity var(--slide-duration, 300ms) ease,
+            visibility 0s var(--slide-duration, 300ms);
+
         &.open {
             position: relative;
             opacity: 1;
             visibility: visible;
             transform: translateX(0);
-            transition: transform  var(--slide-duration, 300ms) ease,
-                        opacity  var(--slide-duration, 300ms) ease,
-                        visibility 0s;
+            transition: transform var(--slide-duration, 300ms) ease,
+                opacity var(--slide-duration, 300ms) ease,
+                visibility 0s;
         }
-        
+
         &:has(~ .open) {
             transform: translateX(-100%);
         }
-        
-        &.open ~ .slidePane {
+
+        &.open~.slidePane {
             transform: translateX(100%);
         }
-        
+
         @media (max-width: 768px) {
             grid-template-columns: 1fr;
-            
+
             figure {
                 grid-row: 1;
             }
-            
+
             .textWrap {
                 grid-row: 2;
             }
         }
     }
-    
+
     .textWrap {
         padding: 20px 0;
     }
-    
+
     .slideNavigation {
         display: flex;
         flex-wrap: wrap;
@@ -83,7 +83,7 @@
         gap: 30px;
         padding: 30px 0;
     }
-    
+
     .sliderArrow {
         position: absolute;
         top: 50%;
@@ -101,18 +101,20 @@
         transition: background 0.3s;
         text-decoration: none;
         transform-origin: center center;
-        img{
+
+        img {
             display: block;
             padding: 16px;
         }
+
         &.left {
             left: 20px;
             transform: translateY(-50%) rotate(180deg);
         }
-        
+
         &.right {
             right: 20px;
-            
+
             // Progress ring um den rechten Button
             .progressRing {
                 position: absolute;
@@ -122,29 +124,30 @@
                 height: 56px;
                 transform: rotate(-90deg);
                 pointer-events: none;
-                
+
                 circle {
                     fill: none;
                     stroke-width: 3;
-                    
+
                     &.progressBar {
                         stroke: url(#progressGradient);
                         stroke-dasharray: 164; // 2 * PI * 26 (radius)
                         stroke-dashoffset: 164;
                         stroke-linecap: round;
                         transition: stroke-dashoffset var(--slide-duration, 300ms) ease;
-                        
+
                         &.active {
                             animation: progressCircle var(--slide-timeout, 3s) linear infinite;
                         }
                     }
                 }
-                
+
                 @keyframes progressCircle {
-                    from { 
+                    from {
                         stroke-dashoffset: 164;
                     }
-                    to { 
+
+                    to {
                         stroke-dashoffset: 0;
                     }
                 }
@@ -152,22 +155,23 @@
         }
     }
 
-    .sliderNavigation{
+    .sliderNavigation {
         display: flex;
         gap: 4px;
         padding-top: 10px
     }
-    
+
     .button {
         @include button;
         padding: unset;
         height: 20px;
         aspect-ratio: 1;
+
         &:not(.current) {
             background-color: rgb(66, 66, 66);
         }
     }
-    
+
     figure {
         grid-row: 1;
         aspect-ratio: 4/3;
@@ -182,6 +186,7 @@
         overflow: hidden;
         margin: auto;
         max-height: 500px;
+
         img {
             width: 100%;
             height: 100%;
@@ -192,37 +197,48 @@
         }
     }
 
-    &.card-light container,&.card-dark container,&.card-color container{
+    &.card-light container,
+    &.card-dark container,
+    &.card-color container {
         padding: 40px 80px;
     }
 
     .slidePane.has_border {
-        &:not(.opening-right):not(.opening-left):not(.opening-top):not(.opening-bottom) figure{
+        figure {
             @include mask-border();
         }
-        &.opening-right figure{
-            @include mask-border(right);
-        }
-        &.opening-bottom figure{
-            @include mask-border(bottom);
-        }
-        &.opening-left figure{
-            @include mask-border(left);
-        }
-        &.opening-top figure{
-            @include mask-border(top);
-        }
+
+        // &:not(.opening-right):not(.opening-left):not(.opening-top):not(.opening-bottom) figure{
+        //     @include mask-border();
+        // }
+        // &.opening-right figure{
+        //     @include mask-border(right);
+        // }
+        // &.opening-bottom figure{
+        //     @include mask-border(bottom);
+        // }
+        // &.opening-left figure{
+        //     @include mask-border(left);
+        // }
+        // &.opening-top figure{
+        //     @include mask-border(top);
+        // }
     }
-    
+
     .is_rounded {
-        figure, img, figure::after {
+
+        figure,
+        img,
+        figure::after {
             border-radius: $borderRadius;
         }
     }
 }
-container,.wp-block-group-is-layout-constrained {
 
-    .wp-block-sws2025-slider container{
+container,
+.wp-block-group-is-layout-constrained {
+
+    .wp-block-sws2025-slider container {
         padding: unset;
     }
 }

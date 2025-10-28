@@ -43,21 +43,24 @@
         }
     }
     container.has_border{
-        &:not(.opening-right):not(.opening-left):not(.opening-top):not(.opening-bottom) figure{
+        figure{
             @include mask-border();
         }
-        &.opening-right figure{
-            @include mask-border(right);
-        }
-        &.opening-bottom figure{
-            @include mask-border(bottom);
-        }
-        &.opening-left figure{
-            @include mask-border(left);
-        }
-        &.opening-top figure{
-            @include mask-border(top);
-        }
+        // &:not(.opening-right):not(.opening-left):not(.opening-top):not(.opening-bottom) figure{
+        //     @include mask-border();
+        // }
+        // &.opening-right figure{
+        //     @include mask-border(right);
+        // }
+        // &.opening-bottom figure{
+        //     @include mask-border(bottom);
+        // }
+        // &.opening-left figure{
+        //     @include mask-border(left);
+        // }
+        // &.opening-top figure{
+        //     @include mask-border(top);
+        // }
     }
     .is_rounded{
         figure,img,figure::after{

@@ -122,27 +122,31 @@
     }
 
     .has_border {
-        &:not(.opening-right, .opening-left, .opening-top, .opening-bottom) {
-            figure {
-                @include mask-border();
-            }
+        figure {
+            @include mask-border();
         }
+        
+        // &:not(.opening-right, .opening-left, .opening-top, .opening-bottom) {
+        //     figure {
+        //         @include mask-border();
+        //     }
+        // }
 
-        &.opening-right figure {
-            @include mask-border(right);
-        }
+        // &.opening-right figure {
+        //     @include mask-border(right);
+        // }
 
-        &.opening-bottom figure {
-            @include mask-border(bottom);
-        }
+        // &.opening-bottom figure {
+        //     @include mask-border(bottom);
+        // }
 
-        &.opening-left figure {
-            @include mask-border(left);
-        }
+        // &.opening-left figure {
+        //     @include mask-border(left);
+        // }
 
-        &.opening-top figure {
-            @include mask-border(top);
-        }
+        // &.opening-top figure {
+        //     @include mask-border(top);
+        // }
     }
 
     .is_rounded {

@@ -72,7 +72,7 @@ footer {
         $gap-height: 45%;
         $corner-radius: 20px;
         $stroke-width: 3px;
-        @include mask-border(right);
+        @include mask-border();
         &::after{
             inset: -20px;
         }

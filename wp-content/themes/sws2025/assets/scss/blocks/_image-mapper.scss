@@ -413,7 +413,7 @@ img.parent_img.hdImage {
     }
     .has_border{
         figure{
-            @include mask-border(right);
+            @include mask-border();
         }
     }
     .targetLink{

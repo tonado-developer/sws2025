@@ -120,7 +120,7 @@ img.parent_img.hdImage {
             .badge{
                 font-size: var(--wp--preset--font-size--small);
                 transform: translate(-50%, 50%);
-                border-radius: 12px;
+                border-radius: $borderRadius * 0.5;
                 padding: 6px;
                 max-width: 90px;
             }
@@ -418,7 +418,7 @@ img.parent_img.hdImage {
     color: var(--wp--preset--color--base);
     padding: 12px 24px;
     text-decoration: none;
-    border-radius: $borderRadius;
+    border-radius: $borderRadius * 0.5;
     font-weight: bold;
     font-size: 12px;
     text-transform: uppercase;
@@ -527,7 +527,7 @@ img.parent_img.hdImage {
         align-items: flex-end;
 
         .badge {
-            border-radius: $borderRadius $borderRadius 0px $borderRadius;
+            border-radius: ($borderRadius * 0.5) ($borderRadius * 0.5) 0px ($borderRadius * 0.5);
         }
     }
 
@@ -578,12 +578,12 @@ img.parent_img.hdImage {
         padding: 15px 20px 15px 30px;
         transform: translateY(10px);
         max-width: 350px;
-        border-radius: $borderRadius;
+        border-radius: $borderRadius * 0.5;
     }
 
     .has_border {
         figure {
-            @include mask-border(right);
+            @include mask-border();
         }
     }
 
@@ -603,7 +603,7 @@ img.parent_img.hdImage {
         figure,
         img,
         figure::after {
-            border-radius: $borderRadius;
+            border-radius: $borderRadius * 0.5;
         }
     }
 }
@@ -617,7 +617,7 @@ img.parent_img.hdImage {
     background: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 10px 15px;
-    border-radius: $borderRadius;
+    border-radius: $borderRadius * 0.5;
     font-size: 12px;
     white-space: nowrap;
     opacity: 0;
@@ -645,7 +645,7 @@ img.parent_img.hdImage {
     width: 60px;
     height: 40px;
     object-fit: cover;
-    border-radius: $borderRadius;
+    border-radius: $borderRadius * 0.5;
     margin-right: 10px;
     vertical-align: middle;
 }
@@ -662,7 +662,7 @@ img.parent_img.hdImage {
     color: var(--wp--preset--color--base);
     padding: 12px 24px;
     cursor: pointer;
-    border-radius: $borderRadius;
+    border-radius: $borderRadius * 0.5;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -734,7 +734,7 @@ img.parent_img.hdImage {
         padding: 6px 12px;
         background: var(--wp--preset--color--accent-1);
         margin: unset;
-        border-radius: $borderRadius $borderRadius $borderRadius 0px;
+        border-radius: ($borderRadius * 0.5) ($borderRadius * 0.5) ($borderRadius * 0.5) 0px;
         color: var(--wp--preset--color--base);
         text-decoration: none;
         font-size: var(--wp--preset--font-size--large);
@@ -799,7 +799,7 @@ img.parent_img.hdImage {
 /* Content Panel */
 .wp-overlay-content {
     background: var(--wp--preset--color--accent-1);
-    border-radius: $borderRadius;
+    border-radius: $borderRadius * 0.5;
     overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     transform-origin: top left;
@@ -817,7 +817,7 @@ img.parent_img.hdImage {
     color: var(--wp--preset--color--base);
     padding: 12px 24px;
     cursor: pointer;
-    border-radius: $borderRadius;
+    border-radius: $borderRadius * 0.5;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;

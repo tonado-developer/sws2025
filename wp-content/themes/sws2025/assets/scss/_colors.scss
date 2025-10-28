@@ -1,9 +1,11 @@
-.bg-light{
+.bg-light {
     background-color: #e4e4e4;
-    figure:before{
+
+    figure:before {
         background-color: #e4e4e4 !important;
     }
 }
+
 @mixin bg-dark {
     background-color: var(--wp--preset--color--accent-2);
     background: var(--wp--preset--color--accent-2);
@@ -11,52 +13,78 @@
     background: -moz-linear-gradient(26deg, #5f5f5f 0%, var(--wp--preset--color--accent-2) 100%);
     background: linear-gradient(26deg, #5f5f5f 0%, var(--wp--preset--color--accent-2) 100%);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#5f5f5f", endColorstr="var(--wp--preset--color--accent-2)", GradientType=0);
-    &:not(.card-light){
+
+    &:not(.card-light) {
         color: var(--wp--preset--color--base);
     }
-    figure:before{
+
+    figure:before {
         background-color: var(--wp--preset--color--accent-2) !important;
     }
 }
-.bg-dark{
+
+@mixin bg-neuro {
+    background: linear-gradient(145deg, #d3d3d3, #f0f0f0);
+    box-shadow: 20px 20px 60px #bebebe,
+        -20px -20px 30px #ffffff;
+}
+
+.bg-dark {
     @include bg-dark;
-    &.flat{
+
+    &.flat {
         background: var(--wp--preset--color--accent-2);
     }
-    a:where(:not(.wp-element-button)){
+
+    a:where(:not(.wp-element-button)) {
         color: var(--wp--preset--color--base);
-        &:hover{
+
+        &:hover {
             opacity: 0.7;
         }
     }
 }
-section.bg-color{
+
+section.bg-color {
     padding-top: 20px;
     padding-bottom: 20px;
 }
+
 @mixin bg-color {
     background: #ff9720;
     background: -webkit-linear-gradient(26deg, #ff9720 0%, var(--wp--preset--color--accent-1) 100%);
     background: -moz-linear-gradient(26deg, #ff9720 0%, var(--wp--preset--color--accent-1) 100%);
     background: linear-gradient(26deg, #ff9720 0%, var(--wp--preset--color--accent-1) 100%);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ff9720", endColorstr="#FF6920", GradientType=0);
-    figure:before{
+
+    figure:before {
         display: none;
     }
-    &:not(.card-light){
+
+    &:not(.card-light) {
         color: var(--wp--preset--color--contrast);
     }
-    &:not(.card-light):not(.card-dark){
-        h1,h2,h3,h4,h5,h6{
+
+    &:not(.card-light):not(.card-dark) {
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
             color: var(--wp--preset--color--contrast);
         }
     }
 }
-.bg-color{
+
+.bg-color {
     @include bg-color;
-    a:where(:not(.wp-element-button)){
+
+    a:where(:not(.wp-element-button)) {
         color: var(--wp--preset--color--base);
-        &:hover{
+
+        &:hover {
             opacity: 0.7;
         }
     }
@@ -69,19 +97,22 @@ section.bg-color{
     padding: 40px
 }
 
-.card-light container{
+.card-light container {
     @include card;
     background-color: #e4e4e4;
     color: var(--wp--preset--color--contrast);
-    figure:before{
+
+    figure:before {
         background-color: #e4e4e4 !important;
     }
 }
-.card-dark container{
+
+.card-dark container {
     @include card;
     @include bg-dark;
 }
-.card-color container{
+
+.card-color container {
     @include card;
     @include bg-color;
 }

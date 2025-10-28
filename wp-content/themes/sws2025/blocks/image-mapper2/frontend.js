@@ -797,34 +797,13 @@ class WordPressImageMapper {
 
         // Konvertiere SVG-Koordinaten zu Container-Koordinaten
         // Berücksichtige dass der Path nicht bei (0,0) starten muss
-        const x = point.x * scaleX;
-        const y = point.y * scaleY;
+        const x = (point.x - pathBBox.x) * scaleX;
+        const y = (point.y - pathBBox.y) * scaleY;
 
         // Positioniere den Checkpoint
         checkpoint.style.position = 'absolute';
         checkpoint.style.left = `${x}px`;
         checkpoint.style.top = `${y}px`;
-
-        // Debug-Ausgabe
-        if (this.config.debug) {
-            console.log('Checkpoint positioning:', {
-                pathPosition: pathPosition + '%',
-                pathLength: pathData.pathLength,
-                distanceAlongPath,
-                svgPoint: { x: point.x, y: point.y },
-                pathBBox,
-                containerSize: {
-                    width: containerRect.width,
-                    height: containerRect.height
-                },
-                svgSize: {
-                    width: pathData.svgWidth,
-                    height: pathData.svgHeight
-                },
-                scale: { x: scaleX, y: scaleY },
-                finalPosition: { x, y }
-            });
-        }
     }
 
     /**
