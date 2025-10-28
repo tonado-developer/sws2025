@@ -339,7 +339,7 @@ registerBlockType('sws2025/image-mapper2', {
                         ),
 
                         // Svg Path with Checkpoints
-                        marker.svgPath(markerData, index),
+                        marker.svgPath(markerData, index, attributes.hotspots.length),
 
                         // Side Bar Content
                         marker.sideBarContent(markerData, index)

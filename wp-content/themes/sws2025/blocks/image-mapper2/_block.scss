@@ -496,6 +496,23 @@ img.parent_img.hdImage {
     display: none;
 }
 
+.checkpoint-marker.nav-marker {
+    .badge{
+        color: var(--wp--preset--color--base);
+        font-size: 3rem;
+        line-height: 100%;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        background-color: var(--wp--preset--color--accent-1);
+        border-radius: 50%;
+        height: 39px;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+}
+
 .checkpoint-marker.markerLabel {
     opacity: 1;
     bottom: unset;

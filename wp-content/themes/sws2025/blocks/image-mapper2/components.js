@@ -155,8 +155,12 @@ window.imageMapperComponents = {
             },
 
             // SVG path with checkpoints for markers
-            svgPath: (marker, index) => {
+            // In frontend.js - svgPath Funktion erweitern (Zeile 158):
+            svgPath: (marker, index, totalMarkers) => {
                 if (marker.pathSvg && marker.checkpoints?.length) {
+                    const hasPrev = index > 0;
+                    const hasNext = index < totalMarkers - 1;
+
                     return createElement(
                         'div',
                         {
@@ -170,6 +174,17 @@ window.imageMapperComponents = {
                             alt: ''
                         }),
                         createElement('div', { className: 'checkpointsWrapper' },
+                            // Navigation Start (Zurück)
+                            hasPrev && createElement('div', {
+                                key: 'nav-prev',
+                                className: 'checkpoint-marker nav-marker opening-left',
+                                'data-path-position': '0',
+                                style: '--path-position: 0%',
+                            },
+                                createElement('div', { className: 'badge' }, '←'),
+                            ),
+
+                            // Bestehende Checkpoints
                             marker.checkpoints.map((checkpoint, cpIndex) =>
                                 createElement('div', {
                                     key: cpIndex,
@@ -182,7 +197,6 @@ window.imageMapperComponents = {
                                         className: 'badge',
                                         onclick: 'Overlay.open(this.href, event); return false;'
                                     }, checkpoint.previewLabel),
-
                                     createElement('a', {
                                         className: `badgeInfo has_border is_rounded`,
                                         href: checkpoint.targetLink || '#',
@@ -199,10 +213,21 @@ window.imageMapperComponents = {
                                     ),
                                     createElement('div', { className: 'string' })
                                 )
+                            ),
+
+                            // Navigation Ende (Weiter)
+                            hasNext && createElement('div', {
+                                key: 'nav-next',
+                                className: 'checkpoint-marker nav-marker opening-right',
+                                'data-path-position': '100',
+                                style: '--path-position: 100%',
+                            },
+                                createElement('div', { className: 'badge' }, '→'),
                             )
                         )
-                    )
+                    );
                 }
+                return null;
             },
 
             // Illustration for person markers
@@ -582,7 +607,7 @@ window.imageMapperComponents = {
                                 }
                             )
                         ),
-                        
+
                         group('📍 Positionierung auf Pfad (Mobile)', { open: false },
                             pbw2.text.input(itemProps, 'p', 'pathPositionRespo', { title: 'Position auf Pfad (0-100%)' }),
                             pbw2.choose.input(

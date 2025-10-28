@@ -689,9 +689,32 @@ class WordPressImageMapper {
             checkpoint._svgContainer = svgContainer;
             checkpoint._pathData = pathData;
             this.activeCheckpoints.add(checkpoint);
+
+            if (checkpoint.classList.contains('nav-marker') && checkpoint.getAttribute('title') === null) {
+                const pathPosition = checkpoint.dataset.pathPosition;
+                const targetIndex = pathPosition === '0' ? Number(hotspotId) - 1 : Number(hotspotId) + 1;
+                this.applyCheckpointNavigation(targetIndex, checkpoint);
+            }
         });
 
         this.debug(`SVG Path initialized for hotspot ${hotspotId}:`, pathData);
+    }
+
+    /*
+    * Apply navigation behavior to checkpoint markers
+    */
+    applyCheckpointNavigation(targetHotspotId, checkpoint) {
+        const targetMarker = this.markers[targetHotspotId];
+
+        if (targetMarker) {
+            checkpoint.setAttribute('title', 'Weiter'); // Make it focusable
+            checkpoint.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.switchToMarker(targetMarker);
+            })
+        } else {
+            this.debug('Target marker not found for checkpoint navigation:', targetHotspotId);
+        };
     }
 
     /**
