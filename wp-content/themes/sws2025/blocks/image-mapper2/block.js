@@ -83,7 +83,7 @@ registerBlockType('sws2025/image-mapper2', {
 
         // SVG Loader für globale Illustration
         useEffect(() => {
-            if (attributes.illustrationImage && !attributes.illustrationImageSvg) {
+            if (attributes.illustrationImage) {
                 fetch(attributes.illustrationImage)
                     .then(r => r.text())
                     .then(svg => {
@@ -96,7 +96,7 @@ registerBlockType('sws2025/image-mapper2', {
 
         // SVG Loader für globale Illustration
         useEffect(() => {
-            if (attributes.illustrationImageRespo && !attributes.illustrationImageSvgRespo) {
+            if (attributes.illustrationImageRespo) {
                 fetch(attributes.illustrationImageRespo)
                     .then(r => r.text())
                     .then(svg => {

@@ -156,8 +156,8 @@
                     "fontFace": [
                         {
                             "src": [
-                                "file:./assets/fonts/transfonter.org-20250903-130001/ZektonHv-Regular.woff2",
-                                "file:./assets/fonts/transfonter.org-20250903-130001/ZektonHv-Regular.woff"
+                                "file:./assets/fonts/transfonter.org-20251028-092408/ZektonRg-Regular.woff2",
+                                "file:./assets/fonts/transfonter.org-20251028-092408/ZektonRg-Regular.woff"
                             ],
                             "fontWeight": "400 800",
                             "fontStyle": "normal",

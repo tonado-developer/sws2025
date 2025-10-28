@@ -2279,7 +2279,9 @@ class WordPressImageMapper {
             this.zoomOut();
         });
 
-        document.body.appendChild(btn);
+        const root = this.state.rootContainer;
+
+        root.appendChild(btn);
     }
 
     /**

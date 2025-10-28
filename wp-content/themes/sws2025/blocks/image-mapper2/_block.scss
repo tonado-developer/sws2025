@@ -82,9 +82,9 @@ img.parent_img.hdImage {
             display: none !important;
         }
         .position-marker {
-            left: calc(var(--x-pos-mobile) - 0px);
-            top: calc(var(--y-pos-mobile) - 0px);
-            width: calc(var(--width-mobile) * 1);
+            left: var(--x-pos-mobile);
+            top: var(--y-pos-mobile);
+            width: var(--width-mobile);
         }
         .position-prezoom {
             height: 100%;
@@ -113,14 +113,30 @@ img.parent_img.hdImage {
             padding: 10px 20px;
         }
         .markerLabel{
+            text-align: center;
             .string{
                 display: none;
             }
             .badge{
-                font-size: var(--wp--preset--font-size--medium);
+                font-size: var(--wp--preset--font-size--small);
                 transform: translate(-50%, 50%);
                 border-radius: 12px;
+                padding: 6px;
+                max-width: 90px;
             }
+        }
+        .markerLabel .badge {
+            backdrop-filter: blur(7px);
+            background: #3750755e;
+            border: solid 1px var(--wp--preset--color--accent-1);
+        }
+        .illustration-image{
+            aspect-ratio: 1/2;
+            max-width: unset;
+        }
+        .zoom-back-btn{
+            top: unset;
+            bottom: 30px;
         }
     }
 }
@@ -200,7 +216,7 @@ img.parent_img.hdImage {
 }
 
 /* Overlay Images */
-.position-marker img.overlay {
+.position-marker .overlay img {
     opacity: 0;
     transition: all 0.3s ease;
     width: 100%;
@@ -306,19 +322,11 @@ img.parent_img.hdImage {
     }
 }
 
-@media screen and (min-width:$navbarBreakpoint) {
-
-    .person-image,
-    .illustration-image {
-        // width: 100%;
-    }
-}
-
 /* Side Content */
 .side-content {
     position: fixed;
     left: 0%;
-    top: calc($headerHeightResponsive + 50px);
+    top: $headerHeightResponsive;
     width: $sideWidth;
     z-index: 4;
     color: black;
