@@ -163,27 +163,31 @@ class WordPressImageMapper {
         };
     }
     /**
- * Badge Viewport-Positioning System
- * Pre-calculates positions, applies on hover
+ * Badge Viewport-Positioning System - Optimized
+ * Berechnet Positionen erst bei Hover
  */
 
     initBadgePositioning() {
         this.badgePositions = new Map();
-        this._badgeCalcPending = false; // NEU
-        this._badgeCalcTimeout = null; // NEU
+        this._badgeCalcPending = false;
+        this._badgeCalcTimeout = null;
+        this._hoveredBadges = new Set(); // Track gehoverter Badges
 
         const markers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel');
 
-        // Initial calculation
-        this.calculateAllBadgePositions();
-
-        // Hover: apply pre-calculated position
+        // Hover: berechne & apply position
         markers.forEach(marker => {
             marker.addEventListener('mouseenter', () => {
+                // Erste Berechnung für dieses Badge
+                if (!this.badgePositions.has(marker)) {
+                    this.calculateBadgePosition(marker);
+                }
+                this._hoveredBadges.add(marker);
                 this.applyBadgeTransform(marker);
             });
 
             marker.addEventListener('mouseleave', () => {
+                this._hoveredBadges.delete(marker);
                 const badgeInfo = marker.querySelector('.badgeInfo');
                 if (badgeInfo) {
                     badgeInfo.style.transform = '';
@@ -191,14 +195,21 @@ class WordPressImageMapper {
             });
         });
 
-        // NEU: Throttled scroll handler
+        // Throttled scroll/resize handler - nur für bereits berechnete Badges
         const handleScroll = () => {
-            if (this._badgeCalcTimeout) return;
+            if (this._badgeCalcTimeout || this.badgePositions.size === 0) return;
 
             this._badgeCalcTimeout = setTimeout(() => {
-                this.calculateAllBadgePositions();
-                const hoveredMarkers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel:hover');
-                hoveredMarkers.forEach(marker => this.applyBadgeTransform(marker));
+                // Nur bereits berechnete Badges neu berechnen
+                this.badgePositions.forEach((_, marker) => {
+                    this.calculateBadgePosition(marker);
+                });
+
+                // Nur gehoverter Badges updaten
+                this._hoveredBadges.forEach(marker => {
+                    this.applyBadgeTransform(marker);
+                });
+
                 this._badgeCalcTimeout = null;
             }, 100);
         };
@@ -206,15 +217,15 @@ class WordPressImageMapper {
         window.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('resize', handleScroll, { passive: true });
 
-        // NEU: Nur während Zoom, nicht bei jedem Frame
-        this._badgeTickerActive = false;
+        // Während Zoom nur für gehoverter Badges
         const badgeTicker = () => {
-            if (this.state.zooming && !this._badgeCalcPending) {
+            if (this.state.zooming && this._hoveredBadges.size > 0 && !this._badgeCalcPending) {
                 this._badgeCalcPending = true;
                 requestAnimationFrame(() => {
-                    this.calculateAllBadgePositions();
-                    const hoveredMarkers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel:hover');
-                    hoveredMarkers.forEach(marker => this.applyBadgeTransform(marker));
+                    this._hoveredBadges.forEach(marker => {
+                        this.calculateBadgePosition(marker);
+                        this.applyBadgeTransform(marker);
+                    });
                     this._badgeCalcPending = false;
                 });
             }
@@ -225,74 +236,68 @@ class WordPressImageMapper {
     }
 
     /**
-     * Calculate positions for all badges (background)
-     */
-    calculateAllBadgePositions() {
-        if (this._badgeCalcPending) return;
-        this._badgeCalcPending = true;
+ * Einzelnes Badge Position berechnen
+ * FIXED: Korrekte Overflow-Erkennung mit Padding
+ */
+    calculateBadgePosition(marker) {
+        const badgeInfo = marker.querySelector('.badgeInfo');
+        if (!badgeInfo) return;
 
-        requestAnimationFrame(() => {
-            const markers = this.state.rootContainer.querySelectorAll('.checkpoint-marker.markerLabel');
+        const padding = {
+            top: 150,
+            bottom: 10,
+            left: 10,
+            right: 100
+        };
 
-            markers.forEach(marker => {
-                const badgeInfo = marker.querySelector('.badgeInfo');
-                if (!badgeInfo) return;
+        // Transform temporär entfernen für präzise Messung
+        const currentTransform = badgeInfo.style.transform;
+        badgeInfo.style.transform = '';
 
-                const wasHidden = window.getComputedStyle(badgeInfo).display === 'none';
-                if (wasHidden) {
-                    badgeInfo.style.display = 'grid';
-                    badgeInfo.style.visibility = 'hidden';
-                }
+        // Force reflow
+        badgeInfo.offsetHeight;
 
-                const rect = badgeInfo.getBoundingClientRect();
-                const viewport = {
-                    width: window.innerWidth,
-                    height: window.innerHeight,
-                    padding: 20
-                };
+        // Badge-Rect ohne Transform
+        const badgeRect = badgeInfo.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
 
-                let adjustX = 0;
-                let adjustY = 0;
+        let adjustment = { x: 0, y: 0 };
 
-                if (rect.left < viewport.padding) {
-                    adjustX = viewport.padding - rect.left;
-                } else if (rect.right > viewport.width - viewport.padding) {
-                    adjustX = (viewport.width - viewport.padding) - rect.right;
-                }
+        // Right overflow
+        if (badgeRect.right > (viewportWidth - padding.right)) {
+            adjustment.x = (viewportWidth - padding.right) - badgeRect.right;
+        }
 
-                if (rect.top < viewport.padding) {
-                    adjustY = viewport.padding - rect.top;
-                } else if (rect.bottom > viewport.height - viewport.padding) {
-                    adjustY = (viewport.height - viewport.padding) - rect.bottom;
-                }
+        // Left overflow (überschreibt right, hat Priorität)
+        if (badgeRect.left < padding.left) {
+            adjustment.x = padding.left - badgeRect.left;
+        }
 
-                this.badgePositions.set(marker, { x: adjustX, y: adjustY });
+        // Bottom overflow
+        if (badgeRect.bottom > (viewportHeight - padding.bottom)) {
+            adjustment.y = (viewportHeight - padding.bottom) - badgeRect.bottom;
+        }
 
-                if (wasHidden) {
-                    badgeInfo.style.display = '';
-                    badgeInfo.style.visibility = '';
-                }
-            });
+        // Top overflow (überschreibt bottom, hat Priorität)
+        if (badgeRect.top < padding.top) {
+            adjustment.y = padding.top - badgeRect.top;
+        }
 
-            this._badgeCalcPending = false;
-        });
+        // Position speichern
+        this.badgePositions.set(marker, adjustment);
     }
 
     /**
      * Apply pre-calculated transform
      */
     applyBadgeTransform(marker) {
+        const adjustment = this.badgePositions.get(marker);
+        if (!adjustment) return;
+
         const badgeInfo = marker.querySelector('.badgeInfo');
-        if (!badgeInfo) return;
-
-        const position = this.badgePositions.get(marker);
-        if (!position) return;
-
-        if (position.x !== 0 || position.y !== 0) {
-            badgeInfo.style.transition = 'transform 0.3s ease';
-            badgeInfo.style.transform = `translate(${position.x}px, ${position.y}px)`;
-        } else {
-            badgeInfo.style.transform = '';
+        if (badgeInfo && (adjustment.x !== 0 || adjustment.y !== 0)) {
+            badgeInfo.style.transform = `translate(${adjustment.x}px, ${adjustment.y}px)`;
         }
     }
 

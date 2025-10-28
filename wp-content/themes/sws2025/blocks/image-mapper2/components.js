@@ -183,17 +183,17 @@ window.imageMapperComponents = {
                                         onclick: 'Overlay.open(this.href, event); return false;'
                                     }, checkpoint.previewLabel),
 
-                                    createElement('div', {
-                                        className: `badgeInfo has_border is_rounded`
+                                    createElement('a', {
+                                        className: `badgeInfo has_border is_rounded`,
+                                        href: checkpoint.targetLink || '#',
+                                        onclick: 'Overlay.open(this.href, event); return false;'
                                     },
                                         pbw2.img.output({ attributes: checkpoint }, "previewImage"),
                                         createElement('div', { className: 'textwrap' },
                                             pbw2.text.output({ attributes: checkpoint }, "h3", "previewLabel"),
                                             pbw2.text.output({ attributes: checkpoint }, "p", "previewText"),
-                                            checkpoint.targetLink && createElement('a', {
-                                                href: checkpoint.targetLink,
-                                                className: 'targetLink',
-                                                onclick: 'Overlay.open(this.href, event); return false;'
+                                            checkpoint.targetLink && createElement('div', {
+                                                className: 'targetLink'
                                             }, 'Mehr erfahren')
                                         )
                                     ),

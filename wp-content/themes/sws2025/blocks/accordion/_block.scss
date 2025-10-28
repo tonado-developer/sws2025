@@ -25,14 +25,13 @@
         position: relative;
         display: flex;
         align-items: center;
+        @media screen and (max-width:$columnsBreakpoint) {
+            aspect-ratio: 1/1;
+        }
         figure {
             margin: unset;
             display: none;
             width: 100%;
-            // hack
-            //   width: 20vw;
-            //   height: 20vw;
-
             position: relative;
             align-items: center;
             justify-content: center;

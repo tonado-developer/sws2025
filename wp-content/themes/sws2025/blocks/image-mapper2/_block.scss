@@ -515,7 +515,7 @@ img.parent_img.hdImage {
     }
 
     &:hover {
-        z-index: 2;
+        z-index: 3;
 
         .badgeInfo {
             display: grid;
@@ -530,6 +530,8 @@ img.parent_img.hdImage {
         grid-template-columns: auto 1fr;
         z-index: 1;
         position: relative;
+        text-decoration: none;
+        color: var(--wp--preset--color--contrast);
     }
 
     .string {
