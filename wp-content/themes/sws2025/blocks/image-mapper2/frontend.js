@@ -2049,13 +2049,13 @@ class WordPressImageMapper {
 
     /**
  * Calculate zoom transform with object-fit: cover behavior
+ * Mobile-aware: Uses correct marker positions and parent images based on viewport breakpoint
  * @param {HTMLElement} marker - Target marker
  * @returns {Object} Transform data
  */
     calculateZoomTransform(marker) {
         const zoomBoundaries = this.state.rootContainer.querySelector(this.config.selectors.zoomBoundaries);
         const computedStyle = window.getComputedStyle(zoomBoundaries);
-
 
         const padding = {
             top: parseFloat(computedStyle.paddingTop),
@@ -2074,8 +2074,28 @@ class WordPressImageMapper {
 
         const container = this.state.currentContainer;
         const containerRect = container.getBoundingClientRect();
+
+        // MOBILE FIX: getBoundingClientRect() returns the ACTUAL rendered position
+        // which already uses --x-pos-mobile/--y-pos-mobile/--width-mobile on mobile
+        // or --x-pos/--y-pos/--width on desktop through CSS media queries
         const markerRect = marker.getBoundingClientRect();
-        const parentRect = this.parent.getBoundingClientRect();
+
+        // MOBILE FIX: Get the visible parent image (desktop or mobile)
+        // On mobile, .desktop elements are hidden and .mobile elements are shown via CSS
+        // We need to find which parent image is actually visible
+        let visibleParent = this.parent;
+        const allParentImages = this.state.currentContainer.querySelectorAll('.parent_img');
+
+        // Find the actually visible parent image by checking computed display style
+        for (const img of allParentImages) {
+            const computedDisplay = window.getComputedStyle(img).display;
+            if (computedDisplay !== 'none') {
+                visibleParent = img;
+                break;
+            }
+        }
+
+        const parentRect = visibleParent.getBoundingClientRect();
 
         // PRE-ZOOM FAKTOR ERMITTELN
         const preZoomContainer = container.closest('.position-prezoom');

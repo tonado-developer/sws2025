@@ -31,6 +31,19 @@
         }
     }
 
+    .zoom-boundaries {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        visibility: hidden;
+        padding-left: calc($sideWidth + 10vw);
+        padding-top: 200px;
+        padding-right: 300px;
+        padding-bottom: 180px;
+    }
+
     .position-marker {
         will-change: transform, opacity;
         backface-visibility: hidden;
@@ -183,6 +196,13 @@
     }
 
     @media screen and (max-width:$navbarBreakpoint) {
+        .zoom-boundaries {
+            padding-left: 40px;
+            padding-top: max(100px, 41vh);
+            padding-right: 40px;
+            padding-bottom: 80px;
+        }
+
         .desktop {
             display: none !important;
         }
@@ -393,27 +413,7 @@ img.parent_img.hdImage {
     height: 100%;
 }
 
-.zoom-boundaries {
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    visibility: hidden;
-    padding-left: calc($sideWidth + 10vw);
-    padding-top: 200px;
-    padding-right: 300px;
-    padding-bottom: 180px;
-}
-
-@media (orientation: portrait) {
-    .zoom-boundaries {
-        padding-left: 20px;
-        padding-top: max(100px, 41vh);
-        padding-right: 20px;
-        padding-bottom: 136px;
-    }
-}
+    
 
 /* Side Content */
 .side-content {
