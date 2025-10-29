@@ -143,7 +143,6 @@
                                 "file:./assets/fonts/transfonter.org-20250903-130001/SourceSansPro-Regular.woff2",
                                 "file:./assets/fonts/transfonter.org-20250903-130001/SourceSansPro-Regular.woff"
                             ],
-                            "fontWeight": "400 800",
                             "fontStyle": "normal",
                             "fontFamily": "\"SourceSansPro\""
                         }

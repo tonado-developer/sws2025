@@ -1,20 +1,26 @@
 .wp-block-sws2025-accordion {
     $imgMinSize: 200px;
+
     .contentGrid {
         display: grid;
         gap: 40px;
+
         @media screen and (max-width:$columnsBreakpoint) {
-            grid-template-columns: minmax(0px,1fr) !important;
+            grid-template-columns: minmax(0px, 1fr) !important;
+
             .rowWrap {
                 grid-row: auto;
             }
-            .accordionImages{
+
+            .accordionImages {
                 max-width: 250px;
             }
-            .row{
+
+            .row {
                 padding-left: 45px;
             }
-            .rowTrigger::after{
+
+            .rowTrigger::after {
                 left: -35px;
             }
         }
@@ -25,12 +31,14 @@
         position: relative;
         display: flex;
         align-items: center;
+
         @media screen and (max-width:$columnsBreakpoint) {
             aspect-ratio: 1/1;
         }
+
         figure {
             margin: unset;
-            display: none;
+            display: flex;
             width: 100%;
             position: relative;
             align-items: center;
@@ -39,35 +47,46 @@
             text-decoration: none;
             transition: all 300ms ease;
             overflow: hidden;
-            a{
+
+            a {
                 position: relative;
                 z-index: 2;
             }
+
             img {
                 display: block;
                 object-fit: cover;
                 width: 100%;
+                height: 100%;
                 overflow: hidden;
                 z-index: 1;
             }
 
-            &.subImage,&:has(img.subImage) {
+            &.subImage,
+            &:has(img.subImage) {
                 position: absolute;
                 top: 0;
                 opacity: 0;
                 transition: opacity 0ms ease;
             }
 
-            &.open,
-            &.media-wrap--image,
-            &:has(img.open) {
-                display: flex;
-                opacity: 1;
-            }
-
             &.media-wrap--image {
                 width: 20vw;
                 max-width: 100%;
+            }
+        }
+
+        &:has(figure.open) {
+            figure:not(.open) {
+                display: none;
+            }
+
+            figure {
+
+                &.open {
+                    display: flex;
+                    opacity: 1;
+                }
             }
         }
     }
@@ -130,7 +149,7 @@
         figure {
             @include mask-border();
         }
-        
+
         // &:not(.opening-right, .opening-left, .opening-top, .opening-bottom) {
         //     figure {
         //         @include mask-border();

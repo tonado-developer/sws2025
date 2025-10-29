@@ -1,0 +1,25 @@
+.wp-block-sws2025-quote{
+    padding: 1px 0px;
+
+    i{
+        font-size: 94px;
+        color: var(--wp--preset--color--accent-1);
+        line-height: 26px;
+        display: block;
+        font-style: normal;
+        font-family: 'SourceSansPro';
+        margin-top: 20px;
+    }
+    p{
+        &:first-of-type{
+            font-size: var(--wp--preset--font-size--large);
+            line-height: 140%;
+        }
+        &:last-of-type{
+            font-style: italic
+        }
+    }
+    .link{
+        @include button;
+    }
+}

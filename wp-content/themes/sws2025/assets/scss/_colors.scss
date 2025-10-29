@@ -99,12 +99,7 @@ section.bg-color {
 
 .card-light container {
     @include card;
-    background-color: #e4e4e4;
-    color: var(--wp--preset--color--contrast);
-
-    figure:before {
-        background-color: #e4e4e4 !important;
-    }
+    @include bg-neuro;
 }
 
 .card-dark container {

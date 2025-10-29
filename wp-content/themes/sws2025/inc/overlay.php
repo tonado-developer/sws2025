@@ -9,6 +9,13 @@
 add_action('wp_enqueue_scripts', 'wpoverlay_enqueue_scripts');
 function wpoverlay_enqueue_scripts()
 {
+
+    global $post;
+
+    if (!$post || !has_block(CUSTOM_BLOCK_CATEGORY . "/image-mapper2", $post)) {
+        return;
+    }
+
     // GSAP from CDN
     wp_enqueue_script(
         'gsap',
