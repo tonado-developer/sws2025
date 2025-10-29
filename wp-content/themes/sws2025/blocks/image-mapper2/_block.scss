@@ -197,10 +197,10 @@
 
     @media screen and (max-width:$navbarBreakpoint) {
         .zoom-boundaries {
-            padding-left: 40px;
-            padding-top: max(100px, 41vh);
-            padding-right: 40px;
-            padding-bottom: 80px;
+            padding-left: 80px;
+            padding-top: max(100px,50vh);
+            padding-right: 80px;
+            padding-bottom: 29vh;
         }
 
         .desktop {
