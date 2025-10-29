@@ -772,8 +772,14 @@ function media_output(props, name, settings = {}) {
         autoplay = false,
         loop = false,
         muted = false,
-        className = ''
+        className = '',
+        dataset = {}
     } = settings;
+
+    const dataAttrs = {};
+    for (const key in dataset) {
+        dataAttrs[`data-${key}`] = dataset[key];
+    }
 
     // MediaData parsen
     let mediaData = null;
@@ -920,7 +926,7 @@ function media_output(props, name, settings = {}) {
     const imageElement = wp.element.createElement('img', {
         src: mediaUrl,
         alt: alt,
-        className: `media-image ${name} ${className}`.trim(),
+        className: `media-image ${name}`.trim(),
         loading: 'lazy',
         ...(imgWidth && { width: imgWidth }),
         ...(imgHeight && { height: imgHeight })
@@ -929,7 +935,10 @@ function media_output(props, name, settings = {}) {
     if (fancybox) {
         return wp.element.createElement(
             'figure',
-            { className: "media-wrap media-wrap--image fancybox-enabled" },
+            {
+                className: `media-wrap fancybox-enabled ${name} ${className}`.trim(),
+                ...(dataAttrs ? dataAttrs : {}),
+            },
             wp.element.createElement('a', {
                 href: mediaData?.sizes?.full?.url || mediaUrl,
                 'data-fancybox': fancyboxGroup,
@@ -939,7 +948,10 @@ function media_output(props, name, settings = {}) {
         );
     }
 
-    return wp.element.createElement('figure', { className: "media-wrap media-wrap--image" }, imageElement);
+    return wp.element.createElement('figure', {
+        className: `media-wrap ${name} ${className}`.trim(),
+        ...(dataAttrs ? dataAttrs : {}),
+    }, imageElement);
 }
 
 /**
@@ -1897,7 +1909,7 @@ function nested_array_addblock(props, parentIndex, parentFieldName, fieldName, n
             });
 
             const currentNestedArray = currentParent[fieldIndex][fieldName] || [];
-            
+
             currentParent[fieldIndex][fieldName] = [...currentNestedArray, newNestedItem];
             currentItems[parentIndex] = currentParent;
 

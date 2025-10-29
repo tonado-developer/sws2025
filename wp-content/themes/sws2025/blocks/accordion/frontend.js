@@ -1,7 +1,7 @@
 function openAccordionPane(element) {
     const parent = element.closest(".wp-block-sws2025-accordion");
     const panes = parent.querySelectorAll(".row");
-    const images = parent.querySelectorAll(".imageWrap");
+    const images = parent.querySelectorAll(".media-wrap");
     const currentRow = element.closest(".row");
     
     // Alle schließen
@@ -13,7 +13,7 @@ function openAccordionPane(element) {
 
     // Entsprechendes Bild öffnen (basierend auf data-id oder Index)
     const rowId = currentRow.dataset.id || Array.from(panes).indexOf(currentRow);
-    const targetImage = parent.querySelector(`.imageWrap[data-id="${rowId}"]`);
+    const targetImage = parent.querySelector(`.media-wrap[data-id="${rowId}"]`);
     if (targetImage) {
         targetImage.classList.add("open");
     }

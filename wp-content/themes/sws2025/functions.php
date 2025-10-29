@@ -98,6 +98,14 @@ function enqueue_styles()
         $theme_version
     );
 
+    // fancybox stylesheet
+    wp_enqueue_style(
+        'fancybox-style',
+        get_parent_theme_file_uri('assets/js/fancybox/jquery.fancybox.min.css'),
+        [],
+        $theme_version
+    );
+
     // Image mapper specific styles
     wp_enqueue_style(
         'style-imagemapper',
@@ -179,6 +187,15 @@ function enqueue_scripts()
         'burger-toggle',
         get_template_directory_uri() . '/assets/js/burger-toggle.js',
         array(),
+        $theme_version,
+        true
+    );
+
+    // fancybox Script
+    wp_enqueue_script(
+        'fancybox-frontend',
+        get_template_directory_uri() . '/assets/js/fancybox/jquery.fancybox.min.js',
+        [],
         $theme_version,
         true
     );

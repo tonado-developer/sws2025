@@ -17,6 +17,11 @@ wp.blocks.registerBlockType('sws2025/accordion', {
             title: "Haupt-Bild",
             description: "Das Bild das neben dem Akkordion sitzen soll"
         }),
+        lightbox: pbw.choose.attr({
+            default: "",
+            title: "Hat einen Lightbox effekt",
+            description: "Sollen die Bilder einen Lightbox Effekt haben?"
+        }),
         rounded: pbw.choose.attr({
             default: "is_rounded",
             title: "Abgerundete Ecken",
@@ -113,6 +118,11 @@ wp.blocks.registerBlockType('sws2025/accordion', {
                         icon: 'admin-generic'
                     },
 
+                    // Lightbox Effekt
+                    pbw.choose.input(props, 'lightbox', [
+                        { label: 'Nein', value: "" },
+                        { label: 'Ja', value: "true" }
+                    ]),
                     // Abgerundete Ecken
                     pbw.choose.input(props, 'rounded', [
                         { label: 'Ja, bitte abrunden', value: "is_rounded" },
@@ -178,6 +188,12 @@ wp.blocks.registerBlockType('sws2025/accordion', {
 
             // Konfigurations Inputs
             group("Konfiguration", { open: false, color: "#ffcb20" },
+
+                // Lightbox Effekt
+                pbw.choose.input(props, 'lightbox', [
+                    { label: 'Nein', value: "" },
+                    { label: 'Ja', value: "has_lightbox" }
+                ]),
                 // Abgerundete Ecken
                 pbw.choose.input(props, 'rounded', [
                     { label: 'Ja, bitte abrunden', value: "is_rounded" },
@@ -247,24 +263,15 @@ wp.blocks.registerBlockType('sws2025/accordion', {
                     className: "contentGrid " + pbw.choose.output(props, "rounded") + " " + pbw.choose.output(props, "border") + " opening-" + pbw.choose.output(props, "opening") + " figure-" + pbw.choose.output(props, "order"),
                 },
                 wp.element.createElement('div', { className: "accordionImages" },
-                    pbw.img.output(props, "image"),
+                    pbw.img.output(props, "image",{
+                        fancybox: pbw.choose.output(props, "lightbox")
+                    }),
                     pbw.array.output(props, "items", function (item) {
-
-                        return item.image && wp.element.createElement(
-                            'figure',
-                            {
-                                className: `imageWrap subImage ` + (item.key == 0 ? "open" : ""),
-                                key: item.key,
-                                'data-id': item.key
-                            },
-                            wp.element.createElement(
-                                'img',
-                                {
-                                    src: item.image,
-                                    alt: item.imageAlt || 'Bild',
-                                }
-                            ),
-                        );
+                        return pbw.img.output({attributes:item}, "image",{
+                            fancybox: pbw.choose.output(props, "lightbox"),
+                            className: `subImage ` + (item.key == 0 ? "open" : ""),
+                            dataset: { id: item.key }
+                        });
                     })
                 ),
                 wp.element.createElement('div', { className: "rowWrap", },
