@@ -16,7 +16,7 @@ html {
             top: var(--wp-admin--admin-bar--height);
         }
 
-        .side-content {
+        .image-mapper-container  .side-content {
             top: calc($headerHeight + var(--wp-admin--admin-bar--height));
         }
 

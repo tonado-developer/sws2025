@@ -7,14 +7,237 @@
     opacity: 0.9;
 }
 
+
+/* Image Mapper Frontend Styles */
+.image-mapper-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    overflow: clip;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+
+    figure {
+        margin: 0;
+        padding: 0;
+    }
+    
+    &.zoomed{
+        .background-images{
+            transition: all 1.5s ease-in-out;
+            transform: scale(1.6);
+        }
+    }
+
+    .position-marker {
+        will-change: transform, opacity;
+        backface-visibility: hidden;
+        left: calc(var(--x-pos) - 0px);
+        top: calc(var(--y-pos) - 0px);
+        width: calc(var(--width) * 1);
+    }
+
+    .position-prezoom {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+    }
+
+    .baseImageRespo {
+        width: fit-content;
+
+        img {
+            width: auto;
+        }
+    }
+
+    .base-images {
+        display: flex;
+        justify-content: center;
+    }
+
+    .global-zoom-content {
+        width: fit-content;
+    }
+
+    .position-preview {
+        position: relative;
+        height: 100%;
+        display: block;
+        width: fit-content;
+        *:not(.position-marker) {
+            height: 100%;
+        }
+
+        img {
+            height: 100%;
+            object-fit: cover;
+            object-position: bottom;
+            display: block;
+        }
+
+
+        /* Hotspot Markers */
+        .position-marker {
+            position: absolute;
+            display: grid;
+            grid-template-areas: "content";
+            grid-template-columns: minmax(0px,1fr);
+            transform: translate(-50%, -50%);
+            transition: all 0.7s ease;
+            z-index: 2;
+
+            img {
+                height: 100%;
+            }
+            .zoomImage,.zoomImage img{
+                width: 100%;
+            }
+        }
+    }
+
+    @media screen and (min-width:$navbarBreakpoint) {
+        .mobile {
+            display: none !important;
+        }
+
+        .position-marker {
+            left: calc(var(--x-pos) - 0px);
+            top: calc(var(--y-pos) - 0px);
+            width: calc(var(--width) * 1);
+        }
+
+        .side-content {
+            top: $headerHeight ;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(6px);
+            will-change: transform;
+        }
+
+        .fakeCorner {
+            position: absolute;
+            top: -50px;
+            width: calc(100% - 185px);
+            height: 50px;
+            right: 0;
+            overflow: hidden;
+            display: flex;
+
+            &::after {
+                content: " ";
+                width: 150px;
+                height: 100%;
+                clip-path: url(#headerTransitionReverse);
+                left: 0;
+                top: 0;
+                position: absolute;
+                background-color: rgba(255, 255, 255, 0.6);
+                backdrop-filter: blur(6px);
+                transition: all 2s ease;
+                transform: translateX($sideWidth);
+                will-change: transform;
+
+            }
+
+            &::before {
+                content: " ";
+                width: 500px;
+                height: 100%;
+                left: 150px;
+                top: 0;
+                position: absolute;
+                background-color: rgba(255, 255, 255, 0.6);
+                backdrop-filter: blur(6px);
+                transition: all 2s ease;
+                transform: translateX($sideWidth);
+            }
+        }
+        .position-preview {
+            max-height: 70vw;
+        }
+        .position-preview .position-marker:nth-of-type(1n){
+            z-index: 2;
+        }
+        .position-preview .position-marker:nth-of-type(2n){
+            z-index: 1;
+        }
+        .position-preview .position-marker:nth-of-type(3n){
+            z-index: 3;
+        }
+        .position-preview.zoomed .position-marker{
+            transition: all 1.5s ease-in-out;
+        }
+        .position-preview.zoomed .position-marker:nth-of-type(1n){
+            transform: translate(-50%, -50%) scale(1.04);
+        }
+        .position-preview.zoomed .position-marker:nth-of-type(2n){
+            transform: translate(-50%, -50%) scale(1.01);
+        }
+        .position-preview.zoomed .position-marker:nth-of-type(3n){
+            transform: translate(-50%, -50%) scale(1.08);
+        }
+    }
+
+    @media screen and (max-width:$navbarBreakpoint) {
+        .desktop {
+            display: none !important;
+        }
+
+        .position-marker {
+            left: var(--x-pos-mobile);
+            top: var(--y-pos-mobile);
+            width: var(--width-mobile);
+        }
+
+        .side-content {
+            width: 100%;
+            max-width: 450px;
+            padding: 10px 20px;
+        }
+
+        .markerLabel {
+            text-align: center;
+
+            .string {
+                display: none;
+            }
+
+            .badge {
+                font-size: var(--wp--preset--font-size--small);
+                transform: translate(-50%, 50%);
+                border-radius: $borderRadius * 0.5;
+                padding: 6px;
+                max-width: 90px;
+            }
+        }
+
+        .markerLabel .badge {
+            backdrop-filter: blur(7px);
+            background: #3750755e;
+            border: solid 1px var(--wp--preset--color--accent-1);
+        }
+
+        .illustration-image {
+            aspect-ratio: 1/2;
+            max-width: unset;
+        }
+
+        .zoom-back-btn {
+            top: unset;
+            bottom: 30px;
+        }
+    }
+}
+
+
 /* Body Fullscreen Lock */
 body.image-mapper-active {
     overflow: hidden;
     height: 100vh;
-}
-
-body.image-mapper-active>.position-preview {
-    aspect-ratio: 16/9;
 }
 
 .background-images {
@@ -25,6 +248,7 @@ body.image-mapper-active>.position-preview {
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: all 10s ease-in-out;
 
     .backgroundImageRespo {
         display: none;
@@ -42,126 +266,9 @@ img.parent_img.hdImage {
     bottom: 0;
 }
 
-/* Image Mapper Frontend Styles */
-.image-mapper-container {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    margin: 0;
-    overflow: clip;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-
-    figure {
-        margin: 0;
-        padding: 0;
-    }
-
-    .position-marker {
-        will-change: transform, opacity;
-        backface-visibility: hidden;
-        left: calc(var(--x-pos) - 0px);
-        top: calc(var(--y-pos) - 0px);
-        width: calc(var(--width) * 1);
-    }
-
-    @media screen and (min-width:$navbarBreakpoint) {
-        .mobile {
-            display: none !important;
-        }
-        .position-marker {
-            left: calc(var(--x-pos) - 0px);
-            top: calc(var(--y-pos) - 0px);
-            width: calc(var(--width) * 1);
-        }
-    }
-
-    @media screen and (max-width:$navbarBreakpoint) {
-        .desktop {
-            display: none !important;
-        }
-        .position-marker {
-            left: var(--x-pos-mobile);
-            top: var(--y-pos-mobile);
-            width: var(--width-mobile);
-        }
-        .position-prezoom {
-            height: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        .baseImageRespo{
-            width: fit-content;
-            img{
-                width: auto;
-            }
-        }
-        .base-images{
-            display: flex;
-            justify-content: center;
-        }
-        .global-zoom-content{
-            width: fit-content;
-        }
-        .position-preview{
-            width: fit-content;
-        }
-        .side-content{
-            width: 100%;
-            max-width: 450px;
-            padding: 10px 20px;
-        }
-        .markerLabel{
-            text-align: center;
-            .string{
-                display: none;
-            }
-            .badge{
-                font-size: var(--wp--preset--font-size--small);
-                transform: translate(-50%, 50%);
-                border-radius: $borderRadius * 0.5;
-                padding: 6px;
-                max-width: 90px;
-            }
-        }
-        .markerLabel .badge {
-            backdrop-filter: blur(7px);
-            background: #3750755e;
-            border: solid 1px var(--wp--preset--color--accent-1);
-        }
-        .illustration-image{
-            aspect-ratio: 1/2;
-            max-width: unset;
-        }
-        .zoom-back-btn{
-            top: unset;
-            bottom: 30px;
-        }
-    }
-}
-
-.position-preview {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: block;
-    *:not(.position-marker){
-        height: 100%;
-    }
-}
-.position-prezoom{
+.position-prezoom {
     width: 100%;
 }
-
-.position-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: bottom;
-    display: block;
-}
-
 
 
 .position-preview .parent_overlay {
@@ -185,20 +292,6 @@ img.parent_img.hdImage {
     opacity: 0 !important;
 }
 
-
-/* Hotspot Markers */
-.position-marker {
-    position: absolute;
-    display: grid;
-    grid-template-areas: "content";
-    transform: translate(-50%, -50%);
-    transition: all 0.3s ease;
-    z-index: 2;
-
-    img {
-        height: 100%;
-    }
-}
 
 .position-marker>* {
     grid-area: content;
@@ -316,7 +409,7 @@ img.parent_img.hdImage {
 @media (orientation: portrait) {
     .zoom-boundaries {
         padding-left: 20px;
-        padding-top: max(100px,41vh);
+        padding-top: max(100px, 41vh);
         padding-right: 20px;
         padding-bottom: 136px;
     }
@@ -334,56 +427,6 @@ img.parent_img.hdImage {
     transition: all 2s ease;
     box-sizing: border-box;
     opacity: 0;
-}
-
-
-@media screen and (min-width:$navbarBreakpoint) {
-    .side-content {
-        top: $headerHeight ;
-        bottom: 0;
-        background-color: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(6px);
-        will-change: transform;
-    }
-
-    .fakeCorner {
-        position: absolute;
-        top: -50px;
-        width: calc(100% - 185px);
-        height: 50px;
-        right: 0;
-        overflow: hidden;
-        display: flex;
-
-        &::after {
-            content: " ";
-            width: 150px;
-            height: 100%;
-            clip-path: url(#headerTransitionReverse);
-            left: 0;
-            top: 0;
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(6px);
-            transition: all 2s ease;
-            transform: translateX($sideWidth);
-            will-change: transform;
-
-        }
-
-        &::before {
-            content: " ";
-            width: 500px;
-            height: 100%;
-            left: 150px;
-            top: 0;
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(6px);
-            transition: all 2s ease;
-            transform: translateX($sideWidth);
-        }
-    }
 }
 
 .side-content.open,
@@ -497,7 +540,7 @@ img.parent_img.hdImage {
 }
 
 .checkpoint-marker.nav-marker {
-    .badge{
+    .badge {
         color: var(--wp--preset--color--base);
         font-size: 3rem;
         line-height: 100%;

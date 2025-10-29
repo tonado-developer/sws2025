@@ -246,7 +246,7 @@ class WordPressImageMapper {
         const padding = {
             top: 150,
             bottom: 10,
-            left: 10,
+            left: 480,
             right: 100
         };
 
