@@ -2081,20 +2081,8 @@ class WordPressImageMapper {
         const markerRect = marker.getBoundingClientRect();
 
         // MOBILE FIX: Get the visible parent image (desktop or mobile)
-        // On mobile, .desktop elements are hidden and .mobile elements are shown via CSS
-        // We need to find which parent image is actually visible
-        let visibleParent = this.parent;
-        const allParentImages = this.state.currentContainer.querySelectorAll('.parent_img');
-
-        // Find the actually visible parent image by checking computed display style
-        for (const img of allParentImages) {
-            const computedDisplay = window.getComputedStyle(img).display;
-            if (computedDisplay !== 'none') {
-                visibleParent = img;
-                break;
-            }
-        }
-
+        // On mobile, .desktop elements are hidden and .mobile elements are shown
+        const visibleParent = this.state.currentContainer.querySelector('.parent_img:not([style*="display: none"])') || this.parent;
         const parentRect = visibleParent.getBoundingClientRect();
 
         // PRE-ZOOM FAKTOR ERMITTELN

@@ -198,9 +198,9 @@
     @media screen and (max-width:$navbarBreakpoint) {
         .zoom-boundaries {
             padding-left: 80px;
-            padding-top: max(100px,50vh);
+            padding-top: max(100px,38vh);
             padding-right: 80px;
-            padding-bottom: 29vh;
+            padding-bottom: 34vh;
         }
 
         .desktop {
@@ -489,9 +489,11 @@ img.parent_img.hdImage {
     opacity: 0;
     transition: opacity 1s ease, filter 1s ease;
     filter: blur(10px);
-    z-index: 7;
-
+    
+    // display: none;
     &.open {
+        z-index: 7;
+        // display: unset;
         opacity: 1;
         filter: blur(0px);
     }
