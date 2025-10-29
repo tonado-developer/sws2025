@@ -82,6 +82,7 @@ class WordPressImageMapper {
         this.state = {
             initialized: false,
             zooming: false,
+            isPaused: false, // PERFORMANCE: Track if operations are paused
             rootContainer: null, // The topmost container that never changes
             currentContainer: null,
             parentContainer: null,
@@ -97,6 +98,10 @@ class WordPressImageMapper {
         // Canvas data storage
         this.canvasData = new Map();
         this.markerZIndices = [];
+
+        // PERFORMANCE: Cache for DOM queries
+        this.markerDetailsCache = new Map(); // Cache markerDetails elements
+        this.markerLabelCache = new Map();   // Cache markerLabel elements
 
         // Event handlers bound to instance
         this.boundHandlers = {
@@ -197,9 +202,16 @@ class WordPressImageMapper {
 
         // Throttled scroll/resize handler - nur für bereits berechnete Badges
         const handleScroll = () => {
-            if (this._badgeCalcTimeout || this.badgePositions.size === 0) return;
+            // PERFORMANCE FIX: Skip if document hidden or no badges
+            if (this._badgeCalcTimeout || this.badgePositions.size === 0 || document.hidden) return;
 
             this._badgeCalcTimeout = setTimeout(() => {
+                // Skip if document became hidden during timeout
+                if (document.hidden) {
+                    this._badgeCalcTimeout = null;
+                    return;
+                }
+
                 // Nur bereits berechnete Badges neu berechnen
                 this.badgePositions.forEach((_, marker) => {
                     this.calculateBadgePosition(marker);
@@ -217,9 +229,13 @@ class WordPressImageMapper {
         window.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('resize', handleScroll, { passive: true });
 
+        // Store handler for cleanup
+        this._badgeScrollHandler = handleScroll;
+
         // Während Zoom nur für gehoverter Badges
         const badgeTicker = () => {
-            if (this.state.zooming && this._hoveredBadges.size > 0 && !this._badgeCalcPending) {
+            // PERFORMANCE FIX: Only run when needed and document visible
+            if (this.state.zooming && this._hoveredBadges.size > 0 && !this._badgeCalcPending && !document.hidden) {
                 this._badgeCalcPending = true;
                 requestAnimationFrame(() => {
                     this._hoveredBadges.forEach(marker => {
@@ -942,6 +958,8 @@ class WordPressImageMapper {
 
                 "fadeOut": (el) => {
                     const wings = el.querySelectorAll("path");
+                    // PERFORMANCE FIX: Kill all infinite animations (wings flapping)
+                    gsap.killTweensOf(wings);
                     gsap.to(wings, {
                         scale: 0,
                         opacity: 0,
@@ -1017,6 +1035,8 @@ class WordPressImageMapper {
 
                 "fadeOut": (el) => {
                     const wings = el.querySelectorAll("path");
+                    // PERFORMANCE FIX: Kill all infinite animations
+                    gsap.killTweensOf(wings);
                     gsap.to(wings, {
                         scale: 0,
                         opacity: 0,
@@ -1110,6 +1130,8 @@ class WordPressImageMapper {
 
                 "fadeOut": (el) => {
                     const flames = el.querySelectorAll("path");
+                    // PERFORMANCE FIX: Kill infinite flicker animations and movement
+                    gsap.killTweensOf(flames);
                     gsap.to(flames, {
                         scale: 0.7,
                         opacity: 0,
@@ -1195,6 +1217,8 @@ class WordPressImageMapper {
                     const helm = paths[0];
                     const rope = paths[1];
 
+                    // PERFORMANCE FIX: Kill any running animations
+                    gsap.killTweensOf([helm, rope]);
                     gsap.to([helm, rope], {
                         y: -50,
                         scale: 0.8,
@@ -1266,6 +1290,8 @@ class WordPressImageMapper {
                 "fadeOut": (el) => {
                     const paths = el.querySelectorAll("path");
 
+                    // PERFORMANCE FIX: Kill infinite pulse animations
+                    gsap.killTweensOf(paths);
                     gsap.to(paths, {
                         scale: 0,
                         opacity: 0,
@@ -1374,6 +1400,10 @@ class WordPressImageMapper {
     initMarkers() {
         this.markerZIndices = [];
 
+        // PERFORMANCE: Clear and rebuild DOM caches
+        this.markerDetailsCache.clear();
+        this.markerLabelCache.clear();
+
         this.markers.forEach((marker, index) => {
             const overlay = marker.querySelector(`${this.config.selectors.overlay} img`);
             if (!overlay) {
@@ -1384,6 +1414,20 @@ class WordPressImageMapper {
             // Store z-index for proper layering
             const zIndex = parseInt(window.getComputedStyle(marker).zIndex) || 0;
             this.markerZIndices.push({ marker, zIndex, index });
+
+            // PERFORMANCE: Pre-cache markerDetails and markerLabel
+            if (this.state.rootContainer) {
+                const markerDetails = this.state.rootContainer.querySelector(
+                    `${this.config.selectors.markerDetails}[data-hotspot-id="${index}"]`
+                );
+                if (markerDetails) {
+                    this.markerDetailsCache.set(index, markerDetails);
+                    const markerLabel = markerDetails.querySelector(`${this.config.selectors.markerLabel} h3.badge`);
+                    if (markerLabel) {
+                        this.markerLabelCache.set(index, markerLabel);
+                    }
+                }
+            }
 
             // Setup canvas for pixel detection
             this.setupMarkerCanvas(overlay, index);
@@ -1405,7 +1449,8 @@ class WordPressImageMapper {
     setupMarkerCanvas(img, index) {
 
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d'); // OHNE willReadFrequently
+        // PERFORMANCE FIX: Re-enable willReadFrequently for pixel detection
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
         const processImage = () => {
             canvas.width = img.naturalWidth;
@@ -1613,12 +1658,10 @@ class WordPressImageMapper {
      */
     findMarkerAtPosition(e) {
         if (!this.markers) return null;
-        const root = this.state.rootContainer;
 
-        // Phase 1: Check badges first (highest priority)
+        // PERFORMANCE FIX: Phase 1 - Check badges first using cached elements
         for (const { marker, index } of this.markerZIndices) {
-            const markerDetails = root.querySelector(`${this.config.selectors.markerDetails}[data-hotspot-id="${index}"]`);
-            const markerLabel = markerDetails.querySelector(`${this.config.selectors.markerLabel} h3.badge`);
+            const markerLabel = this.markerLabelCache.get(index);
             if (markerLabel) {
                 const labelRect = markerLabel.getBoundingClientRect();
 
@@ -1660,7 +1703,8 @@ class WordPressImageMapper {
     }
 
     handleContainerMouseMove(e) {
-        if (!this.markers || this.state.zooming) return;
+        // PERFORMANCE FIX: Skip if paused or zooming
+        if (!this.markers || this.state.zooming || this.state.isPaused) return;
 
         this.markers.forEach(marker => this.setHoverState(marker, false));
 
@@ -1733,8 +1777,8 @@ class WordPressImageMapper {
      * @param {MouseEvent} e - Click event
      */
     handleContainerClick(e) {
-        // Only process clicks within current container
-        if (!this.state.currentContainer || this.state.zooming) return;
+        // PERFORMANCE FIX: Only process clicks within current container if not paused
+        if (!this.state.currentContainer || this.state.zooming || this.state.isPaused) return;
 
         const containerRect = this.state.currentContainer.getBoundingClientRect();
 
@@ -2376,6 +2420,38 @@ class WordPressImageMapper {
         // Only window-level events, no document events
         window.addEventListener('resize', this.boundHandlers.resize, { passive: true });
         document.addEventListener('keydown', this.boundHandlers.keydown);
+
+        // PERFORMANCE FIX: Pause operations when tab is hidden
+        this.boundHandlers.visibilityChange = () => {
+            if (document.hidden) {
+                this.pauseOperations();
+            } else {
+                this.resumeOperations();
+            }
+        };
+        document.addEventListener('visibilitychange', this.boundHandlers.visibilityChange);
+    }
+
+    /**
+     * Pause expensive operations when tab is hidden
+     */
+    pauseOperations() {
+        this.state.isPaused = true;
+        // Stop SVG positioning updates
+        this.pauseSVGPositioning();
+        this.debug('Operations paused (tab hidden)');
+    }
+
+    /**
+     * Resume operations when tab becomes visible
+     */
+    resumeOperations() {
+        this.state.isPaused = false;
+        // Restart SVG positioning if there are active elements
+        if (this.state.currentlyVisibleElements.size > 0 || this.state.zooming) {
+            this.startSVGPositioning();
+        }
+        this.debug('Operations resumed (tab visible)');
     }
 
     /**
@@ -2495,6 +2571,15 @@ class WordPressImageMapper {
         window.removeEventListener('resize', this.boundHandlers.resize);
         document.removeEventListener('keydown', this.boundHandlers.keydown);
 
+        // PERFORMANCE FIX: Remove new event listeners
+        if (this.boundHandlers.visibilityChange) {
+            document.removeEventListener('visibilitychange', this.boundHandlers.visibilityChange);
+        }
+        if (this._badgeScrollHandler) {
+            window.removeEventListener('scroll', this._badgeScrollHandler);
+            window.removeEventListener('resize', this._badgeScrollHandler);
+        }
+
         // Clean up markers
         if (this.markers) {
             this.markers.forEach(marker => this.detachMarkerEvents(marker));
@@ -2516,12 +2601,17 @@ class WordPressImageMapper {
         // Clear data
         this.clearCanvasData();
 
+        // PERFORMANCE FIX: Clear DOM caches
+        this.markerDetailsCache.clear();
+        this.markerLabelCache.clear();
+
         // Reset state
         this.state.rootContainer = null;
         this.state.parentContainer = null;
         this.state.currentContainer = null;
         this.state.globalElements = null;
         this.state.currentlyVisibleElements.clear();
+        this.state.isPaused = false;
 
         // NEU: Badge ticker cleanup
         if (this._badgeTicker) {
