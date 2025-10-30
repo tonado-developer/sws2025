@@ -59,7 +59,7 @@ class WordPressImageMapper {
                 elementFadeIn: 0.3,   // Duration for showing elements
                 overlayPulse: {
                     enabled: true,
-                    duration: 1.5,        // Dauer einer Pulsation in Sekunden
+                    duration: 1,        // Dauer einer Pulsation in Sekunden
                     minOpacity: 0.4,      // Minimale Opacity
                     ease: 'ease-in-out',   // Easing-Funktion
                     stagger: 2        // Verzögerung zwischen den Overlays
@@ -483,18 +483,33 @@ class WordPressImageMapper {
             this.state.overlayPulseTimeline.kill();
         }
 
-        // Create new timeline
-        this.state.overlayPulseTimeline = gsap.timeline({ repeat: -1 });
+        // Calculate total stagger time for all overlays
+        const totalStaggerTime = (overlays.length - 1) * pulseConfig.stagger;
 
-        // Add pulsing animation for each overlay with stagger
+        // Create new timeline that loops indefinitely with delay between repeats
+        this.state.overlayPulseTimeline = gsap.timeline({
+            repeat: -1,
+            repeatDelay: totalStaggerTime  // Add stagger delay between each repeat
+        });
+
+        // Add smooth pulsing animation for each overlay with stagger
         overlays.forEach((overlay, index) => {
+            const startTime = index * pulseConfig.stagger;
+
+            // Fade out (ease in)
             this.state.overlayPulseTimeline.to(overlay, {
                 opacity: pulseConfig.minOpacity,
                 duration: pulseConfig.duration / 2,
-                ease: pulseConfig.ease,
-                yoyo: true,
-                repeat: 1
-            }, index * pulseConfig.stagger);
+                ease: 'ease-in'
+            }, startTime);
+
+            // Fade in (ease out)
+            this.state.overlayPulseTimeline.to(overlay, {
+                opacity: 0,
+                duration: pulseConfig.duration / 2,
+                ease: 'ease-out'
+            }, startTime + pulseConfig.duration / 2);
+
         });
 
         this.debug(`Started overlay pulse animation for ${overlays.length} overlays`);
