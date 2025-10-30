@@ -47,7 +47,7 @@
             // transform: translateX(100%);
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: $columnsBreakpoint2) {
             grid-template-columns: 1fr;
             
             figure {

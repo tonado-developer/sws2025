@@ -4,16 +4,11 @@
         margin-bottom: 26px;
     }
     .headingCircledTrue{
-        &:not(:has(.wp-block-h3)){
-            @include mask-border(right,60);
-            padding: 16px 0px 16px 20px;
-        }
-        &:has(.wp-block-h3){
-            @include mask-border(right,70);
-            padding: 16px 0px 16px 20px;
-        }
         position: relative;
         text-align: left;
+        @include mask-border(right);
+        padding: 25px 0px 25px 20px;
+        
         &::after{
             inset: 0;
             aspect-ratio: 1;

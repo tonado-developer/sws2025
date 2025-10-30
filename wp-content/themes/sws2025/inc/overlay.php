@@ -28,18 +28,10 @@ function wpoverlay_enqueue_scripts()
     // Overlay script
     wp_enqueue_script(
         'wp-overlay',
-        get_template_directory_uri() . '/assets/js/wp-overlay.js',
+        get_template_directory_uri() . '/assets/js/wp-overlay-min.js',
         array('gsap'),
         '1.0.0',
         true
-    );
-
-    // Overlay styles
-    wp_enqueue_style(
-        'wp-overlay',
-        get_template_directory_uri() . '/assets/css/wp-overlay.css',
-        array(),
-        '1.0.0'
     );
 
     // Localize script

@@ -1,41 +1,54 @@
-@mixin mask-border($opening: null, $gap-height: 45, $corner-radius: 12, $stroke-width: 3.5, $inset: 0px, $color-mode: 'loud') {
+@mixin mask-border($opening: null, $gap-margin: 25, $corner-radius: 12, $stroke-width: 3.5, $inset: 0px, $color-mode: 'loud') {
     position: relative;
     box-sizing: border-box;
     padding: calc(#{$stroke-width + 'px'} - 1px);
     border-radius: $borderRadius;
+
     &:after {
         content: ' ';
         position: absolute;
         inset: $inset;
-        @if $color-mode == 'loud' {
+
+        @if $color-mode =='loud' {
             background: linear-gradient(26deg, #ffcd29 0%, var(--wp--preset--color--accent-1) 25%, #ffcd29 50%, var(--wp--preset--color--accent-1) 75%, #ffcd29 100%);
-        } @else if $color-mode == 'silent' {
+        }
+
+        @else if $color-mode =='silent' {
             background: var(--wp--preset--color--accent-1);
         }
+
         background-size: 200% 200%;
         animation: gradient-flow 6s ease infinite;
         mask-size: 100% 100%;
         mask-repeat: no-repeat;
         will-change: transform;
-        
+
         z-index: 1;
-        
+
         $half-stroke: $stroke-width / 2;
         $stroke-calc: calc(100% - #{$stroke-width}px);
-        $gap-half: $gap-height / 2;
-        $gap-calc: calc(#{$gap-height + '%'} + 2px);
 
-        $gap-center: calc(50% - #{$gap-half + '%'});
-        
-        @if $opening == 'right' {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='100%25' height='100%25' fill='black'/%3E%3Crect x='#{$half-stroke}' y='#{$half-stroke}' width='#{$stroke-calc}' height='#{$stroke-calc}' rx='#{$corner-radius}' ry='#{$corner-radius}' fill='none' stroke='white' stroke-width='#{$stroke-width}'/%3E%3Crect x='calc(100%25 - #{$stroke-width + 5}px)' y='#{$gap-center}' width='#{$stroke-width * 2 + 5}' height='#{$gap-calc}' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' mask='url(%23m)'/%3E%3C/svg%3E");
-        } @else if $opening == 'left' {
-            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='100%25' height='100%25' fill='black'/%3E%3Crect x='#{$half-stroke}' y='#{$half-stroke}' width='#{$stroke-calc}' height='#{$stroke-calc}' rx='#{$corner-radius}' ry='#{$corner-radius}' fill='none' stroke='white' stroke-width='#{$stroke-width}'/%3E%3Crect x='-1' y='#{$gap-center}' width='#{$stroke-width * 2 + 5}' height='#{$gap-calc}' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' mask='url(%23m)'/%3E%3C/svg%3E");
-        } @else if $opening == 'top' {
+        // NEU: Gap berechnet sich aus verfügbarer Höhe minus Margins
+        $gap-height: calc(100% - #{$gap-margin * 2}px);
+        $gap-top: #{$gap-margin}px;
+
+        @if $opening =='right' {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='100%25' height='100%25' fill='black'/%3E%3Crect x='#{$half-stroke}' y='#{$half-stroke}' width='#{$stroke-calc}' height='#{$stroke-calc}' rx='#{$corner-radius}' ry='#{$corner-radius}' fill='none' stroke='white' stroke-width='#{$stroke-width}'/%3E%3Crect x='calc(100%25 - #{$stroke-width + 5}px)' y='#{$gap-top}' width='#{$stroke-width * 2 + 5}' height='#{$gap-height}' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' mask='url(%23m)'/%3E%3C/svg%3E");
+        }
+
+        @else if $opening =='left' {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='100%25' height='100%25' fill='black'/%3E%3Crect x='#{$half-stroke}' y='#{$half-stroke}' width='#{$stroke-calc}' height='#{$stroke-calc}' rx='#{$corner-radius}' ry='#{$corner-radius}' fill='none' stroke='white' stroke-width='#{$stroke-width}'/%3E%3Crect x='-1' y='#{$gap-top}' width='#{$stroke-width * 2 + 5}' height='#{$gap-height}' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' mask='url(%23m)'/%3E%3C/svg%3E");
+        }
+
+        @else if $opening =='top' {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='100%25' height='100%25' fill='black'/%3E%3Crect x='#{$half-stroke}' y='#{$half-stroke}' width='#{$stroke-calc}' height='#{$stroke-calc}' rx='#{$corner-radius}' ry='#{$corner-radius}' fill='none' stroke='white' stroke-width='#{$stroke-width}'/%3E%3Crect x='#{$gap-center}' y='-1' width='#{$gap-calc}' height='#{$stroke-width * 2 + 5}' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' mask='url(%23m)'/%3E%3C/svg%3E");
-        } @else if $opening == 'bottom' {
+        }
+
+        @else if $opening =='bottom' {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='100%25' height='100%25' fill='black'/%3E%3Crect x='#{$half-stroke}' y='#{$half-stroke}' width='#{$stroke-calc}' height='#{$stroke-calc}' rx='#{$corner-radius}' ry='#{$corner-radius}' fill='none' stroke='white' stroke-width='#{$stroke-width}'/%3E%3Crect x='#{$gap-center}' y='calc(100%25 - #{$stroke-width + 5}px)' width='#{$gap-calc}' height='#{$stroke-width * 2 + 5}' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' mask='url(%23m)'/%3E%3C/svg%3E");
-        } @else {
+        }
+
+        @else {
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='100%25' height='100%25' fill='black'/%3E%3Crect x='#{$half-stroke}' y='#{$half-stroke}' width='#{$stroke-calc}' height='#{$stroke-calc}' rx='#{$corner-radius}' ry='#{$corner-radius}' fill='none' stroke='white' stroke-width='#{$stroke-width}'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%25' height='100%25' mask='url(%23m)'/%3E%3C/svg%3E");
         }
     }
@@ -45,9 +58,11 @@
     0% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
     }
+
     100% {
         background-position: 0% 50%;
     }

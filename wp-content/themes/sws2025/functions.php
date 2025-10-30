@@ -88,6 +88,7 @@ add_action('after_setup_theme', 'custom_setup');
  */
 function enqueue_styles()
 {
+    global $post;
     $theme_version = wp_get_theme()->get('Version');
 
     // Main theme stylesheet
@@ -114,13 +115,15 @@ function enqueue_styles()
         $theme_version
     );
 
-    // leaflet specific styles
-    wp_enqueue_style(
-        'style-leaflet',
-        get_parent_theme_file_uri('assets/js/leaflet/leaflet.css'),
-        [],
-        $theme_version
-    );
+    if ($post && (has_block(CUSTOM_BLOCK_CATEGORY . "/interactivemap", $post) || has_block(CUSTOM_BLOCK_CATEGORY . "/image-mapper2", $post))) {
+        // leaflet specific styles
+        wp_enqueue_style(
+            'style-leaflet',
+            get_parent_theme_file_uri('assets/js/leaflet/leaflet.css'),
+            [],
+            $theme_version
+        );
+    }
 }
 add_action('wp_enqueue_scripts', 'enqueue_styles');
 
@@ -154,6 +157,7 @@ add_action('enqueue_block_editor_assets', 'block_editor_only');
  */
 function enqueue_scripts()
 {
+    global $post;
     $theme_version = wp_get_theme()->get('Version');
 
     // GSAP Animation Library
@@ -168,24 +172,26 @@ function enqueue_scripts()
     // Appear Animations
     wp_enqueue_script(
         'appear-frontend',
-        get_template_directory_uri() . '/assets/js/appear.js',
+        get_template_directory_uri() . '/assets/js/appear-min.js',
         [],
         $theme_version,
         true
     );
 
-    // leaflet Animations
-    wp_enqueue_script(
-        'leaflet-frontend',
-        get_template_directory_uri() . '/assets/js/leaflet/leaflet.js',
-        [],
-        $theme_version,
-        true
-    );
+    if ($post && (has_block(CUSTOM_BLOCK_CATEGORY . "/interactivemap", $post) || has_block(CUSTOM_BLOCK_CATEGORY . "/image-mapper2", $post))) {
+        // leaflet Animations
+        wp_enqueue_script(
+            'leaflet-frontend',
+            get_template_directory_uri() . '/assets/js/leaflet/leaflet.js',
+            [],
+            $theme_version,
+            true
+        );
+    }
 
     wp_enqueue_script(
         'burger-toggle',
-        get_template_directory_uri() . '/assets/js/burger-toggle.js',
+        get_template_directory_uri() . '/assets/js/burger-toggle-min.js',
         array(),
         $theme_version,
         true

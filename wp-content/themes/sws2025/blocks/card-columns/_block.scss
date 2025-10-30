@@ -1,9 +1,9 @@
 .wp-block-sws2025-card-columns{
     container{
         display: grid;
-        gap: 40px;
+        gap: 60px 40px;
         @media screen and (max-width:$columnsBreakpoint2) {
-            gap: 20px;
+            gap: 50px 20px;
         }
     }
     .columns-2{

@@ -26,7 +26,7 @@
 @mixin bg-neuro {
     background: linear-gradient(145deg, #d3d3d3, #f0f0f0);
     box-shadow: 20px 20px 60px #bebebe,
-        -20px -20px 30px #ffffff;
+        -20px -20px 15px #ffffff;
 }
 
 .bg-dark {
@@ -91,10 +91,19 @@ section.bg-color {
 }
 
 @mixin card {
-    width: var(--wp--style--global--content-size);
+    width: calc(100% - ((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size)) / 2));
     margin: auto;
     border-radius: $borderRadius;
-    padding: 40px
+    padding: 40px calc((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size)) / 4);
+
+    @media screen and (max-width:$columnsBreakpoint4) {
+        width: calc(100% - ((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size)) / 2 * 0.7));
+        padding: 40px calc((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size)) / 4 * 0.7);
+    }
+    @media screen and (max-width:$navbarBreakpoint) {
+        width: calc(100% - ((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size)) / 2 * 0.3));
+        padding: 40px calc((var(--wp--style--global--wide-size) - var(--wp--style--global--content-size)) / 4 * 0.3);
+    }
 }
 
 .card-light container {
