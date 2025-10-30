@@ -16,7 +16,7 @@
 class WordPressImageMapper {
     constructor(options = {}) {
         // Configuration with defaults
-        this.config = {
+        const defaultConfig = {
             // Selectors
             selectors: {
                 container: '.image-mapper-container',
@@ -56,7 +56,15 @@ class WordPressImageMapper {
                 badgeDelay: 1,
                 badgeDuration: 5,
                 elementFadeOut: 0.3, // Duration for hiding elements
-                elementFadeIn: 0.3   // Duration for showing elements
+                elementFadeIn: 0.3,   // Duration for showing elements
+                overlayPulse: {
+                    enabled: true,
+                    duration: 2.5,        // Dauer einer Pulsation in Sekunden
+                    minOpacity: 0.6,      // Minimale Opacity
+                    maxOpacity: 1,        // Maximale Opacity
+                    ease: 'sine.inOut',   // Easing-Funktion
+                    stagger: 0.15         // Verzögerung zwischen den Overlays
+                }
             },
 
             // Zoom behavior
@@ -73,9 +81,24 @@ class WordPressImageMapper {
             alphaThreshold: 10,
 
             // Debugging
-            debug: false,
+            debug: false
+        };
 
-            ...options
+        // Deep merge for nested objects
+        this.config = {
+            ...defaultConfig,
+            ...options,
+            selectors: { ...defaultConfig.selectors, ...(options.selectors || {}) },
+            classes: { ...defaultConfig.classes, ...(options.classes || {}) },
+            animation: {
+                ...defaultConfig.animation,
+                ...(options.animation || {}),
+                overlayPulse: {
+                    ...defaultConfig.animation.overlayPulse,
+                    ...(options.animation?.overlayPulse || {})
+                }
+            },
+            zoom: { ...defaultConfig.zoom, ...(options.zoom || {}) }
         };
 
         // State management
@@ -92,7 +115,9 @@ class WordPressImageMapper {
             zoomHistory: [],
             zoomTimeline: null,
             currentlyVisibleElements: new Set(), // Track visible elements
-            globalElements: null // Cache global elements
+            globalElements: null, // Cache global elements
+            hasUserInteracted: false, // Track if user has interacted
+            overlayPulseTimeline: null // GSAP Timeline for overlay pulsing
         };
 
         // Canvas data storage
@@ -389,6 +414,11 @@ class WordPressImageMapper {
 
         this.initBadgePositioning();
 
+        // Start overlay pulsing animation if enabled and no interaction yet
+        if (this.state.zoomLevel === 0 && this.config.animation.overlayPulse?.enabled && !this.state.hasUserInteracted) {
+            this.startOverlayPulse();
+        }
+
         this.debug(`Container initialized with ${markers.length} markers, ${Object.keys(this.state.globalElements || {}).length} global element types`);
     }
 
@@ -425,6 +455,64 @@ class WordPressImageMapper {
         gsap.set(this.state.currentContainer, currentTransform);
 
         this.debug(`Precomputed transforms for ${this.markerTransforms.size} markers`);
+    }
+
+    /**
+     * Start overlay pulsing animation
+     */
+    startOverlayPulse() {
+        if (!this.state.currentContainer) return;
+
+        // Check if pulse config exists
+        if (!this.config.animation.overlayPulse) return;
+
+        // Get all overlays from current container
+        const overlays = this.state.currentContainer.querySelectorAll(this.config.selectors.overlay);
+        if (overlays.length === 0) return;
+
+        const pulseConfig = this.config.animation.overlayPulse;
+
+        // Kill existing timeline if any
+        if (this.state.overlayPulseTimeline) {
+            this.state.overlayPulseTimeline.kill();
+        }
+
+        // Create new timeline
+        this.state.overlayPulseTimeline = gsap.timeline({ repeat: -1 });
+
+        // Add pulsing animation for each overlay with stagger
+        overlays.forEach((overlay, index) => {
+            this.state.overlayPulseTimeline.to(overlay, {
+                opacity: pulseConfig.minOpacity,
+                duration: pulseConfig.duration / 2,
+                ease: pulseConfig.ease,
+                yoyo: true,
+                repeat: 1
+            }, index * pulseConfig.stagger);
+        });
+
+        this.debug(`Started overlay pulse animation for ${overlays.length} overlays`);
+    }
+
+    /**
+     * Stop overlay pulsing animation
+     */
+    stopOverlayPulse() {
+        if (this.state.overlayPulseTimeline) {
+            // Smoothly transition back to full opacity
+            const overlays = this.state.currentContainer?.querySelectorAll(this.config.selectors.overlay);
+            if (overlays && this.config.animation.overlayPulse) {
+                gsap.to(overlays, {
+                    opacity: this.config.animation.overlayPulse.maxOpacity,
+                    duration: 0.3,
+                    ease: 'power2.out'
+                });
+            }
+
+            this.state.overlayPulseTimeline.kill();
+            this.state.overlayPulseTimeline = null;
+            this.debug('Stopped overlay pulse animation');
+        }
     }
 
     /**
@@ -1712,6 +1800,12 @@ class WordPressImageMapper {
         const hoveredMarker = this.findMarkerAtPosition(e);
 
         if (hoveredMarker) {
+            // Mark user interaction and stop overlay pulse on first hover
+            if (!this.state.hasUserInteracted) {
+                this.state.hasUserInteracted = true;
+                this.stopOverlayPulse();
+            }
+
             this.setHoverState(hoveredMarker, true);
         }
     }
@@ -1779,6 +1873,12 @@ class WordPressImageMapper {
     handleContainerClick(e) {
         // PERFORMANCE FIX: Only process clicks within current container if not paused
         if (!this.state.currentContainer || this.state.zooming || this.state.isPaused) return;
+
+        // Mark user interaction and stop overlay pulse
+        if (!this.state.hasUserInteracted) {
+            this.state.hasUserInteracted = true;
+            this.stopOverlayPulse();
+        }
 
         const containerRect = this.state.currentContainer.getBoundingClientRect();
 
